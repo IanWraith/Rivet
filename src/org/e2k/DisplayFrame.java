@@ -3,6 +3,7 @@ package org.e2k;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.io.File;
 
 public class DisplayFrame extends JFrame implements ActionListener {
 	
@@ -10,7 +11,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private Rivet theApp;
 	public static final long serialVersionUID=1;
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
-	private JMenuItem exit_item;
+	private JMenuItem exit_item,wavLoad_item;
 	private JMenuItem XPA_item,XPA2_item,CROWD36_item;
 	
 	// Constructor
@@ -23,10 +24,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		setJMenuBar(menuBar);
 		// Main
 		JMenu mainMenu=new JMenu("Main");
+		mainMenu.add(wavLoad_item=new JMenuItem("Load a WAV File"));		
+		wavLoad_item.addActionListener(this);
 		mainMenu.add(exit_item=new JMenuItem("Exit"));		
 		exit_item.addActionListener(this);
 		menuBar.add(mainMenu);
-		
 		// System
 		JMenu systemMenu=new JMenu("System");
 		systemMenu.add(CROWD36_item=new JRadioButtonMenuItem("CROWD36",theApp.isCROWD36()));
@@ -77,7 +79,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="XPA2")	{
 			theApp.setSystem(2);
 		}
-		
+		// Load a WAV file
+		if (event_name=="Load a WAV File")	{
+			String fileName=loadDialogBox();
+			if (fileName!=null) theApp.loadWAVfile(fileName);
+		}
 		// Exit 
 		if (event_name=="Exit") {
 			// Stop the program //
@@ -91,6 +97,30 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		CROWD36_item.setSelected(theApp.isCROWD36());
 		XPA_item.setSelected(theApp.isXPA());
 		XPA2_item.setSelected(theApp.isXPA2());
+	}
+	
+	// Display a dialog box so the user can select a WAV file they wish to process
+	public String loadDialogBox ()	{
+		String file_name;
+		// Bring up a dialog box that allows the user to select the name
+		// of the WAV file to be loaded
+		JFileChooser fc=new JFileChooser();
+		// The dialog box title //
+		fc.setDialogTitle("Select a WAV file to load");
+		// Start in current directory
+		fc.setCurrentDirectory(new File("."));
+		// Don't all types of file to be selected //
+		fc.setAcceptAllFileFilterUsed(false);
+		// Only show .wav files //
+		fc.setFileFilter(new WAVfileFilter());
+		// Show open dialog; this method does not return until the
+		// dialog is closed
+		int returnval=fc.showOpenDialog(this);
+		// If the user has selected cancel then quit
+		if (returnval==JFileChooser.CANCEL_OPTION) return null;
+		// Get the file name an path of the selected file
+		file_name=fc.getSelectedFile().getPath();
+		return file_name;
 	}
 
 }
