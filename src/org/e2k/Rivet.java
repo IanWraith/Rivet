@@ -23,7 +23,8 @@ public class Rivet {
 	public final int MAXCIRC=1024*10;
 	public int circBufferCounter=0;
 	public int[] circDataBuffer=new int[MAXCIRC];
-	private int grabInt;
+	private int[] grabInt=new int[1024];
+	private int countLoad;
 	
 	public static void main(String[] args) {
 		theApp=new Rivet();
@@ -89,6 +90,7 @@ public class Rivet {
 	
 	// Loads in a .WAV file
 	public void loadWAVfile(String fileName)	{
+		int a;
 		boolean wavCom=true;
 		long wavSize=0;
 		try	{
@@ -99,19 +101,19 @@ public class Rivet {
 	    	waveData.sampleSizeInBits=audioInputStream.getFormat().getSampleSizeInBits();
 	    	waveData.channels=audioInputStream.getFormat().getChannels();
 	    	waveData.endian=audioInputStream.getFormat().isBigEndian();
-	    	// Keep grabbing from the WAV file untill it has all been loaded
+	    	// Keep grabbing from the WAV file until it has all been loaded
 	    	while (wavCom==true)	{
 	    		wavCom=grabWavBlock(audioInputStream);
-	    		addToCircBuffer(grabInt);
-	    		wavSize++;
+	    		for (a=0;a<countLoad;a++)	{
+	    			addToCircBuffer(grabInt[a]);
+		    		wavSize++;
+	    		}
 	    	}
 		}
 		catch (Exception e)	{
-			String s=e.toString();
+			
 		}
 	
-		int a=0;
-		a++;
 	}
 	
 	// Read in an int from a wav file
@@ -129,15 +131,22 @@ public class Rivet {
 	  }
 	
 	private boolean grabWavBlock16LE (AudioInputStream audioStream)	{
-		byte inBlock[]=new byte[2];
+		int a,i=0;
+		byte inBlock[]=new byte[2048];
 		try	{
-		    audioStream.read(inBlock);
-		    grabInt=LEconv16(inBlock[0],inBlock[1]);
+		    countLoad=audioStream.read(inBlock);
+		    for (a=0;a<countLoad;a=a+2)	{
+		    	grabInt[i]=LEconv16(inBlock[a],inBlock[a+1]);
+		    	i++;
+		    }
 		   }
 		   catch (Exception e)	{
+			countLoad=i;
 		    return false;
 		   }
-		 return true;
+		 countLoad=i;
+		 if (countLoad<1024) return false;
+		 else return true;
 		 }
 
 	// Convert a 16 bit value from being little endian
@@ -152,15 +161,19 @@ public class Rivet {
 	
 	// Handle 8 bit LE WAV files
 	private boolean grabWavBlock8LE (AudioInputStream audioStream)	{
-		byte inBlock[]=new byte[1];
+		byte inBlock[]=new byte[1024];
+		int a;
 		try	{
-			audioStream.read(inBlock);
-			grabInt=LEconv8(inBlock[0]);
+			countLoad=audioStream.read(inBlock);
+			for (a=0;a<countLoad;a++)	{
+				grabInt[a]=LEconv8(inBlock[a]);
+			}
 		}
 		catch (Exception e)	{
 			return false;
 		}
-	    return true;
+		if (countLoad<1024) return false;
+		 else return true;
 	  }
 	
 	// Add data to the incoming data circular buffer
