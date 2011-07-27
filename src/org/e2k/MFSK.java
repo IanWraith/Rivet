@@ -33,5 +33,11 @@ public class MFSK {
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
 		return (sampleFreq/dbaud);
 	}
+	
+	// Test for a specific tone
+	public boolean toneTest (int freq,int tone,int errorAllow)	{
+	    if ((freq>(tone-errorAllow))&&(freq<(tone+errorAllow))) return true;
+	     else return false;
+	  }
 
 }
