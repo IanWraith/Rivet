@@ -20,11 +20,9 @@ public class Rivet {
 	public boolean pReady=false;
 	private int system=0;
 	private WaveData waveData=new WaveData();
-	public final int MAXCIRC=1024*10;
-	public int circBufferCounter=0;
-	public int[] circDataBuffer=new int[MAXCIRC];
 	private int[] grabInt=new int[1024];
 	private int countLoad;
+	private CircularDataBuffer circBuffer=new CircularDataBuffer();
 	
 	public static void main(String[] args) {
 		theApp=new Rivet();
@@ -105,7 +103,7 @@ public class Rivet {
 	    	while (wavCom==true)	{
 	    		wavCom=grabWavBlock(audioInputStream);
 	    		for (a=0;a<countLoad;a++)	{
-	    			addToCircBuffer(grabInt[a]);
+	    			circBuffer.addToCircBuffer(grabInt[a]);
 		    		wavSize++;
 	    		}
 	    	}
@@ -176,11 +174,6 @@ public class Rivet {
 		 else return true;
 	  }
 	
-	// Add data to the incoming data circular buffer
-	private void addToCircBuffer (int i)	{
-		circDataBuffer[circBufferCounter]=i;
-		circBufferCounter++;
-		if (circBufferCounter==MAXCIRC) circBufferCounter=0;
-	}
+	
 	
 }
