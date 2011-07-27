@@ -4,6 +4,8 @@ import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowAdapter;
 import java.io.File;
+import java.text.DateFormat;
+import java.util.Date;
 import javax.swing.SwingUtilities;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.AudioInputStream;
@@ -93,8 +95,11 @@ public class Rivet {
 	public void loadWAVfile(String fileName)	{
 		int a;
 		boolean wavCom=true;
+		String disp;
 		CircularDataBuffer circBuffer=new CircularDataBuffer();
 		WaveData waveData=new WaveData();
+		disp=getTimeStamp()+" Loading file "+fileName;
+		display_view.add_line(disp,Color.BLACK,plainFont);
 		try	{
 			File wavFile=new File(fileName);
 			AudioInputStream audioInputStream=AudioSystem.getAudioInputStream(wavFile);  
@@ -113,9 +118,11 @@ public class Rivet {
 	    	}
 		}
 		catch (Exception e)	{
-			
+			display_view.add_line(e.toString(),Color.RED,boldFont);
+			return;
 		}
-	
+		disp=getTimeStamp()+" WAV file loaded and analysis complete.";
+		display_view.add_line(disp,Color.BLACK,plainFont);
 	}
 	
 	// Read in an int from a wav file
@@ -178,18 +185,27 @@ public class Rivet {
 		 else return true;
 	  }
 	
+	// A central data processing class
 	private void processData (CircularDataBuffer circBuffer,WaveData waveData)	{
 		String out=null;
+		// XPA
 		if (system==1)	{
 			xpaHandler.decode(circBuffer,waveData);
 			if (xpaHandler.anyOutput()==true) out=xpaHandler.getLine();
 		}
-		
+		// If there is a line to display then show it
 		if (out!=null)	{
 			display_view.add_line(out,Color.BLACK,plainFont);
 		}
 		
 	}
+	
+	// Return a time stamp
+	public String getTimeStamp() {
+		Date now=new Date();
+		DateFormat df=DateFormat.getTimeInstance();
+		return df.format(now);
+	}	
 	
 	
 }
