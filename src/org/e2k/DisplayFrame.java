@@ -74,6 +74,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// XPA
 		if (event_name=="XPA")	{
 			theApp.setSystem(1);
+			theApp.xpaHandler.setBaudRate(10);
+			theApp.xpaHandler.setState(0);
 		}
 		// XPA2
 		if (event_name=="XPA2")	{

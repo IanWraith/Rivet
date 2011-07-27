@@ -19,10 +19,13 @@ public class Rivet {
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
 	private int system=0;
-	private WaveData waveData=new WaveData();
 	private int[] grabInt=new int[1024];
 	private int countLoad;
-	private CircularDataBuffer circBuffer=new CircularDataBuffer();
+	public final Font plainFont=new Font("SanSerif",Font.PLAIN,12);
+	public final Font boldFont=new Font("SanSerif",Font.BOLD,12);
+	public final Font italicFont=new Font("SanSerif",Font.ITALIC,12);
+    public XPA xpaHandler=new XPA();	
+
 	
 	public static void main(String[] args) {
 		theApp=new Rivet();
@@ -90,7 +93,8 @@ public class Rivet {
 	public void loadWAVfile(String fileName)	{
 		int a;
 		boolean wavCom=true;
-		long wavSize=0;
+		CircularDataBuffer circBuffer=new CircularDataBuffer();
+		WaveData waveData=new WaveData();
 		try	{
 			File wavFile=new File(fileName);
 			AudioInputStream audioInputStream=AudioSystem.getAudioInputStream(wavFile);  
@@ -104,7 +108,7 @@ public class Rivet {
 	    		wavCom=grabWavBlock(audioInputStream);
 	    		for (a=0;a<countLoad;a++)	{
 	    			circBuffer.addToCircBuffer(grabInt[a]);
-		    		wavSize++;
+		    		if (circBuffer.getFilled()==true) processData(circBuffer,waveData);
 	    		}
 	    	}
 		}
@@ -174,6 +178,18 @@ public class Rivet {
 		 else return true;
 	  }
 	
+	private void processData (CircularDataBuffer circBuffer,WaveData waveData)	{
+		String out=null;
+		if (system==1)	{
+			xpaHandler.decode(circBuffer,waveData);
+			if (xpaHandler.anyOutput()==true) out=xpaHandler.getLine();
+		}
+		
+		if (out!=null)	{
+			display_view.add_line(out,Color.BLACK,plainFont);
+		}
+		
+	}
 	
 	
 }
