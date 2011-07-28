@@ -27,6 +27,7 @@ public class Rivet {
 	public final Font boldFont=new Font("SanSerif",Font.BOLD,12);
 	public final Font italicFont=new Font("SanSerif",Font.ITALIC,12);
     public XPA xpaHandler=new XPA();	
+    public final int CHUNK_SIZE=2;
 
 	
 	public static void main(String[] args) {
@@ -141,7 +142,7 @@ public class Rivet {
 	
 	private boolean grabWavBlock16LE (AudioInputStream audioStream)	{
 		int a,i=0;
-		byte inBlock[]=new byte[2048];
+		byte inBlock[]=new byte[CHUNK_SIZE*2];
 		try	{
 		    countLoad=audioStream.read(inBlock);
 		    for (a=0;a<countLoad;a=a+2)	{
@@ -154,7 +155,7 @@ public class Rivet {
 		    return false;
 		   }
 		 countLoad=i;
-		 if (countLoad<1024) return false;
+		 if (countLoad<CHUNK_SIZE) return false;
 		 else return true;
 		 }
 
@@ -170,7 +171,7 @@ public class Rivet {
 	
 	// Handle 8 bit LE WAV files
 	private boolean grabWavBlock8LE (AudioInputStream audioStream)	{
-		byte inBlock[]=new byte[1024];
+		byte inBlock[]=new byte[CHUNK_SIZE];
 		int a;
 		try	{
 			countLoad=audioStream.read(inBlock);
@@ -181,7 +182,7 @@ public class Rivet {
 		catch (Exception e)	{
 			return false;
 		}
-		if (countLoad<1024) return false;
+		if (countLoad<CHUNK_SIZE) return false;
 		 else return true;
 	  }
 	
