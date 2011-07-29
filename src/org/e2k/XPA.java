@@ -8,6 +8,12 @@ public class XPA extends MFSK {
 	private boolean haveOutput=false;
 	private int correctionValue=0;
 	private double samplesPerSymbol;
+	private Rivet theApp;
+	
+	public XPA (Rivet tapp,int baud)	{
+		baudRate=baud;
+		theApp=tapp;
+	}
 	
 	public void setBaudRate(int baudRate) {
 		this.baudRate = baudRate;
@@ -48,6 +54,8 @@ public class XPA extends MFSK {
 			}
 		}
 		
+		
+		
 	}
 	
 	public boolean anyOutput()	{
@@ -66,13 +74,13 @@ public class XPA extends MFSK {
 		// Low start tone
 		if (toneTest(currentFreq,520,25)==true)	{
 			correctionValue=currentFreq-520;
-			line="XPA Low Start Tone Found : Correcting by "+Integer.toString(correctionValue)+" Hz";
+			line=theApp.getTimeStamp()+" XPA Low Start Tone Found : Correcting by "+Integer.toString(correctionValue)+" Hz";
 			return line;
 		}
 		// High start tone
 		else if (toneTest(currentFreq,1280,25)==true)	{
 			correctionValue=currentFreq-1280;
-			line="XPA High Start Tone Found : Correcting by "+Integer.toString(correctionValue)+" Hz";
+			line=theApp.getTimeStamp()+" XPA High Start Tone Found : Correcting by "+Integer.toString(correctionValue)+" Hz";
 			return line;
 		}
 		else return null;

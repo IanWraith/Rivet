@@ -26,7 +26,7 @@ public class Rivet {
 	public final Font plainFont=new Font("SanSerif",Font.PLAIN,12);
 	public final Font boldFont=new Font("SanSerif",Font.BOLD,12);
 	public final Font italicFont=new Font("SanSerif",Font.ITALIC,12);
-    public XPA xpaHandler=new XPA();	
+    public XPA xpaHandler=new XPA(this,10);	
     public final int CHUNK_SIZE=2;
 
 	
