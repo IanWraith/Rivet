@@ -30,6 +30,19 @@ public class CircularDataBuffer {
 		return outData;
 	}
 	
+	// Return a user defined section of the circular buffer
+	public double[] extractDataDouble (int start,int length)	{
+		int count=0,a=circBufferCounter+start;
+		double outData[]=new double[length];
+		if (a>MAXCIRC) a=a-MAXCIRC;
+		for (count=0;count<length;count++)	{
+			outData[count]=circDataBuffer[a];
+			a++;
+			if (a==MAXCIRC) a=0;
+		}
+		return outData;
+	}
+	
 	// Return the maximum size of this circular buffer
 	public int retMax()	{
 		return MAXCIRC;
