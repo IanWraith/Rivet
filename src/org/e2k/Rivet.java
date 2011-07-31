@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowAdapter;
 import java.io.File;
+import java.io.FileWriter;
 import java.text.DateFormat;
 import java.util.Date;
 import javax.swing.SwingUtilities;
@@ -200,6 +201,19 @@ public class Rivet {
 		}
 		
 	}
+	
+	// Write a line to the debug file
+	public void debugDump (String line)	{
+	    try	{
+	    	FileWriter dfile=new FileWriter("debug.csv",true);
+	    	dfile.write(line);
+	    	dfile.write("\r\n");
+	    	dfile.flush();  
+	    	dfile.close();
+	    	}catch (Exception e)	{
+	    		System.err.println("Error: " + e.getMessage());
+	    		}
+		}
 	
 	// Return a time stamp
 	public String getTimeStamp() {
