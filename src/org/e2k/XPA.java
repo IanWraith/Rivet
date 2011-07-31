@@ -45,6 +45,10 @@ public class XPA extends MFSK {
 		}
 		// Hunting for a start tone
 		if (state==1)	{
+			
+			int dfreq=doDCT(circBuf,waveData,0,(int)samplesPerSymbol,samplesPerSymbol);
+			doFFT(circBuf,waveData,0,1024,samplesPerSymbol);
+			
 			String sout=startToneHunt(circBuf,waveData);
 			if (sout!=null)	{
 				// Have start tone
@@ -84,6 +88,29 @@ public class XPA extends MFSK {
 			return line;
 		}
 		else return null;
+	}
+	
+
+	
+	public int doFFT (CircularDataBuffer circBuf,WaveData waveData,int start,int length,double samplesPerBaud)	{
+		
+		
+		FFT shortFFT=new FFT();
+		// Get the data from the circular buffer
+	    double datar[]=circBuf.extractDataDouble(start,length);
+	    double datai[]=new double[length];
+	    shortFFT.Setup(length);
+		shortFFT.fft(datar,datai);
+		
+		int a;
+		String str;
+		for (a=0;a<length;a++)	{
+			str=Double.toString(datar[a]);
+			theApp.debugDump(str);
+		}
+		
+	    
+		return 1;
 	}
 	
 
