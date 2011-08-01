@@ -9,6 +9,7 @@ public class XPA extends MFSK {
 	private int correctionValue=0;
 	private double samplesPerSymbol;
 	private Rivet theApp;
+	private long sampleCount=0;
 	
 	public XPA (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -45,10 +46,6 @@ public class XPA extends MFSK {
 		}
 		// Hunting for a start tone
 		if (state==1)	{
-			
-			int dfreq=doDCT(circBuf,waveData,0,(int)samplesPerSymbol,samplesPerSymbol);
-			doFFT(circBuf,waveData,0,1024,samplesPerSymbol);
-			
 			String sout=startToneHunt(circBuf,waveData);
 			if (sout!=null)	{
 				// Have start tone
@@ -57,8 +54,39 @@ public class XPA extends MFSK {
 				haveOutput=true;
 			}
 		}
+		// Look for a sync low (600 Hz) followed by a sync high (1120 Hz)
+		if (state==2)	{
+			int hfreq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
+			if (toneTest (hfreq,600,5)==true)	{
+				int lfreq=symbolFreq(circBuf,waveData,(int)samplesPerSymbol,samplesPerSymbol);
+				if (toneTest (lfreq,1120,5)==true)	{
+					state=3;
+					// Reset the sample counter
+					sampleCount=0;
+					
+					// Debug code to check we are at the start of a symbol
+					int a;
+					double datar[]=circBuf.extractDataDouble(0,(int)samplesPerSymbol);
+					for (a=0;a<datar.length;a++)	{
+						String str=Double.toString(datar[a]);
+						theApp.debugDump(str);
+					}
+					//////////////////////////////////////////////////////
+					
+				}
+			}	
+		}
+		// Get valid data
+		if (state==3)	{
+			// Only do this at the start of each symbol
+			if (sampleCount==(int)samplesPerSymbol)	{
+				sampleCount=0;
+				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
+				
+			}
+		}
 		
-		
+		sampleCount++;
 		
 	}
 	
@@ -74,7 +102,7 @@ public class XPA extends MFSK {
 	// Hunt for an XPA start tone
 	private String startToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		String line;
-		int currentFreq=doDCT(circBuf,waveData,0,(int)samplesPerSymbol,samplesPerSymbol);
+		int currentFreq=doFFT(circBuf,waveData,0,1024);
 		// Low start tone
 		if (toneTest(currentFreq,520,25)==true)	{
 			correctionValue=currentFreq-520;
@@ -88,29 +116,6 @@ public class XPA extends MFSK {
 			return line;
 		}
 		else return null;
-	}
-	
-
-	
-	public int doFFT (CircularDataBuffer circBuf,WaveData waveData,int start,int length,double samplesPerBaud)	{
-		
-		
-		FFT shortFFT=new FFT();
-		// Get the data from the circular buffer
-	    double datar[]=circBuf.extractDataDouble(start,length);
-	    double datai[]=new double[length];
-	    shortFFT.Setup(length);
-		shortFFT.fft(datar,datai);
-		
-		int a;
-		String str;
-		for (a=0;a<length;a++)	{
-			str=Double.toString(datar[a]);
-			theApp.debugDump(str);
-		}
-		
-	    
-		return 1;
 	}
 	
 
