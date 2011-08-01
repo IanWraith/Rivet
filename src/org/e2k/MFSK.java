@@ -51,5 +51,21 @@ public class MFSK {
 		int freq=getFFTFreq (datar,waveData.sampleRate,waveData.correctionFactor);  
 		return freq;
 	}
+	
+	// We have a problem since FFT sizes must be to a power of 2 but samples per symbol can be any value
+	// So instead I am doing a FFT at the start of the symbol and at the end
+	public int symbolFreq (CircularDataBuffer circBuf,WaveData waveData,int start,double samplePerSymbol)	{
+		// There must be at least 1024 samples Per Symbol
+		if (samplePerSymbol<1024) return -1;
+		final int fftSIZE=512;
+		int firstFFTPoint=start;
+		int secondFFTPoint=(start+(int)samplePerSymbol)-fftSIZE;
+		// Do 2 FFTs of each symbol at the start and end of it
+		double freq1=doFFT(circBuf,waveData,firstFFTPoint,fftSIZE);
+		double freq2=doFFT(circBuf,waveData,secondFFTPoint,fftSIZE);
+		double freq=(freq1+freq2)/2;
+		return (int)freq;
+		
+	}
 
 }
