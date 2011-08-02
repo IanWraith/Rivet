@@ -54,25 +54,19 @@ public class XPA extends MFSK {
 				haveOutput=true;
 			}
 		}
-		// Look for a sync low (600 Hz) followed by a sync high (1120 Hz)
+		// Look for a sync low (600 Hz) followed by a sync high (1120 Hz) then another sync low (600 Hz)
 		if (state==2)	{
-			int hfreq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
-			if (toneTest (hfreq,600,5)==true)	{
-				int lfreq=symbolFreq(circBuf,waveData,(int)samplesPerSymbol,samplesPerSymbol);
-				if (toneTest (lfreq,1120,5)==true)	{
-					state=3;
-					// Reset the sample counter
-					sampleCount=0;
-					
-					// Debug code to check we are at the start of a symbol
-					int a;
-					double datar[]=circBuf.extractDataDouble(0,(int)samplesPerSymbol);
-					for (a=0;a<datar.length;a++)	{
-						String str=Double.toString(datar[a]);
-						theApp.debugDump(str);
-					}
-					//////////////////////////////////////////////////////
-					
+			int hfreq=symbolFreq(true,circBuf,waveData,0,samplesPerSymbol);
+			if (toneTest (hfreq,600,25)==true)	{
+				int lfreq=symbolFreq(true,circBuf,waveData,(int)samplesPerSymbol,samplesPerSymbol);
+				if (toneTest (lfreq,1120,25)==true)	{
+					int hfreq2=symbolFreq(true,circBuf,waveData,(int)samplesPerSymbol*2,samplesPerSymbol);
+					if (toneTest (hfreq2,600,25)==true)	{						
+						state=3;
+						outLine=theApp.getTimeStamp()+" Sync Found at "+Long.toString(sampleCount);
+						sampleCount=0;	
+						haveOutput=true;
+					}					
 				}
 			}	
 		}
@@ -81,7 +75,9 @@ public class XPA extends MFSK {
 			// Only do this at the start of each symbol
 			if (sampleCount==(int)samplesPerSymbol)	{
 				sampleCount=0;
-				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
+				int freq=symbolFreq(false,circBuf,waveData,0,samplesPerSymbol);
+				
+				
 				
 			}
 		}
@@ -102,7 +98,7 @@ public class XPA extends MFSK {
 	// Hunt for an XPA start tone
 	private String startToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		String line;
-		int currentFreq=doFFT(circBuf,waveData,0,1024);
+		int currentFreq=doFFT(circBuf,waveData,0,512);
 		// Low start tone
 		if (toneTest(currentFreq,520,25)==true)	{
 			correctionValue=currentFreq-520;

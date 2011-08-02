@@ -2,8 +2,9 @@ package org.e2k;
 
 public class MFSK {
 	
-	private FFT fft=new FFT();
+	public FFT fft=new FFT();
 	private int fft_length=-1;
+	private double fft_percentage;
 	
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -19,13 +20,17 @@ public class MFSK {
 	// Find the bin containing the hight value from an array of doubles
 	private int findHighBin(double[]x)	{
 		int a,highBin=-1;
-		double highVal=-1;
+		double highVal=-1,secondHigh=-1;
 		for (a=0;a<(x.length/2);a++)	{
 			if (x[a]>highVal)	{
+				secondHigh=highVal;
 				highVal=x[a];
 				highBin=a;
 			}
 		}
+		// Calculate the percentage difference between the highest and second highest bins
+		fft_percentage=100-((secondHigh/highVal)*100.0);
+		// Return the highest bin position
 		return highBin;
 	}
 	
@@ -54,7 +59,7 @@ public class MFSK {
 	
 	// We have a problem since FFT sizes must be to a power of 2 but samples per symbol can be any value
 	// So instead I am doing a FFT at the start of the symbol and at the end
-	public int symbolFreq (CircularDataBuffer circBuf,WaveData waveData,int start,double samplePerSymbol)	{
+	public int symbolFreq (Boolean huntMode,CircularDataBuffer circBuf,WaveData waveData,int start,double samplePerSymbol)	{
 		// There must be at least 1024 samples Per Symbol
 		if (samplePerSymbol<1024) return -1;
 		final int fftSIZE=512;
@@ -62,10 +67,13 @@ public class MFSK {
 		int secondFFTPoint=(start+(int)samplePerSymbol)-fftSIZE;
 		// Do 2 FFTs of each symbol at the start and end of it
 		double freq1=doFFT(circBuf,waveData,firstFFTPoint,fftSIZE);
+		double fft_percentage1=fft_percentage;		
 		double freq2=doFFT(circBuf,waveData,secondFFTPoint,fftSIZE);
+		double fft_percentage2=fft_percentage;	
 		double freq=(freq1+freq2)/2;
-		return (int)freq;
-		
+		// In hunt mode a single frequency must be 90% larger than any other frequency
+		if ((huntMode==true)&&((fft_percentage1<90.0)||(fft_percentage2<90.0))) return -1;
+		else return (int)freq;
 	}
 
 }
