@@ -21,7 +21,7 @@ public class CircularDataBuffer {
 	public int[] extractData (int start,int length)	{
 		int count=0,a=circBufferCounter+start;
 		int outData[]=new int[length];
-		if (a>MAXCIRC) a=a-MAXCIRC;
+		if (a>=MAXCIRC) a=a-MAXCIRC;
 		for (count=0;count<length;count++)	{
 			outData[count]=circDataBuffer[a];
 			a++;
@@ -34,9 +34,14 @@ public class CircularDataBuffer {
 	public double[] extractDataDouble (int start,int length)	{
 		int count=0,a=circBufferCounter+start;
 		double outData[]=new double[length];
-		if (a>MAXCIRC) a=a-MAXCIRC;
+		if (a>=MAXCIRC) a=a-MAXCIRC;
 		for (count=0;count<length;count++)	{
-			outData[count]=circDataBuffer[a];
+			try	{
+				outData[count]=circDataBuffer[a];
+			}
+			catch (Exception e)	{
+				System.out.println(e.toString());
+			}
 			a++;
 			if (a==MAXCIRC) a=0;
 		}
