@@ -58,21 +58,15 @@ public class MFSK {
 	}
 	
 	// We have a problem since FFT sizes must be to a power of 2 but samples per symbol can be any value
-	// So instead I am doing a FFT at the start of the symbol and at the end
+	// So instead I am doing a FFT in the middle of the symbol
 	public int symbolFreq (Boolean huntMode,CircularDataBuffer circBuf,WaveData waveData,int start,double samplePerSymbol)	{
 		// There must be at least 1024 samples Per Symbol
 		if (samplePerSymbol<1024) return -1;
-		final int fftSIZE=512;
-		int firstFFTPoint=start;
-		int secondFFTPoint=(start+(int)samplePerSymbol)-fftSIZE;
-		// Do 2 FFTs of each symbol at the start and end of it
-		double freq1=doFFT(circBuf,waveData,firstFFTPoint,fftSIZE);
-		double fft_percentage1=fft_percentage;		
-		double freq2=doFFT(circBuf,waveData,secondFFTPoint,fftSIZE);
-		double fft_percentage2=fft_percentage;	
-		double freq=(freq1+freq2)/2;
+		final int fftSIZE=1024;
+		int fftStart=start+(((int)samplePerSymbol-fftSIZE)/2);
+		double freq=doFFT(circBuf,waveData,fftStart,fftSIZE);
 		// In hunt mode a single frequency must be 90% larger than any other frequency
-		if ((huntMode==true)&&((fft_percentage1<90.0)||(fft_percentage2<90.0))) return -1;
+		if ((huntMode==true)&&(fft_percentage<90.0)) return -1;
 		else return (int)freq;
 	}
 
