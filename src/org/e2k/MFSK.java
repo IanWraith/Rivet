@@ -38,7 +38,7 @@ public class MFSK {
 	private int getFFTFreq (double[]x,double sampleFreq,int correctionFactor)	{
 		int bin=findHighBin(x);
 		double len=x.length;
-		return (int)((sampleFreq/len)*bin)-correctionFactor;
+		return (int)(((sampleFreq/len)*bin)-correctionFactor);
 	}
 	
 	// Run an FFT on a part of the circular buffer and return the main frequency component
