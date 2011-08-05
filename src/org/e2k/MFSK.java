@@ -50,8 +50,8 @@ public class MFSK {
 		final int fftSIZE=1024;
 		int fftStart=start+(((int)samplePerSymbol-fftSIZE)/2);
 		double freq=doFFT(circBuf,waveData,fftStart,fftSIZE);
-		// In hunt mode a single frequency must be 90% larger than any other frequency
-		if ((huntMode==true)&&(fft_percentage<90.0)) return -1;
+		// In hunt mode a single frequency must be 95% larger than any other frequency
+		if ((huntMode==true)&&(fft_percentage<95.0)) return -1;
 		else return (int)freq;
 	}
 	

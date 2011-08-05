@@ -192,8 +192,7 @@ public class Rivet {
 		String out=null;
 		// XPA
 		if (system==1)	{
-			xpaHandler.decode(circBuffer,waveData);
-			if (xpaHandler.anyOutput()==true) out=xpaHandler.getLine();
+			out=xpaHandler.decode(circBuffer,waveData);
 		}
 		// If there is a line to display then show it
 		if (out!=null)	{
