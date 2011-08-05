@@ -62,10 +62,15 @@ public class XPA extends MFSK {
 			final int ERRORALLOWANCE=25;
 			int lfreq=symbolFreq(true,circBuf,waveData,0,samplesPerSymbol);
 			if (toneTest (lfreq,600,ERRORALLOWANCE)==true)	{
+				int dif1=lfreq-600;
 				int hfreq=symbolFreq(true,circBuf,waveData,(int)samplesPerSymbol,samplesPerSymbol);
 				if (toneTest (hfreq,1120,ERRORALLOWANCE)==true)	{
+					int dif2=hfreq-1120;
 					int lfreq2=symbolFreq(true,circBuf,waveData,(int)samplesPerSymbol*2,samplesPerSymbol);
 					if (toneTest (lfreq2,600,ERRORALLOWANCE)==true)	{	
+						int dif3=lfreq2-600;
+						// Calculate the correction factor from the average error
+						waveData.correctionFactor=(dif1+dif2+dif3)/3;
 						state=3;
 						outLine=theApp.getTimeStamp()+" Sync Found at "+Long.toString(sampleCount);
 						symbolCounter=0;	
@@ -99,17 +104,15 @@ public class XPA extends MFSK {
 	// Hunt for an XPA start tone
 	private String startToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		String line;
-		int currentFreq=doFFT(circBuf,waveData,0,512);
+		int currentFreq=doFFT(circBuf,waveData,0,1024);
 		// Low start tone
 		if (toneTest(currentFreq,520,25)==true)	{
-			waveData.correctionFactor=currentFreq-520;
-			line=theApp.getTimeStamp()+" XPA Low Start Tone Found";
+			line=theApp.getTimeStamp()+" XPA Low Start Tone Found ("+Integer.toString(currentFreq)+" Hz)";
 			return line;
 		}
 		// High start tone
 		else if (toneTest(currentFreq,1280,25)==true)	{
-			waveData.correctionFactor=currentFreq-1280;
-			line=theApp.getTimeStamp()+" XPA High Start Tone Found";
+			line=theApp.getTimeStamp()+" XPA High Start Tone Found ("+Integer.toString(currentFreq)+" Hz)";
 			return line;
 		}
 		else return null;
