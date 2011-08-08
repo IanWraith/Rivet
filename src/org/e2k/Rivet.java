@@ -3,16 +3,17 @@ package org.e2k;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowAdapter;
-import java.io.File;
+import java.io.DataInputStream;
 import java.io.FileWriter;
+import java.io.PipedInputStream;
 import java.text.DateFormat;
 import java.util.Date;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.AudioInputStream;
 
 public class Rivet {
 
+	private static boolean RUNNING=true;
 	private DisplayModel display_model;
 	private DisplayView display_view;
 	private static Rivet theApp;
@@ -22,18 +23,35 @@ public class Rivet {
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
 	private int system=0;
-	private int[] grabInt=new int[1024];
-	private int countLoad;
 	public final Font plainFont=new Font("SanSerif",Font.PLAIN,12);
 	public final Font boldFont=new Font("SanSerif",Font.BOLD,12);
 	public final Font italicFont=new Font("SanSerif",Font.ITALIC,12);
     public XPA xpaHandler=new XPA(this,10);	
-    public final int CHUNK_SIZE=2;
-
+    public InputThread inputThread=new InputThread(this);
+    private DataInputStream inPipeData;
+	private PipedInputStream inPipe;
+	private CircularDataBuffer circBuffer=new CircularDataBuffer();
+	private WaveData waveData=new WaveData();
+    
 	public static void main(String[] args) {
 		theApp=new Rivet();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){theApp.createGUI();}});
-
+		// Get data from the soundcard thread
+		try	{
+			// Connected a piped input stream to the piped output stream in the thread
+			theApp.inPipe=new PipedInputStream(theApp.inputThread.getPipedWriter());
+			// Now connect a data input stream to the piped input stream
+			theApp.inPipeData=new DataInputStream(theApp.inPipe);
+			}
+		catch (Exception e)	{
+			JOptionPane.showMessageDialog(null,"Error in main()","Rivet", JOptionPane.INFORMATION_MESSAGE);
+			System.exit(0);
+			}
+		// The main loop
+		while (RUNNING)	{
+			if ((theApp.inputThread.getLoadingFileState()==true)) theApp.getWavData();
+		}
+		
 	}
 	
 	// Setup the window //
@@ -92,102 +110,40 @@ public class Rivet {
 		else return false;
 	}
 	
-	// Loads in a .WAV file
+	// Tell the input thread to start to load a .WAV file
 	public void loadWAVfile(String fileName)	{
-		int a;
-		boolean wavCom=true;
 		String disp;
-		CircularDataBuffer circBuffer=new CircularDataBuffer();
-		WaveData waveData=new WaveData();
 		disp=getTimeStamp()+" Loading file "+fileName;
 		display_view.add_line(disp,Color.BLACK,plainFont);
-		try	{
-			File wavFile=new File(fileName);
-			AudioInputStream audioInputStream=AudioSystem.getAudioInputStream(wavFile);  
-	    	waveData.bytesPerFrame=audioInputStream.getFormat().getFrameSize();
-	    	waveData.sampleRate=audioInputStream.getFormat().getSampleRate();
-	    	waveData.sampleSizeInBits=audioInputStream.getFormat().getSampleSizeInBits();
-	    	waveData.channels=audioInputStream.getFormat().getChannels();
-	    	waveData.endian=audioInputStream.getFormat().isBigEndian();
-	    	// Keep grabbing from the WAV file until it has all been loaded
-	    	while (wavCom==true)	{
-	    		wavCom=grabWavBlock(audioInputStream);
-	    		for (a=0;a<countLoad;a++)	{
-	    			circBuffer.addToCircBuffer(grabInt[a]);
-		    		if (circBuffer.getFilled()==true) processData(circBuffer,waveData);
-	    		}
-	    	}
-		}
-		catch (Exception e)	{
-			display_view.add_line(e.toString(),Color.RED,boldFont);
-			return;
-		}
-		disp=getTimeStamp()+" WAV file loaded and analysis complete.";
-		display_view.add_line(disp,Color.BLACK,plainFont);
+		waveData=inputThread.startFileLoad(fileName);
 	}
 	
-	// Read in an int from a wav file
-	private boolean grabWavBlock (AudioInputStream audioStream) {
-	    // Decide how to handle the WAV data
-	    // 16 bit LE
-		if ((audioStream.getFormat().isBigEndian()==false)&&(audioStream.getFormat().getSampleSizeInBits()==16))	{
-			return grabWavBlock16LE (audioStream); 
-		}
-	    // 8 bit LE
-	    else if ((audioStream.getFormat().isBigEndian()==false)&&(audioStream.getFormat().getSampleSizeInBits()==8))	{
-	    	return grabWavBlock8LE (audioStream); 
-	    }
-	    else return false;
-	  }
-	
-	private boolean grabWavBlock16LE (AudioInputStream audioStream)	{
-		int a,i=0;
-		byte inBlock[]=new byte[CHUNK_SIZE*2];
+	// This is called when the input thread is busy getting data from a WAV file
+	private void getWavData()	{
+		// Get the sample from the input thread
 		try	{
-		    countLoad=audioStream.read(inBlock);
-		    for (a=0;a<countLoad;a=a+2)	{
-		    	grabInt[i]=LEconv16(inBlock[a],inBlock[a+1]);
-		    	i++;
-		    }
-		   }
-		   catch (Exception e)	{
-			countLoad=i;
-		    return false;
-		   }
-		 countLoad=i;
-		 if (countLoad<CHUNK_SIZE) return false;
-		 else return true;
-		 }
-
-	// Convert a 16 bit value from being little endian
-	private int LEconv16 (Byte a,Byte b)	{
-		return (a&0xFF|b<<8);
-	  }
-	
-	// Convert an 8 bit Java Byte to an Integer
-	private int LEconv8 (Byte a)	{
-	    return ((a&0xff)-128);
-	  }
-	
-	// Handle 8 bit LE WAV files
-	private boolean grabWavBlock8LE (AudioInputStream audioStream)	{
-		byte inBlock[]=new byte[CHUNK_SIZE];
-		int a;
-		try	{
-			countLoad=audioStream.read(inBlock);
-			for (a=0;a<countLoad;a++)	{
-				grabInt[a]=LEconv8(inBlock[a]);
+			// Add the data from the thread pipe to the circular buffer
+			circBuffer.addToCircBuffer(inPipeData.readInt());
+			// Once the buffer has been filled then process it
+			if (circBuffer.getFilled()==true)	{
+    			processData();
+    			// Update the progress bar
+    			updateProgressBar();
+    			}
+			// Check if the file has now all been read
+			if (inputThread.getLoadingFileState()==false)	{
+				String disp=getTimeStamp()+" WAV file loaded and analysis complete.";
+				display_view.add_line(disp,Color.BLACK,plainFont);
+				}
 			}
-		}
 		catch (Exception e)	{
-			return false;
-		}
-		if (countLoad<CHUNK_SIZE) return false;
-		 else return true;
-	  }
+			JOptionPane.showMessageDialog(null,"Error in getWavData()","Rivet", JOptionPane.INFORMATION_MESSAGE);
+			}	
+	}
 	
+			
 	// A central data processing class
-	private void processData (CircularDataBuffer circBuffer,WaveData waveData)	{
+	private void processData ()	{
 		String out=null;
 		// XPA
 		if (system==1)	{
@@ -218,7 +174,11 @@ public class Rivet {
 		Date now=new Date();
 		DateFormat df=DateFormat.getTimeInstance();
 		return df.format(now);
-	}	
+	}
+	
+	private void updateProgressBar ()	{
+		window.progressBarUpdate(inputThread.returnFileLoadPercentage());
+	}
 	
 	
 }

@@ -48,8 +48,8 @@ public class JStatusBar extends JPanel {
 	
 	// Set the volume bar display
 	public void setVolumeBar(int val) {
-		// Set the class value //
 		volumeBar.setValue(val);
+		volumeBar.repaint();
 	}
 	
 	public void setSystemLabel (String label)	{
