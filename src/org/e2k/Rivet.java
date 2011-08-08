@@ -30,7 +30,6 @@ public class Rivet {
     public XPA xpaHandler=new XPA(this,10);	
     public final int CHUNK_SIZE=2;
 
-	
 	public static void main(String[] args) {
 		theApp=new Rivet();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){theApp.createGUI();}});

@@ -10,6 +10,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuBar menuBar=new JMenuBar();
 	private Rivet theApp;
 	public static final long serialVersionUID=1;
+	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
 	private JMenuItem exit_item,wavLoad_item;
 	private JMenuItem XPA_item,XPA2_item,CROWD36_item;
@@ -48,6 +49,13 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		add(vscrollbar,BorderLayout.EAST);
 		// Add a listener for this
 		vscrollbar.addAdjustmentListener(new MyAdjustmentListener());
+		
+		// Setup the status bar
+		getContentPane().add(statusBar, java.awt.BorderLayout.SOUTH);
+		statusBar.setLoggingStatus("Not Logging");
+		statusBar.setApp(theApp);
+		
+		statusBarUpdate();
 		}
 
 	
@@ -93,6 +101,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		}
 		
 		menuItemUpdate();
+		statusBarUpdate();
 	}
 	
 	private void menuItemUpdate()	{
@@ -123,6 +132,20 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// Get the file name an path of the selected file
 		file_name=fc.getSelectedFile().getPath();
 		return file_name;
+	}
+	
+	private void statusBarUpdate()	{
+		int system=theApp.getSystem();
+		// CROWD36
+		if (system==0) statusBar.setSystemLabel("CROWD36");
+		// XPA
+		else if (system==1) statusBar.setSystemLabel("XPA");
+		// XPA2
+		else if (system==2) statusBar.setSystemLabel("XPA2");
+	}
+	
+	public void progressBarUpdate (int v)	{
+		statusBar.setVolumeBar(v);
 	}
 
 }
