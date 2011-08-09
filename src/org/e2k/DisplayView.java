@@ -28,8 +28,7 @@ public class DisplayView extends JComponent implements Observer {
 	// Draw the main screen //
 	public void paint (Graphics g) {
 		int count=0,pos=20,i;
-		if (displayCounter>0) i=displayCounter-1;
-		else i=DISPLAYCOUNT-1;
+		i=displayCounter;
 		Graphics2D g2D=(Graphics2D)g;	
 		// Draw in the lines on the screen
 		// taking account of the fact that the data is stored in a circular buffer
@@ -43,8 +42,8 @@ public class DisplayView extends JComponent implements Observer {
 				g2D.drawString(display_string[i],(5-theApp.horizontal_scrollbar_value),(pos-theApp.vertical_scrollbar_value));	
 				pos=pos+20;
 			}	
-			if (i==0) i=DISPLAYCOUNT;
-			i--;
+			i++;
+			if (i>=DISPLAYCOUNT) i=0;
 			count++;
 		}
 	}
