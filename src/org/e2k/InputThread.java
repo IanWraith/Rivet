@@ -23,6 +23,7 @@ public class InputThread extends Thread {
 	private AudioInputStream audioInputStream;
 	public final int CHUNK_SIZE=1024;
     private long fileCounter;
+    private String errorCause="None";
    
 	public InputThread (Rivet theApp) {
     	run=false;
@@ -62,6 +63,7 @@ public class InputThread extends Thread {
     		loadingFile=true;
     	}
     	catch (Exception e)	{
+    		errorCause=e.toString();
     		return null;
     	}
     	return waveData;
@@ -76,6 +78,7 @@ public class InputThread extends Thread {
     			audioInputStream.close();
     		}
     		catch (Exception e)	{
+    			errorCause=e.toString();
     			return false;
     		}
     	}
@@ -156,6 +159,10 @@ public class InputThread extends Thread {
     public int returnFileLoadPercentage()	{
     	double percentage=((double)fileCounter/(double)fileSize)*100.0;
     	return (int)percentage;
+    }
+    
+    public String getErrorCause ()	{
+    	return errorCause;
     }
     
 
