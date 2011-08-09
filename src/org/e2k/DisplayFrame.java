@@ -30,16 +30,15 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		mainMenu.add(exit_item=new JMenuItem("Exit"));		
 		exit_item.addActionListener(this);
 		menuBar.add(mainMenu);
-		// System
-		JMenu systemMenu=new JMenu("System");
-		systemMenu.add(CROWD36_item=new JRadioButtonMenuItem("CROWD36",theApp.isCROWD36()));
+		// Modes
+		JMenu modeMenu=new JMenu("Modes");
+		modeMenu.add(CROWD36_item=new JRadioButtonMenuItem(theApp.MODENAMES[0],theApp.isCROWD36()));
 		CROWD36_item.addActionListener(this);
-		systemMenu.add(XPA_item=new JRadioButtonMenuItem("XPA",theApp.isXPA()));
+		modeMenu.add(XPA_item=new JRadioButtonMenuItem(theApp.MODENAMES[1],theApp.isXPA()));
 		XPA_item.addActionListener(this);
-		systemMenu.add(XPA2_item=new JRadioButtonMenuItem("XPA2",theApp.isXPA2()));
+		modeMenu.add(XPA2_item=new JRadioButtonMenuItem(theApp.MODENAMES[2],theApp.isXPA2()));
 		XPA2_item.addActionListener(this);
-		
-		menuBar.add(systemMenu);
+		menuBar.add(modeMenu);
 		
 		// Help
 		JMenu helpMenu=new JMenu("Help");
@@ -75,20 +74,9 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	// Handle all menu events
 	public void actionPerformed (ActionEvent event) {
 		String event_name=event.getActionCommand();
-		
-		// CROWD36
-		if (event_name=="CROWD36")	{
-			theApp.setSystem(0);
-		}
-		// XPA
-		if (event_name=="XPA")	{
-			theApp.setSystem(1);
-			theApp.xpaHandler.setBaudRate(10);
-			theApp.xpaHandler.setState(0);
-		}
-		// XPA2
-		if (event_name=="XPA2")	{
-			theApp.setSystem(2);
+		// Run through all the mode names
+		for (int a=0;a<theApp.MODENAMES.length;a++)	{
+			if (event_name==theApp.MODENAMES[a]) theApp.setSystem(a);
 		}
 		// Load a WAV file
 		if (event_name=="Load a WAV File")	{
@@ -136,13 +124,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	}
 	
 	private void statusBarUpdate()	{
-		int system=theApp.getSystem();
-		// CROWD36
-		if (system==0) statusBar.setSystemLabel("CROWD36");
-		// XPA
-		else if (system==1) statusBar.setSystemLabel("XPA");
-		// XPA2
-		else if (system==2) statusBar.setSystemLabel("XPA2");
+		statusBar.setModeLabel(theApp.MODENAMES[theApp.getSystem()]);
 	}
 	
 	public void progressBarUpdate (int v)	{

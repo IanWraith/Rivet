@@ -11,7 +11,7 @@ public class JStatusBar extends JPanel {
 	public static final long serialVersionUID=1;
 	private JLabel logMode=new JLabel();
 	private JLabel statusLabel=new JLabel();
-	private JLabel systemLabel=new JLabel();
+	private JLabel modeLabel=new JLabel();
 	private JProgressBar volumeBar=new JProgressBar(0,100);
 	private Border loweredbevel=BorderFactory.createLoweredBevelBorder();
 	private Rivet TtheApp;
@@ -23,15 +23,15 @@ public class JStatusBar extends JPanel {
 		statusLabel.setHorizontalAlignment(SwingConstants.LEFT);
 		statusLabel.setBorder(loweredbevel);
 		statusLabel.updateUI();
-		systemLabel.setHorizontalAlignment(SwingConstants.LEFT);
-		systemLabel.setBorder(loweredbevel);
-		systemLabel.updateUI();
+		modeLabel.setHorizontalAlignment(SwingConstants.LEFT);
+		modeLabel.setBorder(loweredbevel);
+		modeLabel.updateUI();
 		// Give the volume progress bar a border //
 		volumeBar.setBorder(loweredbevel);
 		// Ensure the elements of the status bar are displayed from the left
 		this.setLayout(new FlowLayout(FlowLayout.LEFT));
 		this.add(volumeBar,BorderLayout.CENTER);
-		this.add(systemLabel,BorderLayout.CENTER);
+		this.add(modeLabel,BorderLayout.CENTER);
 		this.add(logMode,BorderLayout.CENTER);
 		this.add(statusLabel,BorderLayout.CENTER);
 	}
@@ -52,8 +52,8 @@ public class JStatusBar extends JPanel {
 		volumeBar.repaint();
 	}
 	
-	public void setSystemLabel (String label)	{
-		systemLabel.setText(label);
+	public void setModeLabel (String label)	{
+		modeLabel.setText(label);
 	}
 	
 

@@ -32,6 +32,8 @@ public class Rivet {
 	private PipedInputStream inPipe;
 	private CircularDataBuffer circBuffer=new CircularDataBuffer();
 	private WaveData waveData=new WaveData();
+	
+	public final String MODENAMES[]={"CROWD36","XPA","XPA2"};
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
