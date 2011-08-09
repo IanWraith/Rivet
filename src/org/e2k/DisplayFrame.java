@@ -53,6 +53,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// Setup the status bar
 		getContentPane().add(statusBar, java.awt.BorderLayout.SOUTH);
 		statusBar.setLoggingStatus("Not Logging");
+		statusBar.setStatusLabel("Idle");
 		statusBar.setApp(theApp);
 		
 		statusBarUpdate();
@@ -146,6 +147,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	
 	public void progressBarUpdate (int v)	{
 		statusBar.setVolumeBar(v);
+	}
+	
+	public void setStatusLabel (String st)	{
+		statusBar.setStatusLabel(st);
 	}
 
 }

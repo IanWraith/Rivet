@@ -31,9 +31,9 @@ public class JStatusBar extends JPanel {
 		// Ensure the elements of the status bar are displayed from the left
 		this.setLayout(new FlowLayout(FlowLayout.LEFT));
 		this.add(volumeBar,BorderLayout.CENTER);
-		this.add(statusLabel,BorderLayout.CENTER);
-		this.add(logMode,BorderLayout.CENTER);
 		this.add(systemLabel,BorderLayout.CENTER);
+		this.add(logMode,BorderLayout.CENTER);
+		this.add(statusLabel,BorderLayout.CENTER);
 	}
 	
 	// Sets the logging label text

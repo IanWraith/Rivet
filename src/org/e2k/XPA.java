@@ -39,6 +39,7 @@ public class XPA extends MFSK {
 		if (state==0)	{
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.sampleRate);
 			state=1;
+			theApp.setStatusLabel("Start Tone Hunt");
 			return "Hunting for a start tone";
 		}
 		// Hunting for a start tone
@@ -47,6 +48,7 @@ public class XPA extends MFSK {
 			if (sout!=null)	{
 				// Have start tone
 				state=2;
+				theApp.setStatusLabel("Sync Hunt");
 				return sout;
 			}
 		}
@@ -67,6 +69,7 @@ public class XPA extends MFSK {
 						state=3;
 						String o=theApp.getTimeStamp()+" Sync Found at "+Long.toString(sampleCount);
 						symbolCounter=0;	
+						theApp.setStatusLabel("Sync Found");
 						return o;
 					}					
 				}
@@ -135,7 +138,7 @@ public class XPA extends MFSK {
 		if ((tChar=="R")&&(previousCharacter=="End Tone")) {
 			String outLine=theApp.getTimeStamp()+" XPA Decode Complete";
 			lineBuffer.delete(0,lineBuffer.length());
-			state=4;
+			state=0;
 			return outLine;
 		}
 		if (tChar=="R") tChar=previousCharacter;

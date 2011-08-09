@@ -180,5 +180,9 @@ public class Rivet {
 		window.progressBarUpdate(inputThread.returnFileLoadPercentage());
 	}
 	
+	public void setStatusLabel (String st)	{
+		window.setStatusLabel(st);
+	}
+	
 	
 }
