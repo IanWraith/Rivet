@@ -139,6 +139,7 @@ public class Rivet {
 				}
 			}
 		catch (Exception e)	{
+			e.printStackTrace();
 			JOptionPane.showMessageDialog(null,"Error in getWavData()","Rivet", JOptionPane.INFORMATION_MESSAGE);
 			}	
 	}
@@ -146,16 +147,17 @@ public class Rivet {
 			
 	// A central data processing class
 	private void processData ()	{
-		String out=null;
+		int a;
+		String outLines[]=new String[2];
 		// XPA
-		if (system==1)	{
-			out=xpaHandler.decode(circBuffer,waveData);
+		if (system==1)	outLines=xpaHandler.decode(circBuffer,waveData);
+		// Return if nothing at all has been returned
+		if (outLines==null) return;
+		// Display the decode objects output
+		for (a=0;a<outLines.length;a++)	{
+			// If there is a line to display then show it
+			if (outLines[a]!=null)	display_view.add_line(outLines[a],Color.BLACK,plainFont);
 		}
-		// If there is a line to display then show it
-		if (out!=null)	{
-			display_view.add_line(out,Color.BLACK,plainFont);
-		}
-		
 	}
 	
 	// Write a line to the debug file
