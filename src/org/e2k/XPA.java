@@ -35,6 +35,15 @@ public class XPA extends MFSK {
 	
 	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		String outLines[]=new String[2];
+		
+		//if (sampleCount==83458)	{
+			
+			//int lfft=doFFT(circBuf,waveData,0,1024);
+			//int sfft=doShortFFT(circBuf,waveData,0);
+			//int a=0;
+			//a++;
+		//}
+		
 		// Just starting
 		if (state==0)	{
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.sampleRate);
@@ -52,28 +61,15 @@ public class XPA extends MFSK {
 				return outLines;
 			}
 		}
-		// Look for a sync low (600 Hz) followed by a sync high (1120 Hz) then another sync low (600 Hz)
+		// Look for a sync high (1120 Hz) followed by a sync low (600 Hz) then another sync high (1120 Hz)
 		if (state==2)	{
-			final int ERRORALLOWANCE=40;
-			int lfreq=symbolFreq(true,circBuf,waveData,0,samplesPerSymbol);
-			if (toneTest (lfreq,600,ERRORALLOWANCE)==true)	{
-				int dif1=lfreq-600;
-				int hfreq=symbolFreq(true,circBuf,waveData,(int)samplesPerSymbol,samplesPerSymbol);
-				if (toneTest (hfreq,1120,ERRORALLOWANCE)==true)	{
-					int dif2=hfreq-1120;
-					int lfreq2=symbolFreq(true,circBuf,waveData,(int)samplesPerSymbol*2,samplesPerSymbol);
-					if (toneTest (lfreq2,600,ERRORALLOWANCE)==true)	{	
-						int dif3=lfreq2-600;
-						// Calculate the correction factor from the average error
-						waveData.correctionFactor=(dif1+dif2+dif3)/3;
-						state=3;
-						outLines[0]=theApp.getTimeStamp()+" Sync Found at "+Long.toString(sampleCount);
-						symbolCounter=0;	
-						theApp.setStatusLabel("Sync Found");
-						return outLines;
-					}					
-				}
-			}	
+			final int ERRORALLOWANCE=20;
+			//int sfft=doShortFFT (circBuf,waveData,0);
+			//if (toneTest(sfft,1120,ERRORALLOWANCE)==false)	{
+				//sampleCount++;
+				//symbolCounter++;
+				//return null;
+			//}	
 		}
 		// Get valid data
 		if (state==3)	{
@@ -84,6 +80,7 @@ public class XPA extends MFSK {
 				outLines=displayMessage(freq);
 			}
 		}
+		
 		sampleCount++;
 		symbolCounter++;
 		return outLines;
@@ -92,15 +89,17 @@ public class XPA extends MFSK {
 	// Hunt for an XPA start tone
 	private String startToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		String line;
-		int currentFreq=doFFT(circBuf,waveData,0,1024);
+		int shortFreq=doShortFFT(circBuf,waveData,0);
 		// Low start tone
-		if (toneTest(currentFreq,520,25)==true)	{
-			line=theApp.getTimeStamp()+" XPA Low Start Tone Found ("+Integer.toString(currentFreq)+" Hz)";
+		if (toneTest(shortFreq,520,50)==true)	{
+			int longFreq=doFFT(circBuf,waveData,0,1024);
+			line=theApp.getTimeStamp()+" XPA Low Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
 			return line;
 		}
 		// High start tone
-		else if (toneTest(currentFreq,1280,25)==true)	{
-			line=theApp.getTimeStamp()+" XPA High Start Tone Found ("+Integer.toString(currentFreq)+" Hz)";
+		else if (toneTest(shortFreq,1280,50)==true)	{
+			int longFreq=doFFT(circBuf,waveData,0,1024);
+			line=theApp.getTimeStamp()+" XPA High Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
 			return line;
 		}
 		else return null;
@@ -108,7 +107,7 @@ public class XPA extends MFSK {
 	
 	// Return a String for a tone
 	private String getChar (int tone,String prevChar)	{
-	    int lw=25;
+	    int lw=20;
 	    if ((tone>(520-lw))&&(tone<(520+lw))) return ("Start Low");
 	    else if ((tone>=(600-lw))&&(tone<(600+lw))) return ("Sync Low");
 	    else if ((tone>=(680-lw))&&(tone<(680+lw))) return (" ");
@@ -183,16 +182,16 @@ public class XPA extends MFSK {
         	groupCount=0;
 			lineBuffer.delete((llength-tlength),llength);
 			outLines[0]=lineBuffer.toString();
-			outLines[1]="End Tone";
+			outLines[1]="End Tone "+freq+" Hz at pos "+sampleCount;
         	lineBuffer.delete(0,lineBuffer.length());
         	return outLines;
 			}
-		// Hunt for 6666622662626
-        if (lineBuffer.indexOf("6666622662626")!=-1)	{
+		// Hunt for 666662266262
+        if (lineBuffer.indexOf("XXXX")!=-1)	{
         	groupCount=0;
 			lineBuffer.delete((llength-tlength),llength);
 			outLines[0]=lineBuffer.toString();
-			outLines[1]="6666622662626";
+			outLines[1]="Block Sync";
         	lineBuffer.delete(0,lineBuffer.length());
         	return outLines;
         	}

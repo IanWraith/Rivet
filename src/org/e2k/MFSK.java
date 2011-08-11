@@ -3,8 +3,12 @@ package org.e2k;
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 public class MFSK {
-	private DoubleFFT_1D ft=new DoubleFFT_1D(1024);
+	
+	private final int SHORT_FFT_SIZE=256;
+	public DoubleFFT_1D ft=new DoubleFFT_1D(1024);
+	public DoubleFFT_1D short_fft=new DoubleFFT_1D(SHORT_FFT_SIZE);
 	private double fft_percentage;
+	private int highValue;
 	
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -18,10 +22,10 @@ public class MFSK {
 	  }
 	
 	// Find the bin containing the hight value from an array of doubles
-	private int findHighBin(double[]x)	{
+	public int findHighBin(double[]x)	{
 		int a,highBin=-1;
 		double highVal=-1,secondHigh=-1;
-		for (a=0;a<(x.length/2);a++)	{
+		for (a=0;a<x.length;a++)	{
 			if (x[a]>highVal)	{
 				secondHigh=highVal;
 				highVal=x[a];
@@ -30,15 +34,16 @@ public class MFSK {
 		}
 		// Calculate the percentage difference between the highest and second highest bins
 		fft_percentage=100-((secondHigh/highVal)*100.0);
+		highValue=(int)highVal;
 		// Return the highest bin position
-		return highBin;
+		return highBin+1;
 	}
 		
 	// Given the real data in a double array return the largest frequency component
-	private int getFFTFreq (double[]x,double sampleFreq,int correctionFactor)	{
+	public int getFFTFreq (double[]x,double sampleFreq,int correctionFactor)	{
 		int bin=findHighBin(x);
-		double len=x.length;
-		double ret=(((sampleFreq/len)*bin)/2)-correctionFactor;
+		double len=x.length*2;
+		double ret=((sampleFreq/len)*bin)-correctionFactor;
 		return (int)ret;
 	}
 	
@@ -59,8 +64,32 @@ public class MFSK {
 		// Get the data from the circular buffer
 	    double datar[]=circBuf.extractDataDouble(start,length);
 		ft.realForward(datar);
-		int freq=getFFTFreq (datar,waveData.sampleRate,waveData.correctionFactor);  
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.correctionFactor);  
 		return freq;
+	}
+	
+	public int doShortFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+	    double datar[]=circBuf.extractDataDouble(start,SHORT_FFT_SIZE);
+		short_fft.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.sampleRate,0);  
+		return freq;
+	}
+	
+	public double[] getSpectrum (double[]data)	{
+		double spectrum[]=new double[data.length/2];
+		int a,count=0;
+		for (a=2;a<data.length;a=a+2)	{
+			spectrum[count]=Math.sqrt(Math.pow(data[a],2.0)+Math.pow(data[a+1],2.0));
+			count++;
+		}
+		return spectrum;
+	}
+	
+	public int getHighVal ()	{
+		return highValue;
 	}
 
 }
