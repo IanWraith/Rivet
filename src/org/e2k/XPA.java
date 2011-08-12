@@ -1,3 +1,16 @@
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// Rivet Copyright (C) 2011 Ian Wraith
+// This program comes with ABSOLUTELY NO WARRANTY
+
 package org.e2k;
 
 public class XPA extends MFSK {
@@ -35,15 +48,7 @@ public class XPA extends MFSK {
 	
 	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		String outLines[]=new String[2];
-		
-		//if (sampleCount==83458)	{
-			
-			//int lfft=doFFT(circBuf,waveData,0,1024);
-			//int sfft=doShortFFT(circBuf,waveData,0);
-			//int a=0;
-			//a++;
-		//}
-		
+				
 		// Just starting
 		if (state==0)	{
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.sampleRate);
@@ -64,19 +69,47 @@ public class XPA extends MFSK {
 		// Look for a sync high (1120 Hz) followed by a sync low (600 Hz) then another sync high (1120 Hz)
 		if (state==2)	{
 			final int ERRORALLOWANCE=20;
-			//int sfft=doShortFFT (circBuf,waveData,0);
-			//if (toneTest(sfft,1120,ERRORALLOWANCE)==false)	{
-				//sampleCount++;
-				//symbolCounter++;
-				//return null;
-			//}	
+			int pos=0;
+			int sfft1=doShortFFT (circBuf,waveData,pos);
+			if (toneTest(sfft1,1120,ERRORALLOWANCE)==false)	{
+				sampleCount++;
+				symbolCounter++;
+				return null;
+			}	
+			pos=(int)samplesPerSymbol-SHORT_FFT_SIZE;
+			int sfft2=doShortFFT (circBuf,waveData,pos);
+			if (toneTest(sfft2,1120,ERRORALLOWANCE)==false)	{
+				sampleCount++;
+				symbolCounter++;
+				return null;
+			}
+			pos=(int)samplesPerSymbol;
+			int sfft3=doShortFFT (circBuf,waveData,pos);
+			if (toneTest(sfft3,600,ERRORALLOWANCE)==false)	{
+				sampleCount++;
+				symbolCounter++;
+				return null;
+			}
+			pos=pos+(int)samplesPerSymbol-SHORT_FFT_SIZE;
+			int sfft4=doShortFFT (circBuf,waveData,pos);
+			if (toneTest(sfft4,600,ERRORALLOWANCE)==false)	{
+				sampleCount++;
+				symbolCounter++;
+				return null;
+			}
+			
+			state=3;
+			symbolCounter=0;
+			theApp.setStatusLabel("Sync Achieved");
+			outLines[0]=theApp.getTimeStamp()+" Sync Achieved at position "+Long.toString(sampleCount);
+			
 		}
 		// Get valid data
 		if (state==3)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter==(int)samplesPerSymbol)	{
 				symbolCounter=0;				
-				int freq=symbolFreq(false,circBuf,waveData,0,samplesPerSymbol);
+				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
 				outLines=displayMessage(freq);
 			}
 		}
@@ -92,13 +125,17 @@ public class XPA extends MFSK {
 		int shortFreq=doShortFFT(circBuf,waveData,0);
 		// Low start tone
 		if (toneTest(shortFreq,520,50)==true)	{
-			int longFreq=doFFT(circBuf,waveData,0,1024);
+			waveData.shortCorrectionFactor=shortFreq-520;
+			int longFreq=doFFT(circBuf,waveData,0,LONG_FFT_SIZE);
+			waveData.longCorrectionFactor=longFreq-520;
 			line=theApp.getTimeStamp()+" XPA Low Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
 			return line;
 		}
 		// High start tone
 		else if (toneTest(shortFreq,1280,50)==true)	{
-			int longFreq=doFFT(circBuf,waveData,0,1024);
+			waveData.shortCorrectionFactor=shortFreq-1280;
+			int longFreq=doFFT(circBuf,waveData,0,LONG_FFT_SIZE);
+			waveData.longCorrectionFactor=longFreq-1280;
 			line=theApp.getTimeStamp()+" XPA High Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
 			return line;
 		}
@@ -182,12 +219,12 @@ public class XPA extends MFSK {
         	groupCount=0;
 			lineBuffer.delete((llength-tlength),llength);
 			outLines[0]=lineBuffer.toString();
-			outLines[1]="End Tone "+freq+" Hz at pos "+sampleCount;
+			//outLines[1]="End Tone "+freq+" Hz at pos "+sampleCount;
         	lineBuffer.delete(0,lineBuffer.length());
         	return outLines;
 			}
 		// Hunt for 666662266262
-        if (lineBuffer.indexOf("XXXX")!=-1)	{
+        if (lineBuffer.indexOf("666662266262")!=-1)	{
         	groupCount=0;
 			lineBuffer.delete((llength-tlength),llength);
 			outLines[0]=lineBuffer.toString();

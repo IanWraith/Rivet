@@ -1,14 +1,26 @@
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// Rivet Copyright (C) 2011 Ian Wraith
+// This program comes with ABSOLUTELY NO WARRANTY
+
 package org.e2k;
 
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 public class MFSK {
 	
-	private final int SHORT_FFT_SIZE=256;
-	public DoubleFFT_1D ft=new DoubleFFT_1D(1024);
-	public DoubleFFT_1D short_fft=new DoubleFFT_1D(SHORT_FFT_SIZE);
-	private double fft_percentage;
-	private int highValue;
+	public final int SHORT_FFT_SIZE=128;
+	public final int LONG_FFT_SIZE=1024;
+	private DoubleFFT_1D ft=new DoubleFFT_1D(LONG_FFT_SIZE);
+	private DoubleFFT_1D short_fft=new DoubleFFT_1D(SHORT_FFT_SIZE);
 	
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -22,25 +34,21 @@ public class MFSK {
 	  }
 	
 	// Find the bin containing the hight value from an array of doubles
-	public int findHighBin(double[]x)	{
+	private int findHighBin(double[]x)	{
 		int a,highBin=-1;
-		double highVal=-1,secondHigh=-1;
+		double highVal=-1;
 		for (a=0;a<x.length;a++)	{
 			if (x[a]>highVal)	{
-				secondHigh=highVal;
 				highVal=x[a];
 				highBin=a;
 			}
 		}
-		// Calculate the percentage difference between the highest and second highest bins
-		fft_percentage=100-((secondHigh/highVal)*100.0);
-		highValue=(int)highVal;
 		// Return the highest bin position
 		return highBin+1;
 	}
 		
 	// Given the real data in a double array return the largest frequency component
-	public int getFFTFreq (double[]x,double sampleFreq,int correctionFactor)	{
+	private int getFFTFreq (double[]x,double sampleFreq,int correctionFactor)	{
 		int bin=findHighBin(x);
 		double len=x.length*2;
 		double ret=((sampleFreq/len)*bin)-correctionFactor;
@@ -49,15 +57,12 @@ public class MFSK {
 	
 	// We have a problem since FFT sizes must be to a power of 2 but samples per symbol can be any value
 	// So instead I am doing a FFT in the middle of the symbol
-	public int symbolFreq (Boolean huntMode,CircularDataBuffer circBuf,WaveData waveData,int start,double samplePerSymbol)	{
-		// There must be at least 1024 samples Per Symbol
-		if (samplePerSymbol<1024) return -1;
-		final int fftSIZE=1024;
-		int fftStart=start+(((int)samplePerSymbol-fftSIZE)/2);
-		double freq=doFFT(circBuf,waveData,fftStart,fftSIZE);
-		// In hunt mode a single frequency must be 95% larger than any other frequency
-		if ((huntMode==true)&&(fft_percentage<95.0)) return -1;
-		else return (int)freq;
+	public int symbolFreq (CircularDataBuffer circBuf,WaveData waveData,int start,double samplePerSymbol)	{
+		// There must be at least LONG_FFT_SIZE samples Per Symbol
+		if (samplePerSymbol<LONG_FFT_SIZE) return -1;
+		int fftStart=start+(((int)samplePerSymbol-LONG_FFT_SIZE)/2);
+		double freq=doFFT(circBuf,waveData,fftStart,LONG_FFT_SIZE);
+		return (int)freq;
 	}
 	
 	public int doFFT (CircularDataBuffer circBuf,WaveData waveData,int start,int length)	{
@@ -65,7 +70,7 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,length);
 		ft.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.correctionFactor);  
+		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.longCorrectionFactor);  
 		return freq;
 	}
 	
@@ -74,11 +79,13 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,SHORT_FFT_SIZE);
 		short_fft.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,0);  
+		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.shortCorrectionFactor);  
 		return freq;
 	}
 	
-	public double[] getSpectrum (double[]data)	{
+	// Combine the complex data returned by the JTransform FFT routine to provide
+	// a power spectrum
+	private double[] getSpectrum (double[]data)	{
 		double spectrum[]=new double[data.length/2];
 		int a,count=0;
 		for (a=2;a<data.length;a=a+2)	{
@@ -88,8 +95,5 @@ public class MFSK {
 		return spectrum;
 	}
 	
-	public int getHighVal ()	{
-		return highValue;
-	}
 
 }
