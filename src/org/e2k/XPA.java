@@ -15,7 +15,7 @@ package org.e2k;
 
 public class XPA extends MFSK {
 	
-	private int baudRate;
+	private int baudRate=10;
 	private int state=0;
 	private double samplesPerSymbol;
 	private Rivet theApp;

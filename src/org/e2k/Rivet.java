@@ -35,7 +35,7 @@ public class Rivet {
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
-	private int system=0;
+	private int system=1;
 	public final Font plainFont=new Font("SanSerif",Font.PLAIN,12);
 	public final Font boldFont=new Font("SanSerif",Font.BOLD,12);
 	public final Font italicFont=new Font("SanSerif",Font.ITALIC,12);
