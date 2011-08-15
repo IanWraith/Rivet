@@ -45,6 +45,8 @@ public class Rivet {
 	private PipedInputStream inPipe;
 	private CircularDataBuffer circBuffer=new CircularDataBuffer();
 	private WaveData waveData=new WaveData();
+	private boolean logging=false;
+	public FileWriter file;
 	
 	public final String MODENAMES[]={"CROWD36","XPA","XPA2"};
     
@@ -200,6 +202,32 @@ public class Rivet {
 	public void setStatusLabel (String st)	{
 		window.setStatusLabel(st);
 	}
+
+	public void setLogging(boolean logging) {
+		this.logging = logging;
+	}
+
+	public boolean getLogging() {
+		return logging;
+	}
 	
+	// Write to a string to the logging file
+	public boolean fileWrite(String fline) {
+		// Add a CR to the end of each line
+		fline=fline+"\r\n";
+		// If we aren't logging don't try to do anything
+		if (logging==false)
+			return false;
+		try {
+			file.write(fline);
+			file.flush();
+		} catch (Exception e) {
+			// Stop logging as we have a problem
+			logging=false;
+			System.out.println("\nError writing to the logging file");
+			return false;
+		}
+		return true;
+	}
 	
 }

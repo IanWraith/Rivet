@@ -71,6 +71,8 @@ public class DisplayView extends JComponent implements Observer {
 		// Check it hasn't reached its maximum size
 		if (displayCounter==DISPLAYCOUNT) displayCounter=0;
 		repaint();
+		// If logging write this to the log file
+		if (theApp.getLogging()==true) theApp.fileWrite(line);
 	}
 
 }

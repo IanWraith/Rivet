@@ -17,6 +17,7 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FileWriter;
 
 public class DisplayFrame extends JFrame implements ActionListener {
 	
@@ -25,7 +26,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public static final long serialVersionUID=1;
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
-	private JMenuItem exit_item,wavLoad_item;
+	private JMenuItem exit_item,wavLoad_item,save_to_file;
 	private JMenuItem XPA_item,XPA2_item,CROWD36_item;
 	
 	// Constructor
@@ -40,6 +41,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		JMenu mainMenu=new JMenu("Main");
 		mainMenu.add(wavLoad_item=new JMenuItem("Load a WAV File"));		
 		wavLoad_item.addActionListener(this);
+		mainMenu.add(save_to_file=new JRadioButtonMenuItem("Save to File",theApp.getLogging()));
+		save_to_file.addActionListener(this);
 		mainMenu.add(exit_item=new JMenuItem("Exit"));		
 		exit_item.addActionListener(this);
 		menuBar.add(mainMenu);
@@ -96,8 +99,24 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			String fileName=loadDialogBox();
 			if (fileName!=null) theApp.loadWAVfile(fileName);
 		}
+		// Save to File
+		if (event_name=="Save to File")	{		
+			if (theApp.getLogging()==false)	{
+				if (saveDialogBox()==false)	{
+					menuItemUpdate();
+					return;
+				}
+				theApp.setLogging(true);
+				statusBar.setLoggingStatus("Logging");
+			}
+			 else	{
+				 closeLogFile();
+			 }
+		}	
 		// Exit 
 		if (event_name=="Exit") {
+			// If logging then close the log file
+			if (theApp.getLogging()==true) closeLogFile();
 			// Stop the program //
 			System.exit(0);	
 		}
@@ -107,6 +126,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	}
 	
 	private void menuItemUpdate()	{
+		save_to_file.setSelected(theApp.getLogging());
 		CROWD36_item.setSelected(theApp.isCROWD36());
 		XPA_item.setSelected(theApp.isXPA());
 		XPA2_item.setSelected(theApp.isXPA2());
@@ -146,6 +166,71 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	
 	public void setStatusLabel (String st)	{
 		statusBar.setStatusLabel(st);
+	}
+	
+	// Close the log file
+	public void closeLogFile()	{
+		 theApp.setLogging(false);
+		 statusBar.setLoggingStatus("Not Logging");
+		 try 	{
+			 // Close the file
+			 theApp.file.flush();
+			 theApp.file.close();
+		 }
+		 catch (Exception e)	{
+			 JOptionPane.showMessageDialog(null,"Error closing Log file","DMRDecode", JOptionPane.INFORMATION_MESSAGE);
+		 }
+	}
+	
+	// Display a dialog box so the user can select a location and name for a log file
+	public boolean saveDialogBox ()	{
+		if (theApp.getLogging()==true) return false;
+		String file_name;
+		// Bring up a dialog box that allows the user to select the name
+		// of the saved file
+		JFileChooser fc=new JFileChooser();
+		// The dialog box title //
+		fc.setDialogTitle("Select the log file name");
+		// Start in current directory
+		fc.setCurrentDirectory(new File("."));
+		// Don't all types of file to be selected //
+		fc.setAcceptAllFileFilterUsed(false);
+		// Only show .txt files //
+		fc.setFileFilter(new TextFileFilter());
+		// Show save dialog; this method does not return until the
+		// dialog is closed
+		int returnval=fc.showSaveDialog(this);
+		// If the user has selected cancel then quit
+		if (returnval==JFileChooser.CANCEL_OPTION) return false;
+		// Get the file name an path of the selected file
+		file_name=fc.getSelectedFile().getPath();
+		// Does the file name end in .txt ? //
+		// If not then automatically add a .txt ending //
+		int last_index=file_name.lastIndexOf(".txt");
+		if (last_index!=(file_name.length()-4)) file_name=file_name + ".txt";
+		// Create a file with this name //
+		File tfile=new File(file_name);
+		// If the file exists ask the user if they want to overwrite it
+		if (tfile.exists()) {
+			int response = JOptionPane.showConfirmDialog(null,
+					"Overwrite existing file?", "Confirm Overwrite",
+					JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.QUESTION_MESSAGE);
+			if (response == JOptionPane.CANCEL_OPTION) return false;
+		}
+		// Open the file
+		try {
+			theApp.file=new FileWriter(tfile);
+			// Write the program version as the first line of the log
+			String fline=theApp.program_version+"\r\n";
+			theApp.file.write(fline);
+			
+		} catch (Exception e) {
+			System.out.println("\nError opening the logging file");
+			return false;
+		}
+		theApp.setLogging(true);
+		return true;
 	}
 
 }
