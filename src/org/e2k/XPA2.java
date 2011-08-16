@@ -11,9 +11,7 @@ public class XPA2 extends MFSK {
 	private String previousCharacter;
 	private int groupCount=0;
 	private StringBuffer lineBuffer=new StringBuffer();
-	
-	private int lastFFT=-1;
-	
+		
 	public XPA2 (Rivet tapp,double baud)	{
 		baudRate=baud;
 		theApp=tapp;
@@ -69,7 +67,7 @@ public class XPA2 extends MFSK {
 				symbolCounter++;
 				return null;
 			}	
-			pos=(int)samplesPerSymbol-SHORT_FFT_SIZE;
+			pos=(int)samplesPerSymbol-MID_FFT_SIZE;
 			int sfft2=doMidFFT (circBuf,waveData,pos);
 			if (toneTest(sfft2,SYNCLOW,ERRORALLOWANCE)==false)	{
 				sampleCount++;
@@ -83,7 +81,7 @@ public class XPA2 extends MFSK {
 				symbolCounter++;
 				return null;
 			}
-			pos=pos+(int)samplesPerSymbol-SHORT_FFT_SIZE;
+			pos=pos+(int)samplesPerSymbol-MID_FFT_SIZE;
 			int sfft4=doMidFFT (circBuf,waveData,pos);
 			if (toneTest(sfft4,SYNCHIGH,ERRORALLOWANCE)==false)	{
 				sampleCount++;
@@ -104,8 +102,8 @@ public class XPA2 extends MFSK {
 				symbolCounter=0;				
 				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
 				
-				String st=Integer.toString(freq)+","+Long.toString(sampleCount);
-				theApp.debugDump(st);
+				//String st=Integer.toString(freq)+","+Long.toString(sampleCount);
+				//theApp.debugDump(st);
 				
 				//outLines=displayMessage(freq);
 			}
@@ -133,29 +131,24 @@ public class XPA2 extends MFSK {
 	
 	// Return a String for a tone
 	private String getChar (int tone,String prevChar)	{
-	    final int lw=15;
-	    if ((tone>(978-lw))&&(tone<(978+lw))) return (" ");
+	    final int lw=7;
+	    if ((tone>=(978-lw))&&(tone<(978+lw))) return (" ");
 	    else if ((tone>=(1010-lw))&&(tone<(1010+lw))) return ("Sync Low");
-	    else if ((tone>=(1041-lw))&&(tone<(1050+lw))) return ("Sync High");
-	    else if ((tone>=(1104-lw))&&(tone<(1103+lw))) return ("2");
+	    // Allow for 1041 Hz and 1057 Hz Sync Highs
+	    else if ((tone>=(1041-lw))&&(tone<(1057+lw)))	{
+	    	if (prevChar=="Sync Low") return ("Sync High");
+	    	else return "R";
+	    }
+	    else if ((tone>=(1073-lw))&&(tone<(1073+lw))) return ("0");
+	    else if ((tone>=(1088-lw))&&(tone<(1088+lw))) return ("1");
+	    else if ((tone>=(1104-lw))&&(tone<(1104+lw))) return ("2");
+	    else if ((tone>=(1119-lw))&&(tone<(1119+lw))) return ("3");
+	    else if ((tone>=(1134-lw))&&(tone<(1134+lw))) return ("4");
+	    else if ((tone>=(1151-lw))&&(tone<(1151+lw))) return ("5");
 	    else if ((tone>=(1167-lw))&&(tone<(1167+lw))) return ("6");
-	    else if ((tone>=(1212-lw))&&(tone<(1212+lw))) return ("Start High");
-	    
-	    //else if ((tone>=(680-lw))&&(tone<(680+lw))) return (" ");
-	    //else if ((tone>=(720-lw))&&(tone<(720+lw))) return ("End Tone");
-	    //else if ((tone>=(760-lw))&&(tone<(760+lw))) return ("0");
-	    //else if ((tone>=(800-lw))&&(tone<(800+lw))) return ("1");
-	    //else if ((tone>=(840-lw))&&(tone<(840+lw))) return ("2");
-	    //else if ((tone>=(880-lw))&&(tone<(880+lw))) return ("3");
-	    //else if ((tone>=(920-lw))&&(tone<(920+lw))) return ("4");
-	    //else if ((tone>=(960-lw))&&(tone<(960+lw))) return ("5");
-	    //else if ((tone>=(1000-lw))&&(tone<(1000+lw))) return ("6");
-	    //else if ((tone>=(1040-lw))&&(tone<(1040+lw))) return ("7");
-	    //else if ((tone>=(1080-lw))&&(tone<(1080+lw))) return ("8");
-	    //else if ((tone>=(1120-lw))&&(tone<(1120+lw)))	return ("9");
-	    //else if ((tone>=(1160-lw))&&(tone<(1160+lw))) return ("Message Start");
-	    //else if ((tone>=(1200-lw))&&(tone<(1200+lw))) return ("R");
-	    //else if ((tone>=(1280-lw))&&(tone<(1280+lw))) return ("Start High");
+	    else if ((tone>=(1182-lw))&&(tone<(1182+lw))) return ("7");
+	    else if ((tone>=(1197-lw))&&(tone<(1197+lw))) return ("8");
+	    else if ((tone>=(1212-lw))&&(tone<(1212+lw))) return ("9");
 	    else return ("UNID");
 	  }
 
