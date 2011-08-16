@@ -57,50 +57,43 @@ public class XPA2 extends MFSK {
 		}
 		
 		
-		// Look for a sync low (1025 Hz) followed by a sync high (600 Hz) then another sync high (1120 Hz)
+		// Look for a sync low (998 Hz) followed by a sync high (1041 Hz) 
 		if (state==2)	{
+			final int SYNCLOW=998;
+			final int SYNCHIGH=1041;
 			final int ERRORALLOWANCE=20;
 			int pos=0;
-			int sfft1=doShortFFT (circBuf,waveData,pos);
-			
-			if (lastFFT!=sfft1)	{
-				String l=Integer.toString(sfft1)+","+Long.toString(sampleCount);
-				theApp.debugDump(l);
-			}
-			lastFFT=sfft1;
-			
-			if (toneTest(sfft1,1025,ERRORALLOWANCE)==false)	{
+			int sfft1=doMidFFT (circBuf,waveData,pos);
+			if (toneTest(sfft1,SYNCLOW,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
 				return null;
 			}	
 			pos=(int)samplesPerSymbol-SHORT_FFT_SIZE;
-			int sfft2=doShortFFT (circBuf,waveData,pos);
-			if (toneTest(sfft2,1025,ERRORALLOWANCE)==false)	{
+			int sfft2=doMidFFT (circBuf,waveData,pos);
+			if (toneTest(sfft2,SYNCLOW,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
 				return null;
 			}
 			pos=(int)samplesPerSymbol;
-			int sfft3=doShortFFT (circBuf,waveData,pos);
-			if (toneTest(sfft3,1060,ERRORALLOWANCE)==false)	{
+			int sfft3=doMidFFT (circBuf,waveData,pos);
+			if (toneTest(sfft3,SYNCHIGH,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
 				return null;
 			}
 			pos=pos+(int)samplesPerSymbol-SHORT_FFT_SIZE;
-			int sfft4=doShortFFT (circBuf,waveData,pos);
-			if (toneTest(sfft4,1060,ERRORALLOWANCE)==false)	{
+			int sfft4=doMidFFT (circBuf,waveData,pos);
+			if (toneTest(sfft4,SYNCHIGH,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
 				return null;
 			}
-			
 			state=3;
 			symbolCounter=0;
 			theApp.setStatusLabel("Sync Achieved");
-			outLines[0]=theApp.getTimeStamp()+" Sync Achieved at position "+Long.toString(sampleCount);
-				
+			outLines[0]=theApp.getTimeStamp()+" Sync Achieved at position "+Long.toString(sampleCount);	
 		}
 		
 		
@@ -122,10 +115,10 @@ public class XPA2 extends MFSK {
 	// Hunt for an XPA2 start tone
 	private String startToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		String line;
-		int shortFreq=doShortFFT(circBuf,waveData,0);
+		int midFreq=doMidFFT(circBuf,waveData,0);
 		// Low start tone
-		if (toneTest(shortFreq,965,50)==true)	{
-			waveData.shortCorrectionFactor=shortFreq-965;
+		if (toneTest(midFreq,965,50)==true)	{
+			waveData.midCorrectionFactor=midFreq-965;
 			int longFreq=doFFT(circBuf,waveData,0,LONG_FFT_SIZE);
 			waveData.longCorrectionFactor=longFreq-965;
 			line=theApp.getTimeStamp()+" XPA2 Low Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
