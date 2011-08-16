@@ -21,4 +21,5 @@ public class WaveData {
 	public int bytesPerFrame=0;
 	public int shortCorrectionFactor=0;
 	public int longCorrectionFactor=0;
+	public int midCorrectionFactor=0;
 }

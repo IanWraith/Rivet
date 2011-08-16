@@ -18,8 +18,10 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 public class MFSK {
 	
 	public final int SHORT_FFT_SIZE=128;
+	public final int MID_FFT_SIZE=512;
 	public final int LONG_FFT_SIZE=1024;
-	private DoubleFFT_1D ft=new DoubleFFT_1D(LONG_FFT_SIZE);
+	private DoubleFFT_1D long_fft=new DoubleFFT_1D(LONG_FFT_SIZE);
+	private DoubleFFT_1D mid_fft=new DoubleFFT_1D(MID_FFT_SIZE);
 	private DoubleFFT_1D short_fft=new DoubleFFT_1D(SHORT_FFT_SIZE);
 	
 	// Return the number of samples per baud
@@ -68,7 +70,7 @@ public class MFSK {
 	public int doFFT (CircularDataBuffer circBuf,WaveData waveData,int start,int length)	{
 		// Get the data from the circular buffer
 	    double datar[]=circBuf.extractDataDouble(start,length);
-		ft.realForward(datar);
+		long_fft.realForward(datar);
 		double spec[]=getSpectrum(datar);
 		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.longCorrectionFactor);  
 		return freq;
@@ -78,6 +80,15 @@ public class MFSK {
 		// Get the data from the circular buffer
 	    double datar[]=circBuf.extractDataDouble(start,SHORT_FFT_SIZE);
 		short_fft.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.shortCorrectionFactor);  
+		return freq;
+	}
+	
+	public int doMidFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+	    double datar[]=circBuf.extractDataDouble(start,MID_FFT_SIZE);
+		mid_fft.realForward(datar);
 		double spec[]=getSpectrum(datar);
 		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.shortCorrectionFactor);  
 		return freq;
