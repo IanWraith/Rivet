@@ -105,7 +105,7 @@ public class XPA2 extends MFSK {
 				//String st=Integer.toString(freq)+","+Long.toString(sampleCount);
 				//theApp.debugDump(st);
 				
-				//outLines=displayMessage(freq);
+				outLines=displayMessage(freq);
 			}
 		}
 		
@@ -152,4 +152,100 @@ public class XPA2 extends MFSK {
 	    else return ("UNID");
 	  }
 
+	private String[] displayMessage (int freq)	{
+		String tChar=getChar(freq,previousCharacter);
+		String outLines[]=new String[2];
+		int tlength=0,llength=0;
+		// If we get two End Tones in a row then stop decoding
+		if ((tChar=="R")&&(previousCharacter=="End Tone")) {
+			outLines[0]=theApp.getTimeStamp()+" XPA2 Decode Complete";
+			lineBuffer.delete(0,lineBuffer.length());
+			state=0;
+			return outLines;
+		}
+		if (tChar=="R") tChar=previousCharacter;
+		
+		if ((tChar=="Message Start")&&(previousCharacter=="Message Start"))	{
+			previousCharacter=tChar;
+			return null;
+		}
+		
+		if ((tChar==" ")&&(previousCharacter==" "))	{
+			previousCharacter=tChar;
+			return null;
+		}
+		
+		// Don't add a space at the start of a line
+		if ((tChar==" ")&&(lineBuffer.length()==0))	{
+			previousCharacter=tChar;
+			return null;
+		}
+		
+		if ((tChar!="Sync High")&&(tChar!="Sync Low"))	{
+			tlength=tChar.length();
+			lineBuffer.append(tChar);
+			llength=lineBuffer.length();
+		}
+	
+		previousCharacter=tChar;
+			
+		// Write to a new line after a Message Start
+		if (tChar=="Message Start")	{
+			groupCount=0;
+			lineBuffer.delete((llength-tlength),llength);
+			outLines[0]=lineBuffer.toString();
+			outLines[1]="Message Start";
+        	lineBuffer.delete(0,lineBuffer.length());
+        	return outLines;
+			}
+		// Write to a new line after an End Tone
+		if (tChar=="End Tone")	{
+        	groupCount=0;
+			lineBuffer.delete((llength-tlength),llength);
+			outLines[0]=lineBuffer.toString();
+			//outLines[1]="End Tone "+freq+" Hz at pos "+sampleCount;
+        	lineBuffer.delete(0,lineBuffer.length());
+        	return outLines;
+			}
+		// Hunt for 666662266262
+        if (lineBuffer.indexOf("666662266262")!=-1)	{
+        	groupCount=0;
+			lineBuffer.delete((llength-tlength),llength);
+			outLines[0]=lineBuffer.toString();
+			outLines[1]="Block Sync";
+        	lineBuffer.delete(0,lineBuffer.length());
+        	return outLines;
+        	}
+        // Hunt for 4444444444
+        if (lineBuffer.indexOf("4444444444")!=-1)	{
+        	groupCount=0;
+			lineBuffer.delete((llength-tlength),llength);
+			outLines[0]=lineBuffer.toString();
+			outLines[1]="4444444444";
+        	lineBuffer.delete(0,lineBuffer.length());
+        	return outLines;
+        	}
+        
+        // Hunt for UNID
+        if (lineBuffer.indexOf("UNID")!=-1)	{
+        	groupCount=0;
+			lineBuffer.delete((llength-tlength),llength);
+			outLines[0]=lineBuffer.toString();
+			outLines[1]="UNID "+freq+" Hz";
+        	lineBuffer.delete(0,lineBuffer.length());
+        	return outLines;
+        	}
+        
+        // Count the group spaces
+        if (tChar==" ") groupCount++;
+        // After 15 group spaces add a line break
+        if (groupCount==15)	{
+        	groupCount=0;
+        	outLines[0]=lineBuffer.toString();
+        	lineBuffer.delete(0,lineBuffer.length());
+        	return outLines;
+        	}
+		return null;
+	}
+	
 }
