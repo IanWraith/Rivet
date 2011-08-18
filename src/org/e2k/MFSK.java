@@ -23,6 +23,7 @@ public class MFSK {
 	private DoubleFFT_1D long_fft=new DoubleFFT_1D(LONG_FFT_SIZE);
 	private DoubleFFT_1D mid_fft=new DoubleFFT_1D(MID_FFT_SIZE);
 	private DoubleFFT_1D short_fft=new DoubleFFT_1D(SHORT_FFT_SIZE);
+	private double totalEnergy;
 	
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -98,12 +99,21 @@ public class MFSK {
 	// a power spectrum
 	private double[] getSpectrum (double[]data)	{
 		double spectrum[]=new double[data.length/2];
+		// Clear the total energy sum
+		totalEnergy=0.0;
 		int a,count=0;
 		for (a=2;a<data.length;a=a+2)	{
 			spectrum[count]=Math.sqrt(Math.pow(data[a],2.0)+Math.pow(data[a+1],2.0));
+			// Add this to the total energy sum
+			totalEnergy=totalEnergy+spectrum[count];
 			count++;
 		}
 		return spectrum;
+	}
+	
+	// Return the total energy sum
+	public double getTotalEnergy ()	{
+		return this.totalEnergy;
 	}
 	
 
