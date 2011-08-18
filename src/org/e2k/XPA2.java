@@ -97,6 +97,12 @@ public class XPA2 extends MFSK {
 		
 		// Get valid data
 		if (state==3)	{
+			
+			//doShortFFT (circBuf,waveData,0);
+			//double sum=getTotalEnergy();
+			//String st=Double.toString(sum);
+			//theApp.debugDump(st);
+			
 			// Only do this at the start of each symbol
 			if (symbolCounter==(int)samplesPerSymbol)	{
 				symbolCounter=0;				
@@ -163,7 +169,10 @@ public class XPA2 extends MFSK {
 			state=0;
 			return outLines;
 		}
-		if (tChar=="R") tChar=previousCharacter;
+		if (tChar=="R")	{
+			if (previousCharacter==null) tChar="";
+			 else tChar=previousCharacter;
+		}
 		
 		if ((tChar=="Message Start")&&(previousCharacter=="Message Start"))	{
 			previousCharacter=tChar;
