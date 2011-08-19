@@ -75,5 +75,27 @@ public class CircularDataBuffer {
 	public boolean getFilled()	{
 		return filled;
 	}
+	
+	// Return the current value of the buffer counter
+	public int getBufferCounter()	{
+		return circBufferCounter;
+	}
+	
+	// Allow the value of the buffer counter to be set
+	public void setBufferCounter(int val)	{
+		circBufferCounter=val;
+	}
+	
+	// Return the array number with the highest value
+	public int returnHighestBin ()	{
+		int a,highBin=-1,highVal=-1;
+		for (a=0;a<circBufferCounter;a++)	{
+			if (circDataBuffer[a]>highVal)	{
+				highVal=circDataBuffer[a];
+				highBin=a;
+			}
+		}
+		return highBin;
+	}
 
 }
