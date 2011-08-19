@@ -134,6 +134,12 @@ public class Rivet {
 		disp=getTimeStamp()+" Loading file "+fileName;
 		display_view.add_line(disp,Color.BLACK,plainFont);
 		waveData=inputThread.startFileLoad(fileName);
+		// Reset the system objects
+		// Clear the data buffer
+		circBuffer.clearFilled();
+		circBuffer.setBufferCounter(0);
+		// XPA
+		if (system==1) xpaHandler.setState(0);
 	}
 	
 	// This is called when the input thread is busy getting data from a WAV file

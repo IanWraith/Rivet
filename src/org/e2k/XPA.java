@@ -55,6 +55,12 @@ public class XPA extends MFSK {
 		if (state==0)	{
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.sampleRate);
 			state=1;
+			sampleCount=0;
+			symbolCounter=0;
+			waveData.Clear();
+			previousCharacter=null;
+			// Clear the energy buffer
+			energyBuffer.setBufferCounter(0);
 			theApp.setStatusLabel("Start Tone Hunt");
 			return null;
 		}
@@ -87,8 +93,6 @@ public class XPA extends MFSK {
 			}
 			// Now set the symbol timing
 			state=3;
-			// Clear the energy buffer
-			energyBuffer.setBufferCounter(0);
 			// Remember this value as it is the start of the energy values
 			syncFoundPoint=sampleCount;
 			theApp.setStatusLabel("Sync Found");
