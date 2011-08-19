@@ -20,10 +20,12 @@ public class XPA extends MFSK {
 	private double samplesPerSymbol;
 	private Rivet theApp;
 	private long sampleCount=0;
-	private int symbolCounter=0;
+	private long symbolCounter=0;
 	private String previousCharacter;
 	private int groupCount=0;
 	private StringBuffer lineBuffer=new StringBuffer();
+	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
+	private long syncFoundPoint;
 	
 	public XPA (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -66,7 +68,7 @@ public class XPA extends MFSK {
 				return outLines;
 			}
 		}
-		// Look for a sync high (1120 Hz) followed by a sync low (600 Hz) then another sync high (1120 Hz)
+		// Look for a sync high (1120 Hz) 
 		if (state==2)	{
 			final int ERRORALLOWANCE=20;
 			int pos=0;
@@ -83,31 +85,38 @@ public class XPA extends MFSK {
 				symbolCounter++;
 				return null;
 			}
-			pos=(int)samplesPerSymbol;
-			int sfft3=doShortFFT (circBuf,waveData,pos);
-			if (toneTest(sfft3,600,ERRORALLOWANCE)==false)	{
-				sampleCount++;
-				symbolCounter++;
-				return null;
-			}
-			pos=pos+(int)samplesPerSymbol-SHORT_FFT_SIZE;
-			int sfft4=doShortFFT (circBuf,waveData,pos);
-			if (toneTest(sfft4,600,ERRORALLOWANCE)==false)	{
-				sampleCount++;
-				symbolCounter++;
-				return null;
-			}
-			
+			// Now set the symbol timing
 			state=3;
-			symbolCounter=0;
-			theApp.setStatusLabel("Sync Achieved");
-			outLines[0]=theApp.getTimeStamp()+" Sync Achieved at position "+Long.toString(sampleCount);
-			
+			// Clear the energy buffer
+			energyBuffer.setBufferCounter(0);
+			// Remember this value as it is the start of the energy values
+			syncFoundPoint=sampleCount;
+			theApp.setStatusLabel("Sync Found");
+			outLines[0]=theApp.getTimeStamp()+" Sync tone found at position "+Long.toString(sampleCount);
 		}
-		// Get valid data
+		
+		// Set the symbol timing
 		if (state==3)	{
+			doMiniFFT (circBuf,waveData,0);
+			energyBuffer.addToCircBuffer((int)getTotalEnergy());
+			sampleCount++;
+			symbolCounter++;
+			// Gather 3 symbols worth of energy values
+			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*3)) return null;
+			// Now find the highest energy value
+			long perfectPoint=energyBuffer.returnHighestBin()+syncFoundPoint;
+			// Caluclate what the value of the symbol counter should be
+			symbolCounter=symbolCounter-perfectPoint;
+			state=4;
+			theApp.setStatusLabel("Symbol Timing Achieved");
+			outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
+			return outLines;
+		}
+		
+		// Get valid data
+		if (state==4)	{
 			// Only do this at the start of each symbol
-			if (symbolCounter==(int)samplesPerSymbol)	{
+			if (symbolCounter>=(long)samplesPerSymbol)	{
 				symbolCounter=0;				
 				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
 				outLines=displayMessage(freq);
