@@ -17,7 +17,7 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 public class MFSK {
 	
-	public final int MINI_FFT_SIZE=4;
+	public final int MINI_FFT_SIZE=8;
 	public final int SHORT_FFT_SIZE=128;
 	public final int MID_FFT_SIZE=512;
 	public final int LONG_FFT_SIZE=1024;
