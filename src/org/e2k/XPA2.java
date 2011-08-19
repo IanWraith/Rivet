@@ -7,7 +7,8 @@ public class XPA2 extends MFSK {
 	private double samplesPerSymbol;
 	private Rivet theApp;
 	private long sampleCount=0;
-	private int symbolCounter=0;
+	private long symbolCounter=0;
+	private long syncFoundPoint;
 	private String previousCharacter;
 	private int groupCount=0;
 	private StringBuffer lineBuffer=new StringBuffer();
@@ -55,10 +56,9 @@ public class XPA2 extends MFSK {
 		}
 		
 		
-		// Look for a sync low (998 Hz) followed by a sync high (1041 Hz) 
+		// Look for a sync (1037 Hz)
 		if (state==2)	{
-			final int SYNCLOW=998;
-			final int SYNCHIGH=1041;
+			final int SYNCLOW=1037;
 			final int ERRORALLOWANCE=20;
 			int pos=0;
 			int sfft1=doMidFFT (circBuf,waveData,pos);
@@ -74,37 +74,26 @@ public class XPA2 extends MFSK {
 				symbolCounter++;
 				return null;
 			}
-			pos=(int)samplesPerSymbol;
-			int sfft3=doMidFFT (circBuf,waveData,pos);
-			if (toneTest(sfft3,SYNCHIGH,ERRORALLOWANCE)==false)	{
-				sampleCount++;
-				symbolCounter++;
-				return null;
-			}
-			pos=pos+(int)samplesPerSymbol-MID_FFT_SIZE;
-			int sfft4=doMidFFT (circBuf,waveData,pos);
-			if (toneTest(sfft4,SYNCHIGH,ERRORALLOWANCE)==false)	{
-				sampleCount++;
-				symbolCounter++;
-				return null;
-			}
 			state=3;
-			symbolCounter=0;
-			theApp.setStatusLabel("Sync Achieved");
-			outLines[0]=theApp.getTimeStamp()+" Sync Achieved at position "+Long.toString(sampleCount);	
+			// Remember this value as it is the start of the energy values
+			syncFoundPoint=sampleCount;
+			theApp.setStatusLabel("Sync Found");
+			outLines[0]=theApp.getTimeStamp()+" Sync tone found at position "+Long.toString(sampleCount);
 		}
 		
+		// Acquire symbol timing
+		if (state==3)	{
+			// Gather a couple of symbols worth of energy data using the short FFT
+			// Look for the lowest energy level
+			doShortFFT (circBuf,waveData,0);
+			double sum=getTotalEnergy();
+			
+		}
 		
 		// Get valid data
-		if (state==3)	{
-			
-			//doShortFFT (circBuf,waveData,0);
-			//double sum=getTotalEnergy();
-			//String st=Double.toString(sum);
-			//theApp.debugDump(st);
-			
+		if (state==4)	{
 			// Only do this at the start of each symbol
-			if (symbolCounter==(int)samplesPerSymbol)	{
+			if (symbolCounter>=(int)samplesPerSymbol)	{
 				symbolCounter=0;				
 				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
 				
