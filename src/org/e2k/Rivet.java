@@ -134,6 +134,8 @@ public class Rivet {
 		disp=getTimeStamp()+" Loading file "+fileName;
 		display_view.add_line(disp,Color.BLACK,plainFont);
 		waveData=inputThread.startFileLoad(fileName);
+		// Make sure the program knows this data is coming from a file
+		waveData.fromFile=true;
 		// Reset the system objects
 		// Clear the data buffer
 		circBuffer.clearFilled();

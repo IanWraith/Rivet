@@ -123,7 +123,7 @@ public class XPA extends MFSK {
 			if (symbolCounter>=(long)samplesPerSymbol)	{
 				symbolCounter=0;				
 				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
-				outLines=displayMessage(freq);
+				outLines=displayMessage(freq,waveData.fromFile);
 			}
 		}
 		
@@ -157,31 +157,31 @@ public class XPA extends MFSK {
 	
 	// Return a String for a tone
 	private String getChar (int tone,String prevChar)	{
-	    int lw=20;
-	    if ((tone>(520-lw))&&(tone<(520+lw))) return ("Start Low");
-	    else if ((tone>=(600-lw))&&(tone<(600+lw))) return ("Sync Low");
-	    else if ((tone>=(680-lw))&&(tone<(680+lw))) return (" ");
-	    else if ((tone>=(720-lw))&&(tone<(720+lw))) return ("End Tone");
-	    else if ((tone>=(760-lw))&&(tone<(760+lw))) return ("0");
-	    else if ((tone>=(800-lw))&&(tone<(800+lw))) return ("1");
-	    else if ((tone>=(840-lw))&&(tone<(840+lw))) return ("2");
-	    else if ((tone>=(880-lw))&&(tone<(880+lw))) return ("3");
-	    else if ((tone>=(920-lw))&&(tone<(920+lw))) return ("4");
-	    else if ((tone>=(960-lw))&&(tone<(960+lw))) return ("5");
-	    else if ((tone>=(1000-lw))&&(tone<(1000+lw))) return ("6");
-	    else if ((tone>=(1040-lw))&&(tone<(1040+lw))) return ("7");
-	    else if ((tone>=(1080-lw))&&(tone<(1080+lw))) return ("8");
-	    else if ((tone>=(1120-lw))&&(tone<(1120+lw)))	{
+	    final int errorAllowance=20;
+	    if ((tone>(520-errorAllowance))&&(tone<(520+errorAllowance))) return ("Start Low");
+	    else if ((tone>=(600-errorAllowance))&&(tone<(600+errorAllowance))) return ("Sync Low");
+	    else if ((tone>=(680-errorAllowance))&&(tone<(680+errorAllowance))) return (" ");
+	    else if ((tone>=(720-errorAllowance))&&(tone<(720+errorAllowance))) return ("End Tone");
+	    else if ((tone>=(760-errorAllowance))&&(tone<(760+errorAllowance))) return ("0");
+	    else if ((tone>=(800-errorAllowance))&&(tone<(800+errorAllowance))) return ("1");
+	    else if ((tone>=(840-errorAllowance))&&(tone<(840+errorAllowance))) return ("2");
+	    else if ((tone>=(880-errorAllowance))&&(tone<(880+errorAllowance))) return ("3");
+	    else if ((tone>=(920-errorAllowance))&&(tone<(920+errorAllowance))) return ("4");
+	    else if ((tone>=(960-errorAllowance))&&(tone<(960+errorAllowance))) return ("5");
+	    else if ((tone>=(1000-errorAllowance))&&(tone<(1000+errorAllowance))) return ("6");
+	    else if ((tone>=(1040-errorAllowance))&&(tone<(1040+errorAllowance))) return ("7");
+	    else if ((tone>=(1080-errorAllowance))&&(tone<(1080+errorAllowance))) return ("8");
+	    else if ((tone>=(1120-errorAllowance))&&(tone<(1120+errorAllowance)))	{
 	      if (prevChar=="Sync Low") return ("Sync High");
 	      else return ("9");
 	    }
-	    else if ((tone>=(1160-lw))&&(tone<(1160+lw))) return ("Message Start");
-	    else if ((tone>=(1200-lw))&&(tone<(1200+lw))) return ("R");
-	    else if ((tone>=(1280-lw))&&(tone<(1280+lw))) return ("Start High");
+	    else if ((tone>=(1160-errorAllowance))&&(tone<(1160+errorAllowance))) return ("Message Start");
+	    else if ((tone>=(1200-errorAllowance))&&(tone<(1200+errorAllowance))) return ("R");
+	    else if ((tone>=(1280-errorAllowance))&&(tone<(1280+errorAllowance))) return ("Start High");
 	    else return ("UNID");
 	  }
 	
-	private String[] displayMessage (int freq)	{
+	private String[] displayMessage (int freq,boolean isFile)	{
 		String tChar=getChar(freq,previousCharacter);
 		String outLines[]=new String[2];
 		int tlength=0,llength=0;
@@ -189,7 +189,9 @@ public class XPA extends MFSK {
 		if ((tChar=="R")&&(previousCharacter=="End Tone")) {
 			outLines[0]=theApp.getTimeStamp()+" XPA Decode Complete";
 			lineBuffer.delete(0,lineBuffer.length());
-			state=0;
+			// If this is a file don't keep trying to decode
+			if (isFile==true) state=5;
+			else state=0;
 			return outLines;
 		}
 		if (tChar=="R") tChar=previousCharacter;
@@ -232,7 +234,6 @@ public class XPA extends MFSK {
         	groupCount=0;
 			lineBuffer.delete((llength-tlength),llength);
 			outLines[0]=lineBuffer.toString();
-			//outLines[1]="End Tone "+freq+" Hz at pos "+sampleCount;
         	lineBuffer.delete(0,lineBuffer.length());
         	return outLines;
 			}
