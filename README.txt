@@ -8,6 +8,10 @@ If you have got Java then you can download it for free from ..
 
 http://www.java.com
 
+This program uses the excellent JTransforms library ..
+
+http://sites.google.com/site/piotrwendykier/software/jtransforms
+
 More information will be added soon.
 
-Ian Wraith (19th August 2011) 
+Ian Wraith (20th August 2011) 
