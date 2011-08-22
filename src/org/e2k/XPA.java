@@ -77,16 +77,16 @@ public class XPA extends MFSK {
 		// Look for a sync high (1120 Hz) 
 		if (state==2)	{
 			final int ERRORALLOWANCE=20;
-			int pos=0;
-			int sfft1=doShortFFT (circBuf,waveData,pos);
+			// First do a short FFT to check for the sync high tone
+			int sfft1=doShortFFT (circBuf,waveData,0);
 			if (toneTest(sfft1,1120,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
 				return null;
-			}	
-			pos=(int)samplesPerSymbol-SHORT_FFT_SIZE;
-			int sfft2=doShortFFT (circBuf,waveData,pos);
-			if (toneTest(sfft2,1120,ERRORALLOWANCE)==false)	{
+			}
+			// If that passes to a proper long FFT to ensure the tone is really there
+			int lfft=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
+			if (toneTest(lfft,1120,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
 				return null;
@@ -96,7 +96,8 @@ public class XPA extends MFSK {
 			// Remember this value as it is the start of the energy values
 			syncFoundPoint=sampleCount;
 			theApp.setStatusLabel("Sync Found");
-			outLines[0]=theApp.getTimeStamp()+" Sync tone found at position "+Long.toString(sampleCount);
+			outLines[0]=theApp.getTimeStamp()+" High sync tone found at position "+Long.toString(sampleCount);
+			return outLines;
 		}
 		
 		// Set the symbol timing
@@ -135,20 +136,29 @@ public class XPA extends MFSK {
 	// Hunt for an XPA start tone
 	private String startToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		String line;
+		final int HighTONE=1280;
+		final int LowTONE=520;
+		final int ErrorALLOWANCE=50;
 		int shortFreq=doShortFFT(circBuf,waveData,0);
 		// Low start tone
-		if (toneTest(shortFreq,520,50)==true)	{
-			waveData.shortCorrectionFactor=shortFreq-520;
-			int longFreq=doFFT(circBuf,waveData,0,LONG_FFT_SIZE);
-			waveData.longCorrectionFactor=longFreq-520;
+		if (toneTest(shortFreq,LowTONE,ErrorALLOWANCE)==true)	{
+			// Do a long FFT to ensure this is OK
+			int longFreq=doFFT(circBuf,waveData,0);
+			if (toneTest(longFreq,LowTONE,ErrorALLOWANCE)==false) return null;
+			// Update the correction factors
+			waveData.shortCorrectionFactor=shortFreq-LowTONE;
+			waveData.longCorrectionFactor=longFreq-LowTONE;
 			line=theApp.getTimeStamp()+" XPA Low Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
 			return line;
 		}
 		// High start tone
-		else if (toneTest(shortFreq,1280,50)==true)	{
-			waveData.shortCorrectionFactor=shortFreq-1280;
-			int longFreq=doFFT(circBuf,waveData,0,LONG_FFT_SIZE);
-			waveData.longCorrectionFactor=longFreq-1280;
+		else if (toneTest(shortFreq,HighTONE,ErrorALLOWANCE)==true)	{
+			// Do a long FFT to ensure this is OK
+			int longFreq=doFFT(circBuf,waveData,0);
+			if (toneTest(longFreq,HighTONE,ErrorALLOWANCE)==false) return null;
+			// Update the correction factors
+			waveData.shortCorrectionFactor=shortFreq-HighTONE;
+			waveData.longCorrectionFactor=longFreq-HighTONE;
 			line=theApp.getTimeStamp()+" XPA High Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
 			return line;
 		}
