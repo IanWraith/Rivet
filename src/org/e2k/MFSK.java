@@ -66,13 +66,13 @@ public class MFSK {
 		// There must be at least LONG_FFT_SIZE samples Per Symbol
 		if (samplePerSymbol<LONG_FFT_SIZE) return -1;
 		int fftStart=start+(((int)samplePerSymbol-LONG_FFT_SIZE)/2);
-		double freq=doFFT(circBuf,waveData,fftStart,LONG_FFT_SIZE);
+		double freq=doFFT(circBuf,waveData,fftStart);
 		return (int)freq;
 	}
 	
-	public int doFFT (CircularDataBuffer circBuf,WaveData waveData,int start,int length)	{
+	public int doFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
-	    double datar[]=circBuf.extractDataDouble(start,length);
+	    double datar[]=circBuf.extractDataDouble(start,LONG_FFT_SIZE);
 		long_fft.realForward(datar);
 		double spec[]=getSpectrum(datar);
 		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.longCorrectionFactor);  
