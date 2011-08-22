@@ -200,6 +200,7 @@ public class XPA extends MFSK {
 			outLines[0]=theApp.getTimeStamp()+" XPA Decode Complete";
 			lineBuffer.delete(0,lineBuffer.length());
 			// If this is a file don't keep trying to decode
+			// Also stop reading from the file
 			if (isFile==true) state=5;
 			else state=0;
 			return outLines;
