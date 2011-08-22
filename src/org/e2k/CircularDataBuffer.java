@@ -97,5 +97,17 @@ public class CircularDataBuffer {
 		}
 		return highBin;
 	}
+	
+	// Return the array number with the lowest value
+	public int returnLowestBin ()	{
+		int a,lowBin=-1,lowVal=9999;
+		for (a=0;a<circBufferCounter;a++)	{
+			if (circDataBuffer[a]<lowVal)	{
+				lowVal=circDataBuffer[a];
+				lowBin=a;
+			}
+		}
+		return lowBin;
+	}
 
 }
