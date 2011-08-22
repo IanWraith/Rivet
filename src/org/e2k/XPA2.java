@@ -2,7 +2,7 @@ package org.e2k;
 
 public class XPA2 extends MFSK {
 	
-	private double baudRate=7.5;
+	private double baudRate=7.8;
 	private int state=0;
 	private double samplesPerSymbol;
 	private Rivet theApp;
@@ -12,6 +12,7 @@ public class XPA2 extends MFSK {
 	private String previousCharacter;
 	private int groupCount=0;
 	private StringBuffer lineBuffer=new StringBuffer();
+	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 		
 	public XPA2 (Rivet tapp,double baud)	{
 		baudRate=baud;
@@ -80,21 +81,45 @@ public class XPA2 extends MFSK {
 			theApp.setStatusLabel("Sync Found");
 			outLines[0]=theApp.getTimeStamp()+" Sync tone found at position "+Long.toString(sampleCount);
 		}
-		
-		// Acquire symbol timing
+				
+		// Set the symbol timing
 		if (state==3)	{
-			// Gather a couple of symbols worth of energy data using the short FFT
-			// Look for the lowest energy level
 			doShortFFT (circBuf,waveData,0);
-			double sum=getTotalEnergy();
-			
+			energyBuffer.addToCircBuffer((int)getTotalEnergy());
+			sampleCount++;
+			symbolCounter++;
+			// Gather 3 symbols worth of energy values
+			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*3)) return null;
+			// Now find the lowest energy value
+			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint;
+			// Caluclate what the value of the symbol counter should be
+			symbolCounter=symbolCounter-perfectPoint;
+			state=4;
+			theApp.setStatusLabel("Symbol Timing Achieved");
+			outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
+			return outLines;
 		}
 		
 		// Get valid data
 		if (state==4)	{
+			
+			// TODO: Fix this code which tries to modify the symbol timing 
+			doShortFFT (circBuf,waveData,0);
+			energyBuffer.addToCircBuffer((int)getTotalEnergy());
+			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*1))	{
+				long perfectPoint=energyBuffer.returnLowestBin();
+				long predictedPoint=symbolCounter;
+				long sc=sampleCount;
+				// Caluclate what the value of the symbol counter should be
+				//long rsymbolCounter=sampleCount-perfectPoint;
+				energyBuffer.setBufferCounter(0);
+			}
+			//////////////////////////////////////////////////////////////////////
+			
 			// Only do this at the start of each symbol
 			if (symbolCounter>=(int)samplesPerSymbol)	{
-				symbolCounter=0;				
+				symbolCounter=0;			
+			
 				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
 				
 				//String st=Integer.toString(freq)+","+Long.toString(sampleCount);
@@ -115,8 +140,10 @@ public class XPA2 extends MFSK {
 		int midFreq=doMidFFT(circBuf,waveData,0);
 		// Low start tone
 		if (toneTest(midFreq,980,20)==true)	{
+			// Check we have a good low start tone by doing a longer FFT
+			int longFreq=doFFT(circBuf,waveData,0);
+			if (toneTest(longFreq,980,20)==false) return null;
 			waveData.midCorrectionFactor=midFreq-980;
-			int longFreq=doFFT(circBuf,waveData,0,LONG_FFT_SIZE);
 			waveData.longCorrectionFactor=longFreq-980;
 			line=theApp.getTimeStamp()+" XPA2 Low Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
 			return line;
@@ -229,10 +256,21 @@ public class XPA2 extends MFSK {
         	groupCount=0;
 			lineBuffer.delete((llength-tlength),llength);
 			outLines[0]=lineBuffer.toString();
-			outLines[1]="UNID "+freq+" Hz";
+			outLines[1]="UNID "+freq+" Hz at "+Long.toString(sampleCount);
         	lineBuffer.delete(0,lineBuffer.length());
         	return outLines;
         	}
+        
+        
+        if (tChar=="Sync Low")	{
+			outLines[0]="Sync Low "+freq+" Hz at "+Long.toString(sampleCount);
+        	return outLines;
+        	}
+        if (tChar=="Sync High")	{
+			outLines[0]="Sync High "+freq+" Hz at "+Long.toString(sampleCount);
+        	return outLines;
+        	}
+        
         
         // Count the group spaces
         if (tChar==" ") groupCount++;
