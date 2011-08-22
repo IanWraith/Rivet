@@ -34,7 +34,7 @@ public class InputThread extends Thread {
 	private File wavFile;
 	private long fileSize;
 	private AudioInputStream audioInputStream;
-	public final int CHUNK_SIZE=1024;
+	public final int CHUNK_SIZE=32768;
     private long fileCounter;
     private String errorCause="None";
    
@@ -58,6 +58,12 @@ public class InputThread extends Thread {
     		// get data from the audio device.
     		//if ((audioReady==true)&&(run==true)&&(gettingAudio==false)) getSample();
     		if (loadingFile==true) getFileData();
+    		
+    		// Add the following so the thread doesn't eat all of the CPU time
+    		else	{
+    			try	{sleep(1);}
+    		catch (Exception e)	{}
+    			}
     		}
     }
     
@@ -176,6 +182,20 @@ public class InputThread extends Thread {
     
     public String getErrorCause ()	{
     	return errorCause;
+    }
+    
+    // Allow the main thread to stop the file reading
+    public boolean stopReadingFile ()	{
+    	loadingFile=false;
+		try	{
+			// Close the audio stream
+			audioInputStream.close();
+		}
+		catch (Exception e)	{
+			errorCause=e.toString();
+			return false;
+		}
+		return true;
     }
     
 
