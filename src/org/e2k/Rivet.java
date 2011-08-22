@@ -31,7 +31,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 0) by Ian Wraith";
+	public String program_version="Rivet (Build 1) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -67,7 +67,15 @@ public class Rivet {
 			}
 		// The main loop
 		while (RUNNING)	{
-			if ((theApp.inputThread.getLoadingFileState()==true)) theApp.getWavData();
+			if ((theApp.inputThread.getLoadingFileState()==true)&&(theApp.pReady==true)) theApp.getWavData();
+		
+			else	{
+				// Add the following so the thread doesn't eat all of the CPU time
+				try	{
+					Thread.sleep(1);
+				}
+				catch (Exception e)	{}
+			}
 		}
 		
 	}
