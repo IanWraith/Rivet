@@ -145,6 +145,9 @@ public class XPA extends MFSK {
 			// Do a long FFT to ensure this is OK
 			int longFreq=doFFT(circBuf,waveData,0);
 			if (toneTest(longFreq,LowTONE,ErrorALLOWANCE)==false) return null;
+			// and check again a symbol later to prevent false positives
+			longFreq=doFFT(circBuf,waveData,(int)samplesPerSymbol);
+			if (toneTest(longFreq,LowTONE,ErrorALLOWANCE)==false) return null;
 			// Update the correction factors
 			waveData.shortCorrectionFactor=shortFreq-LowTONE;
 			waveData.longCorrectionFactor=longFreq-LowTONE;
@@ -155,6 +158,9 @@ public class XPA extends MFSK {
 		else if (toneTest(shortFreq,HighTONE,ErrorALLOWANCE)==true)	{
 			// Do a long FFT to ensure this is OK
 			int longFreq=doFFT(circBuf,waveData,0);
+			if (toneTest(longFreq,HighTONE,ErrorALLOWANCE)==false) return null;
+			// and check again a symbol later to prevent false positives
+			longFreq=doFFT(circBuf,waveData,(int)samplesPerSymbol);
 			if (toneTest(longFreq,HighTONE,ErrorALLOWANCE)==false) return null;
 			// Update the correction factors
 			waveData.shortCorrectionFactor=shortFreq-HighTONE;
