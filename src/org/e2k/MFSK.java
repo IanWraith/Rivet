@@ -26,6 +26,9 @@ public class MFSK {
 	private DoubleFFT_1D mini_fft=new DoubleFFT_1D(MINI_FFT_SIZE);
 	private DoubleFFT_1D short_fft=new DoubleFFT_1D(SHORT_FFT_SIZE);
 	private double totalEnergy;
+	private int highestFrequency=-1;
+	private int secondHighestBin=-1;
+	private int thirdHighestBin=-1;
 	
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -45,6 +48,9 @@ public class MFSK {
 		for (a=0;a<x.length;a++)	{
 			if (x[a]>highVal)	{
 				highVal=x[a];
+				// Store the second and third highest bins also
+				thirdHighestBin=secondHighestBin;
+				secondHighestBin=highBin+1;
 				highBin=a;
 			}
 		}
@@ -57,6 +63,12 @@ public class MFSK {
 		int bin=findHighBin(x);
 		double len=x.length*2;
 		double ret=((sampleFreq/len)*bin)-correctionFactor;
+		// If the returned frequency is higher then the highest request frequency use the next one
+		if ((secondHighestBin!=-1)&&(highestFrequency!=-1))	{
+			if ((int)ret>highestFrequency) ret=((sampleFreq/len)*secondHighestBin)-correctionFactor;
+			// If the second highest bin frqeuency is to high try the third highest
+			if (((int)ret>highestFrequency)&&(thirdHighestBin!=-1)) ret=((sampleFreq/len)*thirdHighestBin)-correctionFactor;
+		}
 		return (int)ret;
 	}
 	
@@ -125,6 +137,11 @@ public class MFSK {
 	// Return the total energy sum
 	public double getTotalEnergy ()	{
 		return this.totalEnergy;
+	}
+	
+	// Set the highest frequency you want the object to return
+	public void setHighestFrequencyUsed (int highf)	{
+		highestFrequency=highf;
 	}
 	
 
