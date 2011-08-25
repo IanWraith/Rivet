@@ -30,6 +30,7 @@ public class XPA extends MFSK {
 	public XPA (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
+		setHighestFrequencyUsed(1300);
 	}
 	
 	public void setBaudRate(int baudRate) {
@@ -255,20 +256,26 @@ public class XPA extends MFSK {
         	return outLines;
 			}
 		// Hunt for 666662266262
-        if (lineBuffer.indexOf("666662266262")!=-1)	{
+		final String blockSync="6666622662626";
+        if (lineBuffer.indexOf(blockSync)!=-1)	{
         	groupCount=0;
+        	tlength=blockSync.length();
 			lineBuffer.delete((llength-tlength),llength);
 			outLines[0]=lineBuffer.toString();
-			outLines[1]="Block Sync";
+			if (outLines[0].length()<1) outLines[0]="Block Sync";
+			else outLines[1]="Block Sync";
         	lineBuffer.delete(0,lineBuffer.length());
         	return outLines;
         	}
         // Hunt for 4444444444
-        if (lineBuffer.indexOf("4444444444")!=-1)	{
+        final String sbreak="4444444444";
+        if (lineBuffer.indexOf(sbreak)!=-1)	{
         	groupCount=0;
+        	tlength=sbreak.length();
 			lineBuffer.delete((llength-tlength),llength);
 			outLines[0]=lineBuffer.toString();
-			outLines[1]="4444444444";
+			if (outLines[0].length()<1) outLines[0]=sbreak;
+			else outLines[1]=sbreak;
         	lineBuffer.delete(0,lineBuffer.length());
         	return outLines;
         	}
