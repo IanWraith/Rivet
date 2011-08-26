@@ -30,7 +30,7 @@ public class XPA extends MFSK {
 	public XPA (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
-		setHighestFrequencyUsed(1300);
+		setHighestFrequencyUsed(1350);
 	}
 	
 	public void setBaudRate(int baudRate) {
