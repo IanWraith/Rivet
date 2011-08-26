@@ -2,7 +2,7 @@ package org.e2k;
 
 public class XPA2 extends MFSK {
 	
-	private double baudRate=7.8;
+	private double baudRate;
 	private int state=0;
 	private double samplesPerSymbol;
 	private Rivet theApp;
@@ -86,14 +86,31 @@ public class XPA2 extends MFSK {
 		if (state==3)	{
 			doShortFFT (circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
+			
+			String st=Double.toString(getTotalEnergy());
+			theApp.debugDump(st);
+			
 			sampleCount++;
 			symbolCounter++;
 			// Gather 3 symbols worth of energy values
-			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*3)) return null;
+			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*2)) return null;
+			
+			st="Perfect point is "+energyBuffer.returnLowestBin();
+			theApp.debugDump(st);
+			st="Sync found at  "+Long.toString(syncFoundPoint);
+			theApp.debugDump(st);
+			st="Symbol Counter is  "+Long.toString(symbolCounter);
+			theApp.debugDump(st);
+			
+			
 			// Now find the lowest energy value
 			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint;
 			// Caluclate what the value of the symbol counter should be
 			symbolCounter=symbolCounter-perfectPoint;
+			
+			st="Symbol Counter is now  "+Long.toString(symbolCounter);
+			theApp.debugDump(st);
+			
 			state=4;
 			theApp.setStatusLabel("Symbol Timing Achieved");
 			outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
@@ -113,6 +130,9 @@ public class XPA2 extends MFSK {
 				// Caluclate what the value of the symbol counter should be
 				//long rsymbolCounter=sampleCount-perfectPoint;
 				energyBuffer.setBufferCounter(0);
+				
+				//String st=Long.toString(perfectPoint)+","+Long.toString(predictedPoint)+","+Long.toString(sc);
+				//theApp.debugDump(st);
 			}
 			//////////////////////////////////////////////////////////////////////
 			
