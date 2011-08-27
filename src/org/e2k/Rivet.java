@@ -232,18 +232,17 @@ public class Rivet {
 	
 	// Write to a string to the logging file
 	public boolean fileWrite(String fline) {
+		// If we aren't logging don't try to do anything
+		if (logging==false) return false;
 		// Add a CR to the end of each line
 		fline=fline+"\r\n";
-		// If we aren't logging don't try to do anything
-		if (logging==false)
-			return false;
 		try {
 			file.write(fline);
 			file.flush();
 		} catch (Exception e) {
 			// Stop logging as we have a problem
 			logging=false;
-			System.out.println("\nError writing to the logging file");
+			JOptionPane.showMessageDialog(null,"Error writing to the log file.\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		return true;
