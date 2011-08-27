@@ -13,6 +13,8 @@
 
 package org.e2k;
 
+import javax.swing.JOptionPane;
+
 public class XPA extends MFSK {
 	
 	private int baudRate=10;
@@ -54,6 +56,18 @@ public class XPA extends MFSK {
 				
 		// Just starting
 		if (state==0)	{
+			// Check the sample rate
+			if (waveData.sampleRate>11025)	{
+				state=-1;
+				JOptionPane.showMessageDialog(null,"WAV files containing\nXPA recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
+				return null;
+			}
+			// Check this is a mono recording
+			if (waveData.channels!=1)	{
+				state=-1;
+				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
+				return null;
+			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.sampleRate);
 			state=1;
 			sampleCount=0;
