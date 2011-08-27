@@ -26,7 +26,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public static final long serialVersionUID=1;
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
-	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item;
+	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item;
 	private JMenuItem XPA_item,XPA2_item,CROWD36_item;
 	
 	// Constructor
@@ -59,6 +59,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		JMenu helpMenu=new JMenu("Help");
 		helpMenu.add(about_item=new JMenuItem("About"));		
 		about_item.addActionListener(this);
+		helpMenu.add(help_item=new JMenuItem("Help"));		
+		help_item.addActionListener(this);
 		menuBar.add(helpMenu);
 		// Add the vertical scrollbar
 		add(vscrollbar,BorderLayout.EAST);
@@ -94,6 +96,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="About")	{
 			String line=theApp.program_version+"\r\n"+"ianwraith@gmail.com\r\nfor the Enigma2000 group.";
 			JOptionPane.showMessageDialog(null,line,"Rivet", JOptionPane.INFORMATION_MESSAGE);
+		}
+		// Help
+		if (event_name=="Help") {
+			BareBonesBrowserLaunch.openURL("https://github.com/IanWraith/Rivet/wiki");
 		}
 		// Run through all the mode names
 		for (int a=0;a<theApp.MODENAMES.length;a++)	{
