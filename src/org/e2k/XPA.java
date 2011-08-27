@@ -125,7 +125,7 @@ public class XPA extends MFSK {
 			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*3)) return null;
 			// Now find the highest energy value
 			long perfectPoint=energyBuffer.returnHighestBin()+syncFoundPoint;
-			// Caluclate what the value of the symbol counter should be
+			// Calculate what the value of the symbol counter should be
 			symbolCounter=symbolCounter-perfectPoint;
 			state=4;
 			theApp.setStatusLabel("Symbol Timing Achieved");
