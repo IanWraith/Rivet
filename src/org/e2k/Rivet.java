@@ -40,7 +40,7 @@ public class Rivet {
 	public final Font boldFont=new Font("SanSerif",Font.BOLD,12);
 	public final Font italicFont=new Font("SanSerif",Font.ITALIC,12);
     public XPA xpaHandler=new XPA(this,10);	
-    public XPA2 xpa2Handler=new XPA2(this,7.7);	
+    public XPA2 xpa2Handler=new XPA2(this);	
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
