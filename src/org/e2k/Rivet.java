@@ -49,12 +49,12 @@ public class Rivet {
 	private boolean logging=false;
 	public FileWriter file;
 	
-	public final String MODENAMES[]={"CROWD36","XPA","XPA2"};
+	public final String MODENAMES[]={"CROWD36 (Coming Soon)","XPA","XPA2"};
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){theApp.createGUI();}});
-		// Get data from the soundcard thread
+		// Get data from the sound card thread
 		try	{
 			// Connected a piped input stream to the piped output stream in the thread
 			theApp.inPipe=new PipedInputStream(theApp.inputThread.getPipedWriter());
@@ -182,7 +182,7 @@ public class Rivet {
 		int a;
 		String outLines[]=new String[2];
 		// XPA
-		if (system==1)	outLines=xpaHandler.decode(circBuffer,waveData);
+		if (system==1) outLines=xpaHandler.decode(circBuffer,waveData);
 		// XPA2
 		else if (system==2)	outLines=xpa2Handler.decode(circBuffer,waveData);
 		// Return if nothing at all has been returned
@@ -238,7 +238,7 @@ public class Rivet {
 		fline=fline+"\r\n";
 		try {
 			file.write(fline);
-			file.flush();
+			//file.flush();
 		} catch (Exception e) {
 			// Stop logging as we have a problem
 			logging=false;
