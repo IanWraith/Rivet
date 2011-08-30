@@ -62,11 +62,66 @@ public class CROWD36 extends MFSK {
 			previousCharacter=null;
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
-			//theApp.setStatusLabel("Start Tone Hunt");
+			theApp.setStatusLabel("Known Tone Hunt");
 			return null;
+		}
+		
+		// Hunting for known tones
+		if (state==1)	{
+			sampleCount++;
+			symbolCounter++;
+			outLines[0]=knownToneHunt(circBuf,waveData);
+			if (outLines[0]!=null)	{
+				state=2;
+				// Remember this value as it is the start of the energy values
+				syncFoundPoint=sampleCount;
+				theApp.setStatusLabel("Calculating Symbol Timing");
+				return outLines;
+			}
+		}
+		
+		// Set the symbol timing
+		if (state==2)	{
+			doMiniFFT (circBuf,waveData,0);
+			energyBuffer.addToCircBuffer((int)getTotalEnergy());
+			sampleCount++;
+			symbolCounter++;
+			// Gather 3 symbols worth of energy values
+			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*4)) return null;
+			
+			long tp=energyBuffer.returnLowestBin();
+			
+			// Now find the highest energy value
+			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint;
+			// Calculate what the value of the symbol counter should be
+			symbolCounter=symbolCounter-perfectPoint;
+			state=3;
+			theApp.setStatusLabel("Symbol Timing Achieved");
+			outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
+			return outLines;
 		}
 	
 		return null;
+	}
+	
+	// Hunt for known CROWD 36 tones
+	private String knownToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
+		String line;
+		final int HighTONE=1995;
+		final int LowTONE=1015;
+		final int ErrorALLOWANCE=50;
+		int shortFreq=doShortFFT(circBuf,waveData,0);
+		// Low start tone
+		if (toneTest(shortFreq,HighTONE,ErrorALLOWANCE)==true)	{
+			// and check again a symbol for the high tone
+			int nFreq=doShortFFT(circBuf,waveData,(int)samplesPerSymbol);
+			if (toneTest(nFreq,LowTONE,ErrorALLOWANCE)==false) return null;
+			// Update the correction factors
+			waveData.shortCorrectionFactor=shortFreq-LowTONE;
+			line=theApp.getTimeStamp()+" CROWD36 Known Tones Found ("+Integer.toString(nFreq)+" Hz) at "+Long.toString(sampleCount);
+			return line;
+		}
+		else return null;
 	}
 
 }
