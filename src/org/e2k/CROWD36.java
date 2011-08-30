@@ -10,11 +10,14 @@ public class CROWD36 extends MFSK {
 	private Rivet theApp;
 	private long sampleCount=0;
 	private long symbolCounter=0;
-	private String previousCharacter;
-	private int groupCount=0;
 	private StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private long syncFoundPoint;
+	private int CENTREFREQ=1995-40;
+	private boolean figureShift=false; 
+	private int lineCount=0;
+	final int Y_TONE=1995;
+	final int R_TONE=1015;
 	
 	public CROWD36 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -55,11 +58,10 @@ public class CROWD36 extends MFSK {
 				return null;
 			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.sampleRate);
-			state=1;
+			state=2;
 			sampleCount=0;
 			symbolCounter=0;
 			waveData.Clear();
-			previousCharacter=null;
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
 			theApp.setStatusLabel("Known Tone Hunt");
@@ -68,8 +70,6 @@ public class CROWD36 extends MFSK {
 		
 		// Hunting for known tones
 		if (state==1)	{
-			sampleCount++;
-			symbolCounter++;
 			outLines[0]=knownToneHunt(circBuf,waveData);
 			if (outLines[0]!=null)	{
 				state=2;
@@ -84,48 +84,131 @@ public class CROWD36 extends MFSK {
 		if (state==2)	{
 			doMiniFFT (circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
-			sampleCount++;
-			symbolCounter++;
-			// Gather 3 symbols worth of energy values
-			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*4)) return null;
-			// Now find the highest energy value
-			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint;
-			// Calculate what the value of the symbol counter should be
-			symbolCounter=symbolCounter-perfectPoint;
-			state=3;
-			theApp.setStatusLabel("Symbol Timing Achieved");
-			outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
-			return outLines;
+			// Gather 6 symbols worth of energy values
+			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*2))	{
+				// Now find the highest energy value
+				long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint;
+				// Calculate what the value of the symbol counter should be
+				symbolCounter=symbolCounter-perfectPoint;
+				state=3;
+				theApp.setStatusLabel("Symbol Timing Achieved");
+				outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
+				return outLines;
+			}
+		}
+		
+		// Set the correction factor
+		if (state==3)	{
+			// Only do this at the start of each symbol
+			if (symbolCounter>=(long)samplesPerSymbol)	{
+				symbolCounter=0;				
+				int freq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol);
+				if (toneTest(freq,R_TONE,20)==true)	{
+					//waveData.CorrectionFactor256=freq-R_TONE;
+					state=4;
+				}
+				
+				
+			}
+			
 		}
 		
 		// Decode traffic
-		if (state==3)	{
-			
+		if (state==4)	{
+			// Only do this at the start of each symbol
+			if (symbolCounter>=(long)samplesPerSymbol)	{
+				symbolCounter=0;				
+				int freq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol);
+				outLines=displayMessage(freq,waveData.fromFile);
+			}
 			
 		}
 		
 	
-		return null;
+		sampleCount++;
+		symbolCounter++;
+		return outLines;
 	}
 	
 	// Hunt for known CROWD 36 tones
 	private String knownToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		String line;
-		final int HighTONE=1995;
-		final int LowTONE=1015;
 		final int ErrorALLOWANCE=50;
 		int shortFreq=do256FFT(circBuf,waveData,0);
 		// Low start tone
-		if (toneTest(shortFreq,HighTONE,ErrorALLOWANCE)==true)	{
+		if (toneTest(shortFreq,Y_TONE,ErrorALLOWANCE)==true)	{
 			// and check again a symbol for the high tone
 			int nFreq=do256FFT(circBuf,waveData,(int)samplesPerSymbol);
-			if (toneTest(nFreq,LowTONE,ErrorALLOWANCE)==false) return null;
-			// Update the correction factors
-			waveData.CorrectionFactor256=shortFreq-LowTONE;
+			if (toneTest(nFreq,R_TONE,ErrorALLOWANCE)==false) return null;
 			line=theApp.getTimeStamp()+" CROWD36 Known Tones Found ("+Integer.toString(nFreq)+" Hz) at "+Long.toString(sampleCount);
 			return line;
 		}
 		else return null;
+	}
+	
+	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int samplePerSymbol)	{
+		double freq;
+		if (samplePerSymbol>256)	{
+			int fftStart=(((int)samplePerSymbol-FFT_256_SIZE)/2);
+			freq=do256FFT(circBuf,waveData,fftStart);
+		}
+		else 	{
+			int fftStart=(((int)samplePerSymbol-SHORT_FFT_SIZE)/2);
+			freq=doShortFFT(circBuf,waveData,fftStart);
+		}
+		return (int)freq;
+	}
+	
+	private String[] displayMessage (int freq,boolean isFile)	{
+		String tChar=getChar(freq);
+		String outLines[]=new String[2];
+		
+		
+		if (tChar==null)	{
+			
+			int tp;
+			if (freq>=CENTREFREQ)	{
+				tp=freq-CENTREFREQ;
+			}
+			else	{
+				
+			}
+			
+			if (lineBuffer.length()>0)	{
+				outLines[0]=lineBuffer.toString();;
+				lineBuffer.delete(0,lineBuffer.length());
+				lineCount=0;
+				outLines[1]="UNID "+freq+" Hz "+Long.toString(sampleCount);
+			}
+			else	{
+				outLines[0]="UNID "+freq+" Hz at pos "+Long.toString(sampleCount);
+			}
+			
+			return outLines;
+		}
+		
+		lineBuffer.append(tChar);
+		
+		if (lineCount>40)	{
+			outLines[0]=lineBuffer.toString();
+			lineBuffer.delete(0,lineBuffer.length());
+			lineCount=0;
+			return outLines;
+		}
+		
+		
+		lineCount++;
+		return null;
+	}
+	
+	private String getChar(int tone)	{
+		final int errorAllowance=15;
+	    if ((tone>(1995-errorAllowance))&&(tone<(1995+errorAllowance))) return ("R");
+	    else if ((tone>(1033-errorAllowance))&&(tone<(1033+errorAllowance))) return ("Y");
+	
+	    
+
+		return null;
 	}
 
 }
