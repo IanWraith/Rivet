@@ -88,7 +88,8 @@ public class CircularDataBuffer {
 	
 	// Return the array number with the highest value
 	public int returnHighestBin ()	{
-		int a,highBin=-1,highVal=-1;
+		int a,highBin=-1;
+		int highVal=Integer.MIN_VALUE;
 		for (a=0;a<circBufferCounter;a++)	{
 			if (circDataBuffer[a]>highVal)	{
 				highVal=circDataBuffer[a];
@@ -100,7 +101,8 @@ public class CircularDataBuffer {
 	
 	// Return the array number with the lowest value
 	public int returnLowestBin ()	{
-		int a,lowBin=-1,lowVal=9999;
+		int a,lowBin=-1;
+		int lowVal=Integer.MAX_VALUE;
 		for (a=0;a<circBufferCounter;a++)	{
 			if (circDataBuffer[a]<lowVal)	{
 				lowVal=circDataBuffer[a];
@@ -109,5 +111,5 @@ public class CircularDataBuffer {
 		}
 		return lowBin;
 	}
-
+	
 }
