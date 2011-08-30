@@ -31,7 +31,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 4) by Ian Wraith";
+	public String program_version="Rivet (Build 5) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -41,6 +41,7 @@ public class Rivet {
 	public final Font italicFont=new Font("SanSerif",Font.ITALIC,12);
     public XPA xpaHandler=new XPA(this,10);	
     public XPA2 xpa2Handler=new XPA2(this);	
+    public CROWD36 crowd36Handler=new CROWD36(this,40);	
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -49,7 +50,7 @@ public class Rivet {
 	private boolean logging=false;
 	public FileWriter file;
 	
-	public final String MODENAMES[]={"CROWD36 (Coming Soon)","XPA","XPA2"};
+	public final String MODENAMES[]={"CROWD36","XPA","XPA2"};
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
@@ -180,9 +181,11 @@ public class Rivet {
 	// A central data processing class
 	private void processData ()	{
 		int a;
-		String outLines[]=new String[2];
+		 String outLines[]=new String[2];
+		// CROWD36
+		if (system==0) outLines=crowd36Handler.decode(circBuffer,waveData);
 		// XPA
-		if (system==1) outLines=xpaHandler.decode(circBuffer,waveData);
+		else if (system==1) outLines=xpaHandler.decode(circBuffer,waveData);
 		// XPA2
 		else if (system==2)	outLines=xpa2Handler.decode(circBuffer,waveData);
 		// Return if nothing at all has been returned
