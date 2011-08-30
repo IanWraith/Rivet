@@ -116,7 +116,7 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,FFT_256_SIZE);
 		fft256.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.shortCorrectionFactor);  
+		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.CorrectionFactor256);  
 		return freq;
 	}
 	
