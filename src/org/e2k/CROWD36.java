@@ -88,9 +88,6 @@ public class CROWD36 extends MFSK {
 			symbolCounter++;
 			// Gather 3 symbols worth of energy values
 			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*4)) return null;
-			
-			long tp=energyBuffer.returnLowestBin();
-			
 			// Now find the highest energy value
 			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint;
 			// Calculate what the value of the symbol counter should be
@@ -100,6 +97,13 @@ public class CROWD36 extends MFSK {
 			outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
 			return outLines;
 		}
+		
+		// Decode traffic
+		if (state==3)	{
+			
+			
+		}
+		
 	
 		return null;
 	}
@@ -110,14 +114,14 @@ public class CROWD36 extends MFSK {
 		final int HighTONE=1995;
 		final int LowTONE=1015;
 		final int ErrorALLOWANCE=50;
-		int shortFreq=doShortFFT(circBuf,waveData,0);
+		int shortFreq=do256FFT(circBuf,waveData,0);
 		// Low start tone
 		if (toneTest(shortFreq,HighTONE,ErrorALLOWANCE)==true)	{
 			// and check again a symbol for the high tone
-			int nFreq=doShortFFT(circBuf,waveData,(int)samplesPerSymbol);
+			int nFreq=do256FFT(circBuf,waveData,(int)samplesPerSymbol);
 			if (toneTest(nFreq,LowTONE,ErrorALLOWANCE)==false) return null;
 			// Update the correction factors
-			waveData.shortCorrectionFactor=shortFreq-LowTONE;
+			waveData.CorrectionFactor256=shortFreq-LowTONE;
 			line=theApp.getTimeStamp()+" CROWD36 Known Tones Found ("+Integer.toString(nFreq)+" Hz) at "+Long.toString(sampleCount);
 			return line;
 		}
