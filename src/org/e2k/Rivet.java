@@ -141,7 +141,7 @@ public class Rivet {
 	public void loadWAVfile(String fileName)	{
 		String disp;
 		disp=getTimeStamp()+" Loading file "+fileName;
-		display_view.add_line(disp,Color.BLACK,plainFont);
+		addLine(disp,Color.BLACK,plainFont);
 		waveData=inputThread.startFileLoad(fileName);
 		// Make sure the program knows this data is coming from a file
 		waveData.fromFile=true;
@@ -168,7 +168,7 @@ public class Rivet {
 			// Check if the file has now all been read
 			if (inputThread.getLoadingFileState()==false)	{
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete.";
-				display_view.add_line(disp,Color.BLACK,plainFont);
+				addLine(disp,Color.BLACK,plainFont);
 				}
 			}
 		catch (Exception e)	{
@@ -193,7 +193,7 @@ public class Rivet {
 		// Display the decode objects output
 		for (a=0;a<outLines.length;a++)	{
 			// If there is a line to display then show it
-			if (outLines[a]!=null)	display_view.add_line(outLines[a],Color.BLACK,plainFont);
+			if (outLines[a]!=null)	addLine(outLines[a],Color.BLACK,plainFont);
 		}
 	}
 	
@@ -235,13 +235,11 @@ public class Rivet {
 	
 	// Write to a string to the logging file
 	public boolean fileWrite(String fline) {
-		// If we aren't logging don't try to do anything
-		if (logging==false) return false;
 		// Add a CR to the end of each line
 		fline=fline+"\r\n";
 		try {
 			file.write(fline);
-			//file.flush();
+			file.flush();
 		} catch (Exception e) {
 			// Stop logging as we have a problem
 			logging=false;
@@ -249,6 +247,12 @@ public class Rivet {
 			return false;
 		}
 		return true;
+	}
+	
+	// Adds a line to the display
+	public void addLine(String line,Color col,Font font) {
+		if (logging==true) fileWrite(line);
+		display_view.add_line(line,col,font);
 	}
 	
 }

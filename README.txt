@@ -20,10 +20,11 @@ Change Log
 ----------
 
 Build 4 adds an online help facility and XPA2 decoding.
+Build 5 adds the foundations of CROWD36 decoding and hopefully fixes the logging bug.
 
 Reported Bugs
 -------------
 
 1) Some users report the log feature isn't working. I'm looking into this.
 
-Ian Wraith (28th August 2011) 
+Ian Wraith (31st August 2011) 
