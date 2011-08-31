@@ -153,8 +153,8 @@ public class CROWD36 extends MFSK {
 			freq=do256FFT(circBuf,waveData,fftStart);
 		}
 		else 	{
-			int fftStart=(((int)samplePerSymbol-SHORT_FFT_SIZE)/2);
-			freq=doShortFFT(circBuf,waveData,fftStart);
+			int fftStart=(((int)samplePerSymbol-FFT_200_SIZE)/2);
+			freq=do200FFT(circBuf,waveData,fftStart);
 		}
 		return (int)freq;
 	}
@@ -203,11 +203,9 @@ public class CROWD36 extends MFSK {
 	
 	private String getChar(int tone)	{
 		final int errorAllowance=15;
-	    if ((tone>(1995-errorAllowance))&&(tone<(1995+errorAllowance))) return ("R");
-	    else if ((tone>(1033-errorAllowance))&&(tone<(1033+errorAllowance))) return ("Y");
+	    //if ((tone>(1995-errorAllowance))&&(tone<(1995+errorAllowance))) return ("R");
+	    //else if ((tone>(1033-errorAllowance))&&(tone<(1033+errorAllowance))) return ("Y");
 	
-	    
-
 		return null;
 	}
 
