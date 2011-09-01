@@ -23,7 +23,6 @@ public class WaveData {
 	public int shortCorrectionFactor=0;
 	public int longCorrectionFactor=0;
 	public int midCorrectionFactor=0;
-	public int CorrectionFactor200=0;
 	public int CorrectionFactor256=0;
 	
 	// Clear the various correction factors
@@ -31,7 +30,6 @@ public class WaveData {
 		shortCorrectionFactor=0;
 		longCorrectionFactor=0;
 		midCorrectionFactor=0;
-		CorrectionFactor200=0;
 		CorrectionFactor256=0;
 	}
 	

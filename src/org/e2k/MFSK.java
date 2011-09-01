@@ -19,12 +19,10 @@ public class MFSK {
 	
 	public final int MINI_FFT_SIZE=8;
 	public final int SHORT_FFT_SIZE=128;
-	public final int FFT_200_SIZE=200;
 	public final int FFT_256_SIZE=256;
 	public final int MID_FFT_SIZE=512;
 	public final int LONG_FFT_SIZE=1024;
 	private DoubleFFT_1D long_fft=new DoubleFFT_1D(LONG_FFT_SIZE);
-	private DoubleFFT_1D fft200=new DoubleFFT_1D(FFT_200_SIZE);
 	private DoubleFFT_1D fft256=new DoubleFFT_1D(FFT_256_SIZE);
 	private DoubleFFT_1D mid_fft=new DoubleFFT_1D(MID_FFT_SIZE);
 	private DoubleFFT_1D mini_fft=new DoubleFFT_1D(MINI_FFT_SIZE);
@@ -119,15 +117,6 @@ public class MFSK {
 		fft256.realForward(datar);
 		double spec[]=getSpectrum(datar);
 		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.CorrectionFactor256);  
-		return freq;
-	}
-	
-	public int do200FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		// Get the data from the circular buffer
-	    double datar[]=circBuf.extractDataDouble(start,FFT_200_SIZE);
-		fft200.realForward(datar);
-		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.CorrectionFactor200);  
 		return freq;
 	}
 	
