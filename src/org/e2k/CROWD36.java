@@ -76,7 +76,6 @@ public class CROWD36 extends MFSK {
 				// Remember this value as it is the start of the energy values
 				syncFoundPoint=sampleCount;
 				theApp.setStatusLabel("Calculating Symbol Timing");
-				return outLines;
 			}
 		}
 		
@@ -84,8 +83,8 @@ public class CROWD36 extends MFSK {
 		if (state==2)	{
 			doMiniFFT (circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
-			// Gather 6 symbols worth of energy values
-			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*2))	{
+			// Gather 3 symbols worth of energy values
+			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*3))	{
 				// Now find the highest energy value
 				long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint;
 				// Calculate what the value of the symbol counter should be
@@ -93,6 +92,8 @@ public class CROWD36 extends MFSK {
 				state=3;
 				theApp.setStatusLabel("Symbol Timing Achieved");
 				outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
+				sampleCount++;
+				symbolCounter++;
 				return outLines;
 			}
 		}
@@ -135,6 +136,16 @@ public class CROWD36 extends MFSK {
 	
 	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int samplePerSymbol)	{
 		int fftStart=(samplePerSymbol/2)-(FFT_256_SIZE/2)+samplePerSymbol;
+		
+		double datar[]=circBuf.extractDataDouble(0,samplePerSymbol);
+		
+		int a;
+		for (a=0;a<datar.length;a++)	{
+			String st=Double.toString(datar[a]);
+			//theApp.debugDump(st);
+		}
+		
+		
 		double freq=do256FFT(circBuf,waveData,fftStart);
 		return (int)freq;
 	}
