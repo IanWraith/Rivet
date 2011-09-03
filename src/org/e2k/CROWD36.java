@@ -10,9 +10,9 @@ public class CROWD36 extends MFSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
+	private long energyStartPoint;
 	private StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
-	private long syncFoundPoint;
 	private int CENTREFREQ=0;
 	private boolean figureShift=false; 
 	private int lineCount=0;
@@ -73,22 +73,23 @@ public class CROWD36 extends MFSK {
 			outLines[0]=knownToneHunt(circBuf,waveData);
 			if (outLines[0]!=null)	{
 				state=2;
-				// Remember this value as it is the start of the energy values
-				syncFoundPoint=sampleCount;
+				energyStartPoint=sampleCount;
 				theApp.setStatusLabel("Calculating Symbol Timing");
 			}
 		}
 		
 		// Set the symbol timing
 		if (state==2)	{
-			doMiniFFT (circBuf,waveData,0);
+			doShortFFT(circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
-			// Gather 3 symbols worth of energy values
-			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*3))	{
+			// Gather 2 symbols worth of energy values
+			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*2))	{
 				// Now find the highest energy value
-				long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint;
+				long perfectPoint=energyBuffer.returnLowestBin()+energyStartPoint;
 				// Calculate what the value of the symbol counter should be
 				symbolCounter=symbolCounter-perfectPoint;
+				// Check the symbol counter isn't set so it is greater than the samples per symbol
+				if (symbolCounter>(int)samplesPerSymbol) symbolCounter=symbolCounter-(int)samplesPerSymbol;
 				state=3;
 				theApp.setStatusLabel("Symbol Timing Achieved");
 				outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
@@ -118,7 +119,7 @@ public class CROWD36 extends MFSK {
 	// Hunt for known CROWD 36 tones
 	private String knownToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		String line;
-		final int ErrorALLOWANCE=50;
+		final int ErrorALLOWANCE=100;
 		int shortFreq=do256FFT(circBuf,waveData,0);
 		// HIGH start tone
 		if (toneTest(shortFreq,SYNC_HIGH,ErrorALLOWANCE)==true)	{
@@ -136,16 +137,6 @@ public class CROWD36 extends MFSK {
 	
 	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int samplePerSymbol)	{
 		int fftStart=(samplePerSymbol/2)-(FFT_256_SIZE/2)+samplePerSymbol;
-		
-		double datar[]=circBuf.extractDataDouble(0,samplePerSymbol);
-		
-		int a;
-		for (a=0;a<datar.length;a++)	{
-			String st=Double.toString(datar[a]);
-			//theApp.debugDump(st);
-		}
-		
-		
 		double freq=do256FFT(circBuf,waveData,fftStart);
 		return (int)freq;
 	}
