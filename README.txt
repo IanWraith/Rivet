@@ -8,7 +8,7 @@ At the moment the program only decodes pre-recorded .WAV files (mono and recorde
 rate of 11.025 KHz or less) but I hope to add sound card decoding soon.
 
 The program is written in Java so it should run on any PC which has Java installed.
-If you have got Java then you can download it for free from ..
+If you haven't got Java then you can download it for free from ..
 
 http://www.java.com
 
