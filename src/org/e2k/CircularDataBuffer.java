@@ -15,6 +15,7 @@ package org.e2k;
 
 public class CircularDataBuffer {
 	
+	// TODO: Work out why more CROWD36 data is read from a file is the MAXCIRC buffer is smaller
 	private final int MAXCIRC=1024*10;
 	private int circBufferCounter=0;
 	private int[] circDataBuffer=new int[MAXCIRC];
