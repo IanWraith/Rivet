@@ -167,7 +167,7 @@ public class Rivet {
     			}
 			// Check if the file has now all been read
 			if (inputThread.getLoadingFileState()==false)	{
-				String disp=getTimeStamp()+" WAV file loaded and analysis complete.";
+				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
 				addLine(disp,Color.BLACK,plainFont);
 				}
 			}
