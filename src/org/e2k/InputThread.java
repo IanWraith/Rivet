@@ -37,6 +37,7 @@ public class InputThread extends Thread {
 	public final int CHUNK_SIZE=32768;
     private long fileCounter;
     private String errorCause="None";
+    private long sampleCounter=0;
    
 	public InputThread (Rivet theApp) {
     	run=false;
@@ -50,7 +51,7 @@ public class InputThread extends Thread {
     
     // Main
     public void run()	{
-    	// Run continously
+    	// Run continuously
     	for (;;)	{
     		// If it hasn't been already then setup the audio device
     		//if (audioReady==false) setupAudio();
@@ -73,6 +74,7 @@ public class InputThread extends Thread {
     		wavFile=new File(fileName);
     		fileSize=wavFile.length();
     		fileCounter=0;
+    		sampleCounter=0;
 			audioInputStream=AudioSystem.getAudioInputStream(wavFile);  
 			waveData.bytesPerFrame=audioInputStream.getFormat().getFrameSize();
 	    	waveData.sampleRate=audioInputStream.getFormat().getSampleRate();
@@ -93,6 +95,8 @@ public class InputThread extends Thread {
     	if (grabWavBlock()==false)	{
     		loadingFile=false;
     		try	{
+    			// Flush anything remaining in the outpipe
+    			outPipe.flush();
     			// Close the audio stream
     			audioInputStream.close();
     		}
@@ -118,22 +122,21 @@ public class InputThread extends Thread {
 	    else return false;
 	  }
 	
+	// Handle 16 bit little endian WAV files
 	private boolean grabWavBlock16LE (AudioInputStream audioStream)	{
-		int a,i=0,countLoad;
-		byte inBlock[]=new byte[CHUNK_SIZE*2];
+		int a,countLoad;
+		byte inBlock[]=new byte[CHUNK_SIZE];
 		try	{
 		    countLoad=audioStream.read(inBlock);
 		    for (a=0;a<countLoad;a=a+2)	{
 		    	outPipe.writeInt(LEconv16(inBlock[a],inBlock[a+1]));
 		    	fileCounter=fileCounter+2;
-		    	i++;
+		    	sampleCounter++;
 		    }
 		   }
 		   catch (Exception e)	{
-			countLoad=i;
 		    return false;
-		   }
-		 countLoad=i;
+		   } 
 		 if (countLoad<CHUNK_SIZE) return false;
 		 else return true;
 		 }
@@ -157,6 +160,7 @@ public class InputThread extends Thread {
 			for (a=0;a<countLoad;a++)	{
 				outPipe.writeInt(LEconv8(inBlock[a]));
 				fileCounter++;
+				sampleCounter++;
 			}
 		}
 		catch (Exception e)	{
@@ -196,6 +200,11 @@ public class InputThread extends Thread {
 			return false;
 		}
 		return true;
+    }
+    
+    // Return the sample counter
+    public long getSampleCounter()	{
+    	return this.sampleCounter;
     }
     
 
