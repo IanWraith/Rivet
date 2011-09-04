@@ -82,10 +82,12 @@ public class CROWD36 extends MFSK {
 		if (state==2)	{
 			doShortFFT(circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
-			// Gather 2 symbols worth of energy values
-			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*2))	{
+			// Gather 3 symbols worth of energy values
+			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*3))	{
 				// Now find the highest energy value
-				long perfectPoint=energyBuffer.returnLowestBin()+energyStartPoint;
+				long perfectPoint=energyBuffer.returnHighestBin()+energyStartPoint;
+				// Plus the number of points in the energy measurements
+				perfectPoint=perfectPoint+(SHORT_FFT_SIZE/2);
 				// Calculate what the value of the symbol counter should be
 				symbolCounter=symbolCounter-perfectPoint;
 				// Check the symbol counter isn't set so it is greater than the samples per symbol
@@ -102,7 +104,15 @@ public class CROWD36 extends MFSK {
 		// Decode traffic
 		if (state==3)	{
 			// Only do this at the start of each symbol
-			if (symbolCounter>=(long)samplesPerSymbol)	{
+			if (symbolCounter>=samplesPerSymbol)	{
+				
+				//int a;
+				//int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
+				//for (a=0;a<(int)samplesPerSymbol;a++)	{
+					//String line=Integer.toString(data[a]);
+					//theApp.debugDump(line);
+				//}
+				
 				symbolCounter=0;				
 				int freq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol);
 				outLines=displayMessage(freq,waveData.fromFile);
