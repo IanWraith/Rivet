@@ -147,7 +147,6 @@ public class Rivet {
 		waveData.fromFile=true;
 		// Reset the system objects
 		// Clear the data buffer
-		circBuffer.clearFilled();
 		circBuffer.setBufferCounter(0);
 		// XPA
 		if (system==1) xpaHandler.setState(0);
@@ -159,12 +158,10 @@ public class Rivet {
 		try	{
 			// Add the data from the thread pipe to the circular buffer
 			circBuffer.addToCircBuffer(inPipeData.readInt());
-			// Once the buffer has been filled then process it
-			if (circBuffer.getFilled()==true)	{
-    			processData();
-    			// Update the progress bar
-    			updateProgressBar();
-    			}
+			// Process this data
+			processData();
+    		// Update the progress bar
+    		updateProgressBar();
 			// Check if the file has now all been read
 			if (inputThread.getLoadingFileState()==false)	{
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";

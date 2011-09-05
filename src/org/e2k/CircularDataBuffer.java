@@ -19,16 +19,12 @@ public class CircularDataBuffer {
 	private final int MAXCIRC=1024*10;
 	private int circBufferCounter=0;
 	private int[] circDataBuffer=new int[MAXCIRC];
-	private boolean filled=false;
 	
 	// Add data to the incoming data circular buffer
 	public void addToCircBuffer (int i)	{
 		circDataBuffer[circBufferCounter]=i;
 		circBufferCounter++;
-		if (circBufferCounter==MAXCIRC)	{
-			circBufferCounter=0;
-			filled=true;
-		}
+		if (circBufferCounter==MAXCIRC)	circBufferCounter=0;
 	}
 	
 	// Return a user defined section of the circular buffer
@@ -66,17 +62,7 @@ public class CircularDataBuffer {
 	public int retMax()	{
 		return MAXCIRC;
 	}
-	
-	// Clear the filled flag
-	public void clearFilled()	{
-		filled=false;
-	}
-	
-	// Return the filled flag to the user
-	public boolean getFilled()	{
-		return filled;
-	}
-	
+		
 	// Return the current value of the buffer counter
 	public int getBufferCounter()	{
 		return circBufferCounter;
