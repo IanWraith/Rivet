@@ -22,40 +22,52 @@ public class CircularDataBuffer {
 	
 	// Add data to the incoming data circular buffer
 	public void addToCircBuffer (int i)	{
-		circDataBuffer[circBufferCounter]=i;
-		circBufferCounter++;
-		if (circBufferCounter==MAXCIRC)	circBufferCounter=0;
+		try	{
+			circDataBuffer[circBufferCounter]=i;
+			circBufferCounter++;
+			if (circBufferCounter==MAXCIRC)	circBufferCounter=0;
+		}
+		catch (Exception e)	{
+			System.out.println(e.toString());
+		}
 	}
 	
 	// Return a user defined section of the circular buffer
 	public int[] extractData (int start,int length)	{
-		int count=0,a=circBufferCounter+start;
-		int outData[]=new int[length];
-		if (a>=MAXCIRC) a=a-MAXCIRC;
-		for (count=0;count<length;count++)	{
-			outData[count]=circDataBuffer[a];
-			a++;
-			if (a==MAXCIRC) a=0;
+		try	{
+			int count=0,a=circBufferCounter+start;
+			int outData[]=new int[length];
+			if (a>=MAXCIRC) a=a-MAXCIRC;
+			for (count=0;count<length;count++)	{
+				outData[count]=circDataBuffer[a];
+				a++;
+				if (a==MAXCIRC) a=0;
+			}
+			return outData;
 		}
-		return outData;
+		catch (Exception e)	{
+			System.out.println(e.toString());
+			return null;
+		}
 	}
 	
 	// Return a user defined section of the circular buffer
 	public double[] extractDataDouble (int start,int length)	{
-		int count=0,a=circBufferCounter+start;
-		double outData[]=new double[length];
-		if (a>=MAXCIRC) a=a-MAXCIRC;
-		for (count=0;count<length;count++)	{
-			try	{
+		try	{
+			int count=0,a=circBufferCounter+start;
+			double outData[]=new double[length];
+			if (a>=MAXCIRC) a=a-MAXCIRC;
+			for (count=0;count<length;count++)	{
 				outData[count]=circDataBuffer[a];
+				a++;
+				if (a==MAXCIRC) a=0;
 			}
-			catch (Exception e)	{
-				System.out.println(e.toString());
-			}
-			a++;
-			if (a==MAXCIRC) a=0;
+			return outData;
 		}
-		return outData;
+		catch (Exception e)	{
+			System.out.println(e.toString());
+			return null;
+		}
 	}
 	
 	// Return the maximum size of this circular buffer
