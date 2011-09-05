@@ -46,6 +46,8 @@ public class XPA2 extends MFSK {
 				return null;
 			}
 			samplesPerSymbol=samplesPerSymbol(BAUDRATE,waveData.sampleRate);
+			// sampleCount must start negative to account for the buffer gradually filling
+			sampleCount=0-circBuf.retMax();
 			setHighestFrequencyUsed(1300);
 			state=1;
 			theApp.setStatusLabel("Start Tone Hunt");

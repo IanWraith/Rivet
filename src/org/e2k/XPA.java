@@ -70,7 +70,8 @@ public class XPA extends MFSK {
 			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.sampleRate);
 			state=1;
-			sampleCount=0;
+			// sampleCount must start negative to account for the buffer gradually filling
+			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			waveData.Clear();
 			previousCharacter=null;
