@@ -146,9 +146,14 @@ public class CROWD36 extends MFSK {
 	}
 	
 	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int samplePerSymbol)	{
-		int fftStart=(samplePerSymbol/2)-(FFT_256_SIZE/2)+samplePerSymbol;
-		double freq=do256FFT(circBuf,waveData,fftStart);
-		return (int)freq;
+		
+		// 8 KHz sampling
+		if (waveData.sampleRate==8000.0)	{
+			int freq=do200FFT(circBuf,waveData,0);
+			return freq;
+		}
+		
+		return -1;
 	}
 	
 	private String[] displayMessage (int freq,boolean isFile)	{
