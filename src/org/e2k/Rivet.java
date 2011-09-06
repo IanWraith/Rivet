@@ -19,6 +19,9 @@ import java.awt.event.WindowAdapter;
 import java.io.DataInputStream;
 import java.io.FileWriter;
 import java.io.PipedInputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.text.DateFormat;
 import java.util.Date;
 import javax.swing.JOptionPane;
@@ -49,6 +52,7 @@ public class Rivet {
 	private WaveData waveData=new WaveData();
 	private boolean logging=false;
 	public FileWriter file;
+	private long readCount=0;
 	
 	public final String MODENAMES[]={"CROWD36","XPA","XPA2"};
     
@@ -166,31 +170,41 @@ public class Rivet {
 			if (inputThread.getLoadingFileState()==false)	{
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
 				addLine(disp,Color.BLACK,plainFont);
+				disp="readCount="+Long.toString(readCount);
+				addLine(disp,Color.BLACK,plainFont);
 				}
 			}
 		catch (Exception e)	{
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(null,"Error in getWavData()","Rivet", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(null,"Error in getWavData()","Rivet", JOptionPane.ERROR_MESSAGE);
 			}	
 	}
 	
 			
 	// A central data processing class
-	private void processData ()	{
-		int a;
-		 String outLines[]=new String[2];
-		// CROWD36
-		if (system==0) outLines=crowd36Handler.decode(circBuffer,waveData);
-		// XPA
-		else if (system==1) outLines=xpaHandler.decode(circBuffer,waveData);
-		// XPA2
-		else if (system==2)	outLines=xpa2Handler.decode(circBuffer,waveData);
-		// Return if nothing at all has been returned
-		if (outLines==null) return;
-		// Display the decode objects output
-		for (a=0;a<outLines.length;a++)	{
-			// If there is a line to display then show it
-			if (outLines[a]!=null)	addLine(outLines[a],Color.BLACK,plainFont);
+	private void processData ()	{		
+		try	{
+			int a;
+			String outLines[]=new String[2];
+			// CROWD36
+			if (system==0) outLines=crowd36Handler.decode(circBuffer,waveData);
+			// XPA
+			else if (system==1) outLines=xpaHandler.decode(circBuffer,waveData);
+			// XPA2
+			else if (system==2)	outLines=xpa2Handler.decode(circBuffer,waveData);
+			// Return if nothing at all has been returned
+			if (outLines==null) return;
+			// Display the decode objects output
+			for (a=0;a<outLines.length;a++)	{
+				// If there is a line to display then show it
+				if (outLines[a]!=null)	addLine(outLines[a],Color.BLACK,plainFont);
+			}
+		}
+		catch (Exception e){
+			StringWriter sw=new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			String str=sw.toString();
+			JOptionPane.showMessageDialog(null,"Error in processData()\n"+str,"Rivet", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 	
@@ -251,5 +265,6 @@ public class Rivet {
 		if (logging==true) fileWrite(line);
 		display_view.add_line(line,col,font);
 	}
+	
 	
 }

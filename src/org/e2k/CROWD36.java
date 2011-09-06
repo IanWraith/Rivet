@@ -42,7 +42,8 @@ public class CROWD36 extends MFSK {
 	
 	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		String outLines[]=new String[2];
-				
+		
+
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
@@ -106,14 +107,6 @@ public class CROWD36 extends MFSK {
 		if (state==3)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
-				
-				//int a;
-				//int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
-				//for (a=0;a<(int)samplesPerSymbol;a++)	{
-					//String line=Integer.toString(data[a]);
-					//theApp.debugDump(line);
-				//}
-				
 				symbolCounter=0;				
 				int freq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol);
 				outLines=displayMessage(freq,waveData.fromFile);
@@ -121,10 +114,9 @@ public class CROWD36 extends MFSK {
 			
 		}
 		
-	
 		sampleCount++;
 		symbolCounter++;
-		return outLines;
+		return outLines;				
 	}
 	
 	// Hunt for known CROWD 36 tones
