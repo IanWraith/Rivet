@@ -13,6 +13,8 @@
 
 package org.e2k;
 
+import javax.swing.JOptionPane;
+
 public class CircularDataBuffer {
 	
 	// TODO: Work out why more CROWD36 data is read from a file is the MAXCIRC buffer is smaller
@@ -28,7 +30,7 @@ public class CircularDataBuffer {
 			if (circBufferCounter==MAXCIRC)	circBufferCounter=0;
 		}
 		catch (Exception e)	{
-			System.out.println(e.toString());
+			JOptionPane.showMessageDialog(null,"Error in addToCircBuffer() "+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 	
@@ -46,7 +48,7 @@ public class CircularDataBuffer {
 			return outData;
 		}
 		catch (Exception e)	{
-			System.out.println(e.toString());
+			JOptionPane.showMessageDialog(null,"Error in extractData() "+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
 	}
@@ -65,7 +67,7 @@ public class CircularDataBuffer {
 			return outData;
 		}
 		catch (Exception e)	{
-			System.out.println(e.toString());
+			JOptionPane.showMessageDialog(null,"Error in extractDataDouble() "+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
 	}
