@@ -17,7 +17,6 @@ import javax.swing.JOptionPane;
 
 public class CircularDataBuffer {
 	
-	// TODO: Work out why more CROWD36 data is read from a file is the MAXCIRC buffer is smaller
 	private final int MAXCIRC=1024*10;
 	private int circBufferCounter=0;
 	private int[] circDataBuffer=new int[MAXCIRC];
@@ -89,28 +88,40 @@ public class CircularDataBuffer {
 	
 	// Return the array number with the highest value
 	public int returnHighestBin ()	{
-		int a,highBin=-1;
-		int highVal=Integer.MIN_VALUE;
-		for (a=0;a<circBufferCounter;a++)	{
-			if (circDataBuffer[a]>highVal)	{
-				highVal=circDataBuffer[a];
-				highBin=a;
+		try	{
+			int a,highBin=-1;
+			int highVal=Integer.MIN_VALUE;
+			for (a=0;a<circBufferCounter;a++)	{
+				if (circDataBuffer[a]>highVal)	{
+					highVal=circDataBuffer[a];
+					highBin=a;
+				}
 			}
+			return highBin;
 		}
-		return highBin;
+		catch (Exception e)	{
+			JOptionPane.showMessageDialog(null,"Error in returnHighestBin() "+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
+			return 0;
+		}
 	}
 	
 	// Return the array number with the lowest value
 	public int returnLowestBin ()	{
-		int a,lowBin=-1;
-		int lowVal=Integer.MAX_VALUE;
-		for (a=0;a<circBufferCounter;a++)	{
-			if (circDataBuffer[a]<lowVal)	{
-				lowVal=circDataBuffer[a];
-				lowBin=a;
+		try	{
+			int a,lowBin=-1;
+			int lowVal=Integer.MAX_VALUE;
+			for (a=0;a<circBufferCounter;a++)	{
+				if (circDataBuffer[a]<lowVal)	{
+					lowVal=circDataBuffer[a];
+					lowBin=a;
+				}
 			}
+			return lowBin;
 		}
-		return lowBin;
+		catch (Exception e)	{
+			JOptionPane.showMessageDialog(null,"Error in returnLowestBin() "+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
+			return 0;
+		}
 	}
 	
 }

@@ -21,6 +21,7 @@ import javax.sound.sampled.TargetDataLine;
 import javax.swing.JOptionPane;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.PipedOutputStream;
 
 public class InputThread extends Thread {
@@ -59,11 +60,10 @@ public class InputThread extends Thread {
     		// get data from the audio device.
     		//if ((audioReady==true)&&(run==true)&&(gettingAudio==false)) getSample();
     		if (loadingFile==true) getFileData();
-    		
     		// Add the following so the thread doesn't eat all of the CPU time
     		else	{
     			try	{sleep(1);}
-    		catch (Exception e)	{}
+    			catch (Exception e)	{JOptionPane.showMessageDialog(null,"Error in run()\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);}
     			}
     		}
     }
@@ -84,7 +84,7 @@ public class InputThread extends Thread {
     		loadingFile=true;
     	}
     	catch (Exception e)	{
-    		errorCause=e.toString();
+    		JOptionPane.showMessageDialog(null,"Error in startFileLoad()\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
     		return null;
     	}
     	return waveData;
@@ -102,6 +102,7 @@ public class InputThread extends Thread {
     		}
     		catch (Exception e)	{
     			errorCause=e.toString();
+    			JOptionPane.showMessageDialog(null,"Error in getFileData()\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
     			return false;
     		}
     	}
@@ -135,6 +136,7 @@ public class InputThread extends Thread {
 		    }
 		   }
 		   catch (Exception e)	{
+			JOptionPane.showMessageDialog(null,"Error in grabWavBlock16LE()\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
 		    return false;
 		   } 
 		 if (countLoad<CHUNK_SIZE) return false;
@@ -164,6 +166,7 @@ public class InputThread extends Thread {
 			}
 		}
 		catch (Exception e)	{
+			JOptionPane.showMessageDialog(null,"Error in grabWavBlock8LE()\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		if (countLoad<CHUNK_SIZE) return false;
@@ -172,11 +175,11 @@ public class InputThread extends Thread {
 	
 	// Return the PipedOutputSteam object so it can be connected to
     public PipedOutputStream getPipedWriter() {
-        return ps;
+        return this.ps;
       }
     
     public boolean getLoadingFileState()	{
-    	return loadingFile;
+    	return this.loadingFile;
     }
     
     public int returnFileLoadPercentage()	{
@@ -185,7 +188,7 @@ public class InputThread extends Thread {
     }
     
     public String getErrorCause ()	{
-    	return errorCause;
+    	return this.errorCause;
     }
     
     // Allow the main thread to stop the file reading
@@ -196,7 +199,7 @@ public class InputThread extends Thread {
 			audioInputStream.close();
 		}
 		catch (Exception e)	{
-			errorCause=e.toString();
+			JOptionPane.showMessageDialog(null,"Error in stopReadingFile()\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		return true;
@@ -207,5 +210,4 @@ public class InputThread extends Thread {
     	return this.sampleCounter;
     }
     
-
 }

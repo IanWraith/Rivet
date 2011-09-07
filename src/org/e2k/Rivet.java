@@ -52,8 +52,7 @@ public class Rivet {
 	private WaveData waveData=new WaveData();
 	private boolean logging=false;
 	public FileWriter file;
-	private long readCount=0;
-	
+
 	public final String MODENAMES[]={"CROWD36","XPA","XPA2"};
     
 	public static void main(String[] args) {
@@ -67,7 +66,7 @@ public class Rivet {
 			theApp.inPipeData=new DataInputStream(theApp.inPipe);
 			}
 		catch (Exception e)	{
-			JOptionPane.showMessageDialog(null,"Error in main()","Rivet", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(null,"Error in main()","Rivet", JOptionPane.ERROR_MESSAGE);
 			System.exit(0);
 			}
 		// The main loop
@@ -79,7 +78,7 @@ public class Rivet {
 				try	{
 					Thread.sleep(1);
 				}
-				catch (Exception e)	{}
+				catch (Exception e)	{JOptionPane.showMessageDialog(null,"Error in main2()\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);}
 			}
 		}
 		
@@ -170,8 +169,6 @@ public class Rivet {
 			if (inputThread.getLoadingFileState()==false)	{
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
 				addLine(disp,Color.BLACK,plainFont);
-				disp="readCount="+Long.toString(readCount);
-				addLine(disp,Color.BLACK,plainFont);
 				}
 			}
 		catch (Exception e)	{
@@ -211,7 +208,7 @@ public class Rivet {
 	// Write a line to the debug file
 	public void debugDump (String line)	{
 	    try	{
-	    	FileWriter dfile=new FileWriter("debug.csv",true);
+	    	FileWriter dfile=new FileWriter("debug.txt",true);
 	    	dfile.write(line);
 	    	dfile.write("\r\n");
 	    	dfile.flush();  
