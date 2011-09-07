@@ -52,7 +52,7 @@ public class Rivet {
 	private WaveData waveData=new WaveData();
 	private boolean logging=false;
 	public FileWriter file;
-
+	
 	public final String MODENAMES[]={"CROWD36","XPA","XPA2"};
     
 	public static void main(String[] args) {
@@ -72,12 +72,9 @@ public class Rivet {
 		// The main loop
 		while (RUNNING)	{
 			if ((theApp.inputThread.getLoadingFileState()==true)&&(theApp.pReady==true)) theApp.getWavData();
-		
 			else	{
 				// Add the following so the thread doesn't eat all of the CPU time
-				try	{
-					Thread.sleep(1);
-				}
+				try	{Thread.sleep(1);}
 				catch (Exception e)	{JOptionPane.showMessageDialog(null,"Error in main2()\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);}
 			}
 		}
@@ -165,8 +162,15 @@ public class Rivet {
 			processData();
     		// Update the progress bar
     		updateProgressBar();
-			// Check if the file has now all been read
+			// Check if the file has now all been read but we need to process all the data in the buffer
 			if (inputThread.getLoadingFileState()==false)	{
+				int a;
+				for (a=0;a<circBuffer.retMax();a++)	{
+					processData();
+					// Keep adding null data to the circular buffer to move it along
+					circBuffer.addToCircBuffer(0);
+				}
+				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
 				addLine(disp,Color.BLACK,plainFont);
 				}
@@ -263,5 +267,6 @@ public class Rivet {
 		display_view.add_line(line,col,font);
 	}
 	
+
 	
 }

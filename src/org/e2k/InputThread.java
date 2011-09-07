@@ -40,7 +40,7 @@ public class InputThread extends Thread {
     private String errorCause="None";
     private long sampleCounter=0;
    
-	public InputThread (Rivet theApp) {
+	public InputThread (Rivet TtheApp) {
     	run=false;
     	audioReady=false;
     	gettingAudio=false;
