@@ -124,4 +124,9 @@ public class CircularDataBuffer {
 		}
 	}
 	
+	// Directly access the data buffer
+	public int directAccess (int i)	{
+		return this.circDataBuffer[i];
+	}
+	
 }
