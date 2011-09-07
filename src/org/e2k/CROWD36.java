@@ -82,16 +82,17 @@ public class CROWD36 extends MFSK {
 		
 		// Set the symbol timing
 		if (state==2)	{
-			doShortFFT(circBuf,waveData,0);
+			final int lookAHEAD=1;
+			doMiniFFT(circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
-			// Gather 3 symbols worth of energy values
-			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*3))	{
+			// Gather a symbols worth of energy values
+			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*lookAHEAD))	{
 				// Now find the highest energy value
-				long perfectPoint=energyBuffer.returnHighestBin()+energyStartPoint;
+				long perfectPoint=energyBuffer.returnLowestBin()+energyStartPoint+(int)samplesPerSymbol;
 				// Plus the number of points in the energy measurements
-				perfectPoint=perfectPoint+(SHORT_FFT_SIZE/2);
+				//perfectPoint=perfectPoint+MINI_FFT_SIZE;
 				// Calculate what the value of the symbol counter should be
-				symbolCounter=symbolCounter-perfectPoint;
+				symbolCounter=perfectPoint-sampleCount;
 				// Check the symbol counter isn't set so it is greater than the samples per symbol
 				if (symbolCounter>(int)samplesPerSymbol) symbolCounter=symbolCounter-(int)samplesPerSymbol;
 				state=3;
@@ -99,6 +100,26 @@ public class CROWD36 extends MFSK {
 				outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
 				sampleCount++;
 				symbolCounter++;
+				
+				
+				/////////////////////////////////////////////////////////////////
+				int a;
+				for (a=0;a<energyBuffer.getBufferCounter();a++)	{
+					
+					int ar[]=circBuf.extractData(a,1);
+					
+					
+					String st=Integer.toString(energyBuffer.directAccess(a)/100)+","+Integer.toString(ar[0]);
+					
+					if (a==energyBuffer.returnHighestBin())	st=st+",10000";
+					else if (a==energyBuffer.returnLowestBin())	st=st+",-10000";
+					else st=st+",0";
+					
+					theApp.debugDump(st);
+				}
+				
+				/////////////////////////////////////////////////////////////////
+				
 				return outLines;
 			}
 		}
@@ -107,6 +128,18 @@ public class CROWD36 extends MFSK {
 		if (state==3)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
+				
+				
+				theApp.debugDump("BBB");
+				
+					int a;
+					int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
+					for (a=0;a<data.length;a++)	{
+						String st=Integer.toString(data[a]);
+						theApp.debugDump(st);
+					}
+				
+				
 				symbolCounter=0;				
 				int freq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol);
 				outLines=displayMessage(freq,waveData.fromFile);

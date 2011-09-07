@@ -212,7 +212,7 @@ public class Rivet {
 	// Write a line to the debug file
 	public void debugDump (String line)	{
 	    try	{
-	    	FileWriter dfile=new FileWriter("debug.txt",true);
+	    	FileWriter dfile=new FileWriter("debug.csv",true);
 	    	dfile.write(line);
 	    	dfile.write("\r\n");
 	    	dfile.flush();  
