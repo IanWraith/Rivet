@@ -18,7 +18,7 @@ public class CROWD36 extends MFSK {
 	private int lineCount=0;
 	final int SYNC_HIGH=1703;
 	final int SYNC_LOW=742;
-	
+		
 	public CROWD36 (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
@@ -89,10 +89,15 @@ public class CROWD36 extends MFSK {
 			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*lookAHEAD))	{
 				// Now find the highest energy value
 				long perfectPoint=energyBuffer.returnLowestBin()+energyStartPoint+(int)samplesPerSymbol;
-				// Plus the number of points in the energy measurements
-				//perfectPoint=perfectPoint+MINI_FFT_SIZE;
+				// For reasons unknown we need to minus the difference between the
+				// highest and the lowest bins in this calculation
+				int difFactor;
+				int low=energyBuffer.returnLowestBin();
+				int high=energyBuffer.returnHighestBin();
+				if (high>low) difFactor=high-low;
+				else difFactor=low-high;
 				// Calculate what the value of the symbol counter should be
-				symbolCounter=perfectPoint-sampleCount;
+				symbolCounter=perfectPoint-sampleCount-difFactor;
 				// Check the symbol counter isn't set so it is greater than the samples per symbol
 				if (symbolCounter>(int)samplesPerSymbol) symbolCounter=symbolCounter-(int)samplesPerSymbol;
 				state=3;
@@ -103,20 +108,15 @@ public class CROWD36 extends MFSK {
 				
 				
 				/////////////////////////////////////////////////////////////////
-				int a;
-				for (a=0;a<energyBuffer.getBufferCounter();a++)	{
-					
-					int ar[]=circBuf.extractData(a,1);
-					
-					
-					String st=Integer.toString(energyBuffer.directAccess(a)/100)+","+Integer.toString(ar[0]);
-					
-					if (a==energyBuffer.returnHighestBin())	st=st+",10000";
-					else if (a==energyBuffer.returnLowestBin())	st=st+",-10000";
-					else st=st+",0";
-					
-					theApp.debugDump(st);
-				}
+				//int a;
+				//for (a=0;a<energyBuffer.getBufferCounter();a++)	{
+					//int ar[]=circBuf.extractData(a,1);
+					//String st=Integer.toString(energyBuffer.directAccess(a)/100)+","+Integer.toString(ar[0]);
+					//if (a==energyBuffer.returnHighestBin())	st=st+",10000";
+					//else if (a==energyBuffer.returnLowestBin())	st=st+",-10000";
+					//else st=st+",0";		
+					//theApp.debugDump(st);
+				//}
 				
 				/////////////////////////////////////////////////////////////////
 				
@@ -130,14 +130,13 @@ public class CROWD36 extends MFSK {
 			if (symbolCounter>=samplesPerSymbol)	{
 				
 				
-				theApp.debugDump("BBB");
-				
-					int a;
-					int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
-					for (a=0;a<data.length;a++)	{
-						String st=Integer.toString(data[a]);
-						theApp.debugDump(st);
-					}
+				//theApp.debugDump("BBB");				
+				//int a;
+				//int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
+				//for (a=0;a<data.length;a++)	{
+					//String st=Integer.toString(data[a]);
+					//theApp.debugDump(st);
+				//}
 				
 				
 				symbolCounter=0;				

@@ -16,7 +16,7 @@ package org.e2k;
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 public class MFSK {
-	
+		
 	public final int MINI_FFT_SIZE=8;
 	public final int SHORT_FFT_SIZE=128;
 	public final int FFT_200_SIZE=200;
