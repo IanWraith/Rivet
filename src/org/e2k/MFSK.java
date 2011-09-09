@@ -166,5 +166,21 @@ public class MFSK {
 		highestFrequency=highf;
 	}
 	
+	public int doCR36_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+	    double datao[]=circBuf.extractDataDouble(start,FFT_200_SIZE);
+	    double datar[]=new double[512];
+	    int a,c=0;
+	    for (a=0;a<512;a++)	{
+	    	datar[a]=datao[c];
+	    	c++;
+	    	if (c==FFT_200_SIZE) c=0;
+	    }
+	    mid_fft.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.sampleRate,0);  
+		return freq;
+	}
+	
 
 }

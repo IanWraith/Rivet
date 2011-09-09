@@ -173,6 +173,7 @@ public class Rivet {
 				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
 				addLine(disp,Color.BLACK,plainFont);
+							
 				}
 			}
 		catch (Exception e)	{

@@ -18,7 +18,48 @@ public class CROWD36 extends MFSK {
 	private int lineCount=0;
 	final int SYNC_HIGH=1703;
 	final int SYNC_LOW=742;
-		
+	
+	private int mbuf[]={0,0,0,0,0};
+
+	private final String C36A[]={
+			"NULL",
+			"Q",
+			"X",
+			"W",
+			"V",
+			"E",
+			"K",
+			" ",
+			"B",
+			"R",
+			"J",
+			"ctl",
+			"G",
+			"T",
+			"F",
+			"fs",
+			"M",
+			"Y",
+			"C",
+			"cr",
+			"Z",
+			"U",
+			"L",
+			"*",
+			"D",
+			"I",
+			"H",
+			"ls",
+			"S",
+			"O",
+			"N",
+			"-",
+			"A",
+			"P",
+			"",
+			""
+			};
+	
 	public CROWD36 (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
@@ -174,7 +215,7 @@ public class CROWD36 extends MFSK {
 		
 		// 8 KHz sampling
 		if (waveData.sampleRate==8000.0)	{
-			int freq=do200FFT(circBuf,waveData,0);
+			int freq=doCR36_8000FFT(circBuf,waveData,0);
 			return freq;
 		}
 		
@@ -185,15 +226,71 @@ public class CROWD36 extends MFSK {
 		//String tChar=getChar(freq);
 		String outLines[]=new String[2];
 		
-		outLines[0]=lineBuffer.toString();;
-		lineBuffer.delete(0,lineBuffer.length());
-		lineCount=0;
-		outLines[0]="UNID "+freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol);
+		//outLines[0]=lineBuffer.toString();;
+		//lineBuffer.delete(0,lineBuffer.length());
+		//lineCount=0;
+		//outLines[0]="UNID "+freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol);
 			
-       return outLines;
+
+		double dindex=(double)freq/40.0;
+		dindex=dindex-10.0;
+		int index=Math.round((float)dindex);
+		if ((index>0)&&(index<36)){
+		lineBuffer.append(C36A[index]);
+		lineCount++;
+		}
+		
+		if (sampleCount==39484)	{
+			int gh=1;
+			gh++;
+		}
+		
+		if (lineCount==60)	{
+			
+			lineCount=0;
+			outLines[0]=lineBuffer.toString();
+        	lineBuffer.delete(0,lineBuffer.length());
+        	return outLines;
+		}
 		
 		
-		//return null;
+		mbuf[0]=mbuf[1];
+		mbuf[1]=mbuf[2];
+		mbuf[2]=mbuf[3];
+		mbuf[3]=mbuf[4];
+		mbuf[4]=freq;
+		
+		int d0,d1,d2,d3;
+		
+		if (mbuf[0]>mbuf[1]) d0=mbuf[0]-mbuf[1];
+		else d0=mbuf[1]-mbuf[0];
+		d0=d0/40;
+		
+		if (mbuf[1]>mbuf[2]) d1=mbuf[1]-mbuf[2];
+		else d1=mbuf[2]-mbuf[1];
+		d1=d1/40;
+		
+		if (mbuf[2]>mbuf[3]) d2=mbuf[2]-mbuf[3];
+		else d2=mbuf[3]-mbuf[2];
+		d2=d2/40;
+		
+		if (mbuf[3]>mbuf[4]) d3=mbuf[3]-mbuf[4];
+		else d3=mbuf[4]-mbuf[3];
+		d3=d3/40;
+		
+	// Look for an RY
+		if ((d0==0)&&(d1==0)&&(d2==0))	{
+			int cp=1;
+			cp++;
+		}
+		
+		
+		
+		
+       //return outLines;
+		
+		
+		return null;
 	}
 	
 	private String getChar(int tone)	{
@@ -203,5 +300,7 @@ public class CROWD36 extends MFSK {
 	
 		return null;
 	}
+	
+
 
 }
