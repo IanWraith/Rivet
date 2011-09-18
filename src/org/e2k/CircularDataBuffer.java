@@ -129,4 +129,6 @@ public class CircularDataBuffer {
 		return this.circDataBuffer[i];
 	}
 	
+	// TODO add a method that takes an average from a section of the circular buffer
+	
 }

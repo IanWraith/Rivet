@@ -16,11 +16,9 @@ public class CROWD36 extends MFSK {
 	private int CENTREFREQ=0;
 	private boolean figureShift=false; 
 	private int lineCount=0;
-	final int SYNC_HIGH=1703;
-	final int SYNC_LOW=742;
+	final int SYNC_HIGH=1709;
+	final int SYNC_LOW=750;
 	
-	private int mbuf[]={0,0,0,0,0};
-
 	private final String C36A[]={
 			"NULL",
 			"Q",
@@ -117,6 +115,7 @@ public class CROWD36 extends MFSK {
 			if (outLines[0]!=null)	{
 				state=2;
 				energyStartPoint=sampleCount;
+				energyBuffer.setBufferCounter(0);
 				theApp.setStatusLabel("Calculating Symbol Timing");
 			}
 		}
@@ -124,23 +123,17 @@ public class CROWD36 extends MFSK {
 		// Set the symbol timing
 		if (state==2)	{
 			final int lookAHEAD=1;
-			doMiniFFT(circBuf,waveData,0);
+			
+			// TODO : Average here instead and look for highs and lows
+			
+			do200FFT(circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
 			// Gather a symbols worth of energy values
 			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*lookAHEAD))	{
-				// Now find the highest energy value
+				// Now find the lowest energy value
 				long perfectPoint=energyBuffer.returnLowestBin()+energyStartPoint+(int)samplesPerSymbol;
-				// For reasons unknown we need to minus the difference between the
-				// highest and the lowest bins in this calculation
-				int difFactor;
-				int low=energyBuffer.returnLowestBin();
-				int high=energyBuffer.returnHighestBin();
-				if (high>low) difFactor=high-low;
-				else difFactor=low-high;
 				// Calculate what the value of the symbol counter should be
-				symbolCounter=perfectPoint-sampleCount-difFactor;
-				// Check the symbol counter isn't set so it is greater than the samples per symbol
-				if (symbolCounter>(int)samplesPerSymbol) symbolCounter=symbolCounter-(int)samplesPerSymbol;
+				symbolCounter=perfectPoint-sampleCount;
 				state=3;
 				theApp.setStatusLabel("Symbol Timing Achieved");
 				outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
@@ -149,15 +142,15 @@ public class CROWD36 extends MFSK {
 				
 				
 				/////////////////////////////////////////////////////////////////
-				//int a;
-				//for (a=0;a<energyBuffer.getBufferCounter();a++)	{
-					//int ar[]=circBuf.extractData(a,1);
-					//String st=Integer.toString(energyBuffer.directAccess(a)/100)+","+Integer.toString(ar[0]);
-					//if (a==energyBuffer.returnHighestBin())	st=st+",10000";
-					//else if (a==energyBuffer.returnLowestBin())	st=st+",-10000";
-					//else st=st+",0";		
-					//theApp.debugDump(st);
-				//}
+				int a;
+				for (a=0;a<energyBuffer.getBufferCounter();a++)	{
+					int ar[]=circBuf.extractData(a,1);
+					String st=Integer.toString(energyBuffer.directAccess(a)/100)+","+Integer.toString(ar[0]);
+					if (a==energyBuffer.returnHighestBin())	st=st+",10000";
+					else if (a==energyBuffer.returnLowestBin())	st=st+",-10000";
+					else st=st+",0";		
+					theApp.debugDump(st);
+				}
 				
 				/////////////////////////////////////////////////////////////////
 				
@@ -171,13 +164,13 @@ public class CROWD36 extends MFSK {
 			if (symbolCounter>=samplesPerSymbol)	{
 				
 				
-				//theApp.debugDump("BBB");				
-				//int a;
-				//int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
-				//for (a=0;a<data.length;a++)	{
-					//String st=Integer.toString(data[a]);
-					//theApp.debugDump(st);
-				//}
+				theApp.debugDump("BBB");	
+				int a;
+				int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
+				for (a=0;a<data.length;a++)	{
+					String st=Integer.toString(data[a]);
+					theApp.debugDump(st);
+				}
 				
 				
 				symbolCounter=0;				
@@ -199,12 +192,12 @@ public class CROWD36 extends MFSK {
 		int shortFreq=do256FFT(circBuf,waveData,0);
 		// HIGH start tone
 		if (toneTest(shortFreq,SYNC_HIGH,ErrorALLOWANCE)==true)	{
-			// and check again a symbol for the high tone
+			// and check for a low tone tone
 			int nFreq=do256FFT(circBuf,waveData,(int)samplesPerSymbol);
-			if (toneTest(nFreq,SYNC_HIGH,ErrorALLOWANCE)==false) return null;
+			if (toneTest(nFreq,SYNC_LOW,ErrorALLOWANCE)==false) return null;
 			// Check the following symbol for a low tone
 			nFreq=do256FFT(circBuf,waveData,(int)samplesPerSymbol*2);
-			if (toneTest(nFreq,SYNC_LOW,ErrorALLOWANCE)==false) return null;
+			if (toneTest(nFreq,SYNC_HIGH,ErrorALLOWANCE)==false) return null;
 			line=theApp.getTimeStamp()+" CROWD36 Known Tones Found ("+Integer.toString(nFreq)+" Hz) at "+Long.toString(sampleCount);
 			return line;
 		}
@@ -226,63 +219,13 @@ public class CROWD36 extends MFSK {
 		//String tChar=getChar(freq);
 		String outLines[]=new String[2];
 		
-		//outLines[0]=lineBuffer.toString();;
-		//lineBuffer.delete(0,lineBuffer.length());
-		//lineCount=0;
-		//outLines[0]="UNID "+freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol);
+		outLines[0]=lineBuffer.toString();;
+		lineBuffer.delete(0,lineBuffer.length());
+		lineCount=0;
+		outLines[0]="UNID "+freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol);
 			
 
-		double dindex=(double)freq/40.0;
-		dindex=dindex-10.0;
-		int index=Math.round((float)dindex);
-		if ((index>0)&&(index<36)){
-		lineBuffer.append(C36A[index]);
-		lineCount++;
-		}
 		
-		if (sampleCount==39484)	{
-			int gh=1;
-			gh++;
-		}
-		
-		if (lineCount==60)	{
-			
-			lineCount=0;
-			outLines[0]=lineBuffer.toString();
-        	lineBuffer.delete(0,lineBuffer.length());
-        	return outLines;
-		}
-		
-		
-		mbuf[0]=mbuf[1];
-		mbuf[1]=mbuf[2];
-		mbuf[2]=mbuf[3];
-		mbuf[3]=mbuf[4];
-		mbuf[4]=freq;
-		
-		int d0,d1,d2,d3;
-		
-		if (mbuf[0]>mbuf[1]) d0=mbuf[0]-mbuf[1];
-		else d0=mbuf[1]-mbuf[0];
-		d0=d0/40;
-		
-		if (mbuf[1]>mbuf[2]) d1=mbuf[1]-mbuf[2];
-		else d1=mbuf[2]-mbuf[1];
-		d1=d1/40;
-		
-		if (mbuf[2]>mbuf[3]) d2=mbuf[2]-mbuf[3];
-		else d2=mbuf[3]-mbuf[2];
-		d2=d2/40;
-		
-		if (mbuf[3]>mbuf[4]) d3=mbuf[3]-mbuf[4];
-		else d3=mbuf[4]-mbuf[3];
-		d3=d3/40;
-		
-	// Look for an RY
-		if ((d0==0)&&(d1==0)&&(d2==0))	{
-			int cp=1;
-			cp++;
-		}
 		
 		
 		
