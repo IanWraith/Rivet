@@ -124,7 +124,7 @@ public class CROWD36 extends MFSK {
 		if (state==2)	{
 			final int lookAHEAD=1;
 			
-			// TODO : Average here instead and look for highs and lows
+			// TODO : Average here instead and look for highs and lows but average the ABS value
 			
 			do200FFT(circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
