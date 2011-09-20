@@ -16,8 +16,12 @@ public class CROWD36 extends MFSK {
 	private int CENTREFREQ=0;
 	private boolean figureShift=false; 
 	private int lineCount=0;
-	final int SYNC_HIGH=1709;
-	final int SYNC_LOW=750;
+	
+	//final int SYNC_HIGH=1703;
+	//final int SYNC_LOW=742;
+	
+	final int SYNC_HIGH=1644;
+	final int SYNC_LOW=400;
 	
 	private final String C36A[]={
 			"NULL",
@@ -123,11 +127,9 @@ public class CROWD36 extends MFSK {
 		// Set the symbol timing
 		if (state==2)	{
 			final int lookAHEAD=1;
-			
-			// TODO : Average here instead and look for highs and lows but average the ABS value
-			
-			do200FFT(circBuf,waveData,0);
-			energyBuffer.addToCircBuffer((int)getTotalEnergy());
+			// Obtain an average of the last few samples put through ABS
+			double no=samplesPerSymbol/20.0;
+			energyBuffer.addToCircBuffer(circBuf.getABSAverage(0,(int)no));
 			// Gather a symbols worth of energy values
 			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*lookAHEAD))	{
 				// Now find the lowest energy value
@@ -145,7 +147,7 @@ public class CROWD36 extends MFSK {
 				int a;
 				for (a=0;a<energyBuffer.getBufferCounter();a++)	{
 					int ar[]=circBuf.extractData(a,1);
-					String st=Integer.toString(energyBuffer.directAccess(a)/100)+","+Integer.toString(ar[0]);
+					String st=Integer.toString(energyBuffer.directAccess(a))+","+Integer.toString(ar[0]);
 					if (a==energyBuffer.returnHighestBin())	st=st+",10000";
 					else if (a==energyBuffer.returnLowestBin())	st=st+",-10000";
 					else st=st+",0";		

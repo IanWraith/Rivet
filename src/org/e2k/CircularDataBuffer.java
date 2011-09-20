@@ -129,6 +129,16 @@ public class CircularDataBuffer {
 		return this.circDataBuffer[i];
 	}
 	
-	// TODO add a method that takes an average from a section of the circular buffer
+	// Returns the ABSaverage of a section of the circular buffer
+	public int getABSAverage (int start,int length)	{
+		int a;
+		double runtotal=0.0;
+		int samples[]=this.extractData(start,length);
+		for (a=0;a<length;a++)	{
+			runtotal=runtotal+Math.abs(samples[a]);
+		}
+		runtotal=runtotal/(double)length;
+		return (int)runtotal;
+	}
 	
 }
