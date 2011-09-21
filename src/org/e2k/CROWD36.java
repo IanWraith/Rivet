@@ -17,11 +17,16 @@ public class CROWD36 extends MFSK {
 	private boolean figureShift=false; 
 	private int lineCount=0;
 	
-	final int SYNC_HIGH=1703;
-	final int SYNC_LOW=742;
+	//final int SYNC_HIGH=1703;
+	//final int SYNC_LOW=742;
 	
 	//final int SYNC_HIGH=1644;
 	//final int SYNC_LOW=400;
+	
+	final int SYNC_HIGH=1701;
+	final int SYNC_LOW=660;
+	
+	public int toneFreq[]=new int[100];
 	
 	private final String C36A[]={
 			"NULL",
@@ -186,7 +191,7 @@ public class CROWD36 extends MFSK {
 				//}
 							
 				symbolCounter=0;				
-				int freq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol);
+				int freq=crowd36Freq(circBuf,waveData,0,(int)samplesPerSymbol);
 				outLines=displayMessage(freq,waveData.fromFile);
 			}
 			
@@ -201,14 +206,14 @@ public class CROWD36 extends MFSK {
 	private String knownToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		String line;
 		final int ErrorALLOWANCE=100;
-		int shortFreq=do256FFT(circBuf,waveData,0);
+		int shortFreq=crowd36Freq(circBuf,waveData,0,(int)samplesPerSymbol);
 		// HIGH start tone
 		if (toneTest(shortFreq,SYNC_HIGH,ErrorALLOWANCE)==true)	{
 			// and check for a low tone tone
-			int nFreq=do256FFT(circBuf,waveData,(int)samplesPerSymbol);
+			int nFreq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol,(int)samplesPerSymbol);
 			if (toneTest(nFreq,SYNC_LOW,ErrorALLOWANCE)==false) return null;
-			// Check the following symbol for a low tone
-			nFreq=do256FFT(circBuf,waveData,(int)samplesPerSymbol*2);
+			// Check the following symbol for a high tone
+			nFreq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*2,(int)samplesPerSymbol);
 			if (toneTest(nFreq,SYNC_HIGH,ErrorALLOWANCE)==false) return null;
 			line=theApp.getTimeStamp()+" CROWD36 Known Tones Found ("+Integer.toString(nFreq)+" Hz) at "+Long.toString(sampleCount);
 			return line;
@@ -216,11 +221,11 @@ public class CROWD36 extends MFSK {
 		else return null;
 	}
 	
-	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int samplePerSymbol)	{
+	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int pos,int samplePerSymbol)	{
 		
 		// 8 KHz sampling
 		if (waveData.sampleRate==8000.0)	{
-			int freq=doCR36_8000FFT(circBuf,waveData,0);
+			int freq=doCR36_8000FFT(circBuf,waveData,pos);
 			return freq;
 		}
 		
@@ -231,21 +236,19 @@ public class CROWD36 extends MFSK {
 		//String tChar=getChar(freq);
 		String outLines[]=new String[2];
 		
+		double dtoneno=(double)freq/40.0;
+		int tone=(int)Math.round(dtoneno);
+		toneFreq[tone]++;
+		
 		outLines[0]=lineBuffer.toString();;
 		lineBuffer.delete(0,lineBuffer.length());
 		lineCount=0;
-		outLines[0]="UNID "+freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol);
+		outLines[0]="UNID "+freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol)+" tone "+Long.toString(tone);
 			
-
+       return outLines;
 		
 		
-		
-		
-		
-       //return outLines;
-		
-		
-		return null;
+		//return null;
 	}
 	
 	private String getChar(int tone)	{
