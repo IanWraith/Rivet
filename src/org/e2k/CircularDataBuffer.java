@@ -141,4 +141,9 @@ public class CircularDataBuffer {
 		return (int)runtotal;
 	}
 	
+	// This gets the last item put into the buffer which is handy for debugging
+	public int getLast ()	{
+		return this.circDataBuffer[circBufferCounter];
+	}
+	
 }

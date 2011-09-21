@@ -17,11 +17,11 @@ public class CROWD36 extends MFSK {
 	private boolean figureShift=false; 
 	private int lineCount=0;
 	
-	//final int SYNC_HIGH=1703;
-	//final int SYNC_LOW=742;
+	final int SYNC_HIGH=1703;
+	final int SYNC_LOW=742;
 	
-	final int SYNC_HIGH=1644;
-	final int SYNC_LOW=400;
+	//final int SYNC_HIGH=1644;
+	//final int SYNC_LOW=400;
 	
 	private final String C36A[]={
 			"NULL",
@@ -121,6 +121,9 @@ public class CROWD36 extends MFSK {
 				energyStartPoint=sampleCount;
 				energyBuffer.setBufferCounter(0);
 				theApp.setStatusLabel("Calculating Symbol Timing");
+				
+				theApp.debugDump("energyStartPoint,"+Long.toString(energyStartPoint));
+				
 			}
 		}
 		
@@ -134,8 +137,15 @@ public class CROWD36 extends MFSK {
 			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*lookAHEAD))	{
 				// Now find the lowest energy value
 				long perfectPoint=energyBuffer.returnLowestBin()+energyStartPoint+(int)samplesPerSymbol;
+				
+				//theApp.debugDump("perfectPoint,"+Long.toString(perfectPoint));
+				//theApp.debugDump("sampleCount,"+Long.toString(sampleCount));
+				
 				// Calculate what the value of the symbol counter should be
-				symbolCounter=perfectPoint-sampleCount;
+				symbolCounter=(int)samplesPerSymbol-(perfectPoint-sampleCount);
+				
+				//theApp.debugDump("symbolCounter,"+Long.toString(symbolCounter));
+				
 				state=3;
 				theApp.setStatusLabel("Symbol Timing Achieved");
 				outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
@@ -144,15 +154,15 @@ public class CROWD36 extends MFSK {
 				
 				
 				/////////////////////////////////////////////////////////////////
-				int a;
-				for (a=0;a<energyBuffer.getBufferCounter();a++)	{
-					int ar[]=circBuf.extractData(a,1);
-					String st=Integer.toString(energyBuffer.directAccess(a))+","+Integer.toString(ar[0]);
-					if (a==energyBuffer.returnHighestBin())	st=st+",10000";
-					else if (a==energyBuffer.returnLowestBin())	st=st+",-10000";
-					else st=st+",0";		
-					theApp.debugDump(st);
-				}
+				//int a;
+				//for (a=0;a<energyBuffer.getBufferCounter();a++)	{
+					//int ar[]=circBuf.extractData(a,1);
+					//String st=Integer.toString(energyBuffer.directAccess(a))+","+Integer.toString(ar[0]);
+					//if (a==energyBuffer.returnHighestBin())	st=st+",10000";
+					//else if (a==energyBuffer.returnLowestBin())	st=st+",-10000";
+					//else st=st+",0";		
+					//theApp.debugDump(st);
+				//}
 				
 				/////////////////////////////////////////////////////////////////
 				
@@ -162,19 +172,19 @@ public class CROWD36 extends MFSK {
 		
 		// Decode traffic
 		if (state==3)	{
+			//theApp.debugDump(Long.toString(sampleCount)+","+Long.toString(symbolCounter)+","+Integer.toString(circBuf.getLast()));
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
 				
 				
-				theApp.debugDump("BBB");	
-				int a;
-				int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
-				for (a=0;a<data.length;a++)	{
-					String st=Integer.toString(data[a]);
-					theApp.debugDump(st);
-				}
-				
-				
+				//theApp.debugDump("BBB");	
+				//int a;
+				//int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
+				//for (a=0;a<data.length;a++)	{
+					//String st=Integer.toString(data[a]);
+					//theApp.debugDump(st);
+				//}
+							
 				symbolCounter=0;				
 				int freq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol);
 				outLines=displayMessage(freq,waveData.fromFile);
