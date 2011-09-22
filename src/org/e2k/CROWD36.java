@@ -19,12 +19,15 @@ public class CROWD36 extends MFSK {
 	
 	//final int SYNC_HIGH=1703;
 	//final int SYNC_LOW=742;
+	// 961
 	
 	//final int SYNC_HIGH=1644;
 	//final int SYNC_LOW=400;
+	// 1244
 	
 	final int SYNC_HIGH=1701;
 	final int SYNC_LOW=660;
+	// 1041
 	
 	public int toneFreq[]=new int[100];
 	
@@ -191,7 +194,7 @@ public class CROWD36 extends MFSK {
 				//}
 							
 				symbolCounter=0;				
-				int freq=crowd36Freq(circBuf,waveData,0,(int)samplesPerSymbol);
+				int freq=crowd36Freq(circBuf,waveData,0);
 				outLines=displayMessage(freq,waveData.fromFile);
 			}
 			
@@ -206,26 +209,37 @@ public class CROWD36 extends MFSK {
 	private String knownToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		String line;
 		final int ErrorALLOWANCE=100;
-		int shortFreq=crowd36Freq(circBuf,waveData,0,(int)samplesPerSymbol);
-		// HIGH start tone
-		if (toneTest(shortFreq,SYNC_HIGH,ErrorALLOWANCE)==true)	{
-			// and check for a low tone tone
-			int nFreq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol,(int)samplesPerSymbol);
-			if (toneTest(nFreq,SYNC_LOW,ErrorALLOWANCE)==false) return null;
-			// Check the following symbol for a high tone
-			nFreq=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*2,(int)samplesPerSymbol);
-			if (toneTest(nFreq,SYNC_HIGH,ErrorALLOWANCE)==false) return null;
-			line=theApp.getTimeStamp()+" CROWD36 Known Tones Found ("+Integer.toString(nFreq)+" Hz) at "+Long.toString(sampleCount);
-			return line;
-		}
-		else return null;
+		
+		//if (sampleCount==3984)	{
+			//int a;
+			//int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
+			//for (a=0;a<data.length;a++)	{
+				//String st=Integer.toString(data[a]);
+				//theApp.debugDump(st);
+			//}
+		//}
+		
+		// High sync tone
+		int freq1=crowd36Freq(circBuf,waveData,0);
+		if (toneTest(freq1,SYNC_HIGH,ErrorALLOWANCE)==false) return null;	
+		// Low sync tone
+		int freq2=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol);
+		if (toneTest(freq2,SYNC_LOW,ErrorALLOWANCE)==false) return null;
+		// High sync tone
+		int freq3=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*2);
+		if (toneTest(freq3,SYNC_HIGH,ErrorALLOWANCE)==false) return null;
+		// Low sync tone
+		int freq4=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*3);
+		if (toneTest(freq4,SYNC_LOW,ErrorALLOWANCE)==false) return null;
+		line=theApp.getTimeStamp()+" CROWD36 Known Tones Found ("+Integer.toString(freq1)+" Hz) at "+Long.toString(sampleCount);
+		return line;
 	}
 	
-	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int pos,int samplePerSymbol)	{
+	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 		
 		// 8 KHz sampling
 		if (waveData.sampleRate==8000.0)	{
-			int freq=doCR36_8000FFT(circBuf,waveData,pos);
+			int freq=do200FFT(circBuf,waveData,pos);
 			return freq;
 		}
 		
