@@ -33,6 +33,7 @@ public class MFSK {
 	private int highestFrequency=-1;
 	private int secondHighestBin=-1;
 	private int thirdHighestBin=-1;
+	private double highestValue;
 	
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -48,10 +49,10 @@ public class MFSK {
 	// Find the bin containing the hight value from an array of doubles
 	private int findHighBin(double[]x)	{
 		int a,highBin=-1;
-		double highVal=-1;
+		highestValue=-1;
 		for (a=0;a<x.length;a++)	{
-			if (x[a]>highVal)	{
-				highVal=x[a];
+			if (x[a]>highestValue)	{
+				highestValue=x[a];
 				// Store the second and third highest bins also
 				thirdHighestBin=secondHighestBin;
 				secondHighestBin=highBin+1;
@@ -182,5 +183,10 @@ public class MFSK {
 		return freq;
 	}
 	
+	// Show what percentage of the total the highest spectral value is
+	public double getPercentageOfTotal()	{
+		double p=(highestValue/totalEnergy)*100.0;
+		return p;
+	}
 
 }

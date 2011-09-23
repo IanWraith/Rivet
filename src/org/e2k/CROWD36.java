@@ -129,9 +129,6 @@ public class CROWD36 extends MFSK {
 				energyStartPoint=sampleCount;
 				energyBuffer.setBufferCounter(0);
 				theApp.setStatusLabel("Calculating Symbol Timing");
-				
-				theApp.debugDump("energyStartPoint,"+Long.toString(energyStartPoint));
-				
 			}
 		}
 		
@@ -221,6 +218,8 @@ public class CROWD36 extends MFSK {
 		
 		// High sync tone
 		int freq1=crowd36Freq(circBuf,waveData,0);
+		// Check this first tone isn't just noise
+		if (getPercentageOfTotal()<5.0) return null;
 		if (toneTest(freq1,SYNC_HIGH,ErrorALLOWANCE)==false) return null;	
 		// Low sync tone
 		int freq2=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol);
@@ -239,7 +238,7 @@ public class CROWD36 extends MFSK {
 		
 		// 8 KHz sampling
 		if (waveData.sampleRate==8000.0)	{
-			int freq=do200FFT(circBuf,waveData,pos);
+			int freq=doCR36_8000FFT(circBuf,waveData,pos);
 			return freq;
 		}
 		
