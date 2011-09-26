@@ -13,21 +13,9 @@ public class CROWD36 extends MFSK {
 	private long energyStartPoint;
 	private StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
-	private int CENTREFREQ=0;
 	private boolean figureShift=false; 
 	private int lineCount=0;
-	
-	//final int SYNC_HIGH=1703;
-	//final int SYNC_LOW=742;
-	// 961
-	
-	//final int SYNC_HIGH=1644;
-	//final int SYNC_LOW=400;
-	// 1244
-	
-	final int SYNC_HIGH=1701;
-	final int SYNC_LOW=660;
-	// 1041
+	private int correctionValue=0;
 	
 	public int toneFreq[]=new int[100];
 	
@@ -123,7 +111,7 @@ public class CROWD36 extends MFSK {
 		
 		// Hunting for known tones
 		if (state==1)	{
-			outLines[0]=knownToneHunt(circBuf,waveData);
+			outLines[0]=syncToneHunt(circBuf,waveData);
 			if (outLines[0]!=null)	{
 				state=2;
 				energyStartPoint=sampleCount;
@@ -202,43 +190,12 @@ public class CROWD36 extends MFSK {
 		return outLines;				
 	}
 	
-	// Hunt for known CROWD 36 tones
-	private String knownToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
-		String line;
-		final int ErrorALLOWANCE=100;
-		
-		//if (sampleCount==3984)	{
-			//int a;
-			//int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
-			//for (a=0;a<data.length;a++)	{
-				//String st=Integer.toString(data[a]);
-				//theApp.debugDump(st);
-			//}
-		//}
-		
-		// High sync tone
-		int freq1=crowd36Freq(circBuf,waveData,0);
-		// Check this first tone isn't just noise
-		if (getPercentageOfTotal()<5.0) return null;
-		if (toneTest(freq1,SYNC_HIGH,ErrorALLOWANCE)==false) return null;	
-		// Low sync tone
-		int freq2=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol);
-		if (toneTest(freq2,SYNC_LOW,ErrorALLOWANCE)==false) return null;
-		// High sync tone
-		int freq3=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*2);
-		if (toneTest(freq3,SYNC_HIGH,ErrorALLOWANCE)==false) return null;
-		// Low sync tone
-		int freq4=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*3);
-		if (toneTest(freq4,SYNC_LOW,ErrorALLOWANCE)==false) return null;
-		line=theApp.getTimeStamp()+" CROWD36 Known Tones Found ("+Integer.toString(freq1)+" Hz) at "+Long.toString(sampleCount);
-		return line;
-	}
-	
 	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 		
 		// 8 KHz sampling
 		if (waveData.sampleRate==8000.0)	{
 			int freq=doCR36_8000FFT(circBuf,waveData,pos);
+			freq=freq+correctionValue;
 			return freq;
 		}
 		
@@ -249,8 +206,7 @@ public class CROWD36 extends MFSK {
 		//String tChar=getChar(freq);
 		String outLines[]=new String[2];
 		
-		double dtoneno=(double)freq/40.0;
-		int tone=(int)Math.round(dtoneno);
+		int tone=getTone(freq);
 		toneFreq[tone]++;
 		
 		outLines[0]=lineBuffer.toString();;
@@ -271,6 +227,45 @@ public class CROWD36 extends MFSK {
 	
 		return null;
 	}
+	
+	// Convert from a frequency to a tone number
+	private int getTone (int freq)	{
+		int a,index=-1,lowVal=999,dif;
+		final int Tones[]={300,340,380,420,460,500,54,580,620,660,700,
+				740,780,820,860,900,940,980,1020,1060,1100,1140,1180,1220,1260,
+				1300,1340,1380,1420,1460,1500,1540,1580,1620,1660,1700};
+		for (a=0;a<Tones.length;a++)	{
+			dif=Math.abs(Tones[a]-freq);
+			if (dif<lowVal)	{
+				lowVal=dif;
+				index=a;
+			}
+		}
+		return index;
+	}
+	
+	
+	// Hunt for known CROWD 36 tones
+	private String syncToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
+			String line;
+			final int ErrorALLOWANCE=20;
+			// Get 4 symbols
+			int freq1=crowd36Freq(circBuf,waveData,0);
+			// Check this first tone isn't just noise
+			if (getPercentageOfTotal()<5.0) return null;
+			int freq2=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*1);
+			int freq3=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*2);
+			int freq4=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*3);
+			// Check 2 of the symbol frequencies are the same
+			if ((freq1!=freq3)||(freq2!=freq4)) return null;
+			// Find the difference between the frequencies
+			int dif=freq1-freq2;
+			if ((dif<(1040-ErrorALLOWANCE))||(dif>(1040+ErrorALLOWANCE))) return null;
+			// Calculate the correction value
+			correctionValue=1700-freq1;
+			line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) at "+Long.toString(sampleCount);
+			return line;
+		}
 	
 
 
