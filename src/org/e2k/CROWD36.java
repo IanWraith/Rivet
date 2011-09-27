@@ -125,6 +125,11 @@ public class CROWD36 extends MFSK {
 			freq=freq+correctionValue;
 			return freq;
 		}
+		else if (waveData.sampleRate==11025.0)	{
+			int freq=doCR36_11025FFT(circBuf,waveData,pos);
+			freq=freq+correctionValue;
+			return freq;
+		}
 		
 		return -1;
 	}
@@ -185,7 +190,7 @@ public class CROWD36 extends MFSK {
 	// Hunt for known CROWD 36 tones
 	private String syncToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 			String line;
-			final int ErrorALLOWANCE=20;
+			final int ErrorALLOWANCE=100;
 			// Get 4 symbols
 			int freq1=crowd36Freq(circBuf,waveData,0);
 			// Check this first tone isn't just noise

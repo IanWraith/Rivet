@@ -183,6 +183,22 @@ public class MFSK {
 		return freq;
 	}
 	
+	public int doCR36_11025FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+	    double datao[]=circBuf.extractDataDouble(start,275);
+	    double datar[]=new double[512];
+	    int a,c=0;
+	    for (a=0;a<512;a++)	{
+	    	if (c<200) datar[a]=datao[c];
+	    	else datar[a]=0.0;
+	    	c++;
+	    }
+	    mid_fft.realForward(datar);
+	    double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.sampleRate,0);  
+		return freq;
+	}
+	
 	// Show what percentage of the total the highest spectral value is
 	public double getPercentageOfTotal()	{
 		double p=(highestValue/totalEnergy)*100.0;
