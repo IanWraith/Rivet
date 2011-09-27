@@ -64,7 +64,7 @@ public class MFSK {
 	}
 		
 	// Given the real data in a double array return the largest frequency component
-	private int getFFTFreq (double[]x,double sampleFreq,int correctionFactor)	{
+	public int getFFTFreq (double[]x,double sampleFreq,int correctionFactor)	{
 		int bin=findHighBin(x);
 		double len=x.length*2;
 		double ret=((sampleFreq/len)*bin)-correctionFactor;
@@ -128,7 +128,7 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,FFT_200_SIZE);
 		fft200.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.CorrectionFactor256);  
+		int freq=getFFTFreq (spec,waveData.sampleRate,0);  
 		return freq;
 	}
 	
@@ -143,7 +143,7 @@ public class MFSK {
 	
 	// Combine the complex data returned by the JTransform FFT routine to provide
 	// a power spectrum
-	private double[] getSpectrum (double[]data)	{
+	public double[] getSpectrum (double[]data)	{
 		double spectrum[]=new double[data.length/2];
 		// Clear the total energy sum
 		totalEnergy=0.0;
@@ -173,12 +173,12 @@ public class MFSK {
 	    double datar[]=new double[512];
 	    int a,c=0;
 	    for (a=0;a<512;a++)	{
-	    	datar[a]=datao[c];
+	    	if (c<200) datar[a]=datao[c];
+	    	else datar[a]=0.0;
 	    	c++;
-	    	if (c==FFT_200_SIZE) c=0;
 	    }
 	    mid_fft.realForward(datar);
-		double spec[]=getSpectrum(datar);
+	    double spec[]=getSpectrum(datar);
 		int freq=getFFTFreq (spec,waveData.sampleRate,0);  
 		return freq;
 	}
@@ -187,6 +187,19 @@ public class MFSK {
 	public double getPercentageOfTotal()	{
 		double p=(highestValue/totalEnergy)*100.0;
 		return p;
+	}
+	
+	
+	// A Hamming window
+	private double windowHamming (double in,int i,int m)	{
+		double r=0.54-0.46*Math.cos(2*Math.PI*i/m);
+		return (in*r);
+	}
+	
+	// A Blackman window
+	private double windowBlackman (double in,int i,int m)	{
+		double r=0.42-0.5*Math.cos(2*Math.PI*i/m)+0.08*Math.cos(4*Math.PI*i/m);
+		return (in*r);
 	}
 
 }

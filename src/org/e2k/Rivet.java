@@ -172,17 +172,7 @@ public class Rivet {
 				}
 				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
-				addLine(disp,Color.BLACK,plainFont);
-				
-				// Display CROWD36 tone frequencies
-				if (system==0)	{
-					for (a=0;a<100;a++)	{
-						disp="Tone "+Integer.toString(a)+" freq "+Integer.toString(crowd36Handler.toneFreq[a]);
-						addLine(disp,Color.BLACK,plainFont);
-					}
-				}
-				
-							
+				addLine(disp,Color.BLACK,plainFont);				
 				}
 			}
 		catch (Exception e)	{

@@ -17,47 +17,6 @@ public class CROWD36 extends MFSK {
 	private int lineCount=0;
 	private int correctionValue=0;
 	
-	public int toneFreq[]=new int[100];
-	
-	private final String C36A[]={
-			"NULL",
-			"Q",
-			"X",
-			"W",
-			"V",
-			"E",
-			"K",
-			" ",
-			"B",
-			"R",
-			"J",
-			"ctl",
-			"G",
-			"T",
-			"F",
-			"fs",
-			"M",
-			"Y",
-			"C",
-			"cr",
-			"Z",
-			"U",
-			"L",
-			"*",
-			"D",
-			"I",
-			"H",
-			"ls",
-			"S",
-			"O",
-			"N",
-			"-",
-			"A",
-			"P",
-			"",
-			""
-			};
-	
 	public CROWD36 (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
@@ -130,35 +89,13 @@ public class CROWD36 extends MFSK {
 			if (energyBuffer.getBufferCounter()>(int)(samplesPerSymbol*lookAHEAD))	{
 				// Now find the lowest energy value
 				long perfectPoint=energyBuffer.returnLowestBin()+energyStartPoint+(int)samplesPerSymbol;
-				
-				//theApp.debugDump("perfectPoint,"+Long.toString(perfectPoint));
-				//theApp.debugDump("sampleCount,"+Long.toString(sampleCount));
-				
 				// Calculate what the value of the symbol counter should be
 				symbolCounter=(int)samplesPerSymbol-(perfectPoint-sampleCount);
-				
-				//theApp.debugDump("symbolCounter,"+Long.toString(symbolCounter));
-				
 				state=3;
 				theApp.setStatusLabel("Symbol Timing Achieved");
 				outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
 				sampleCount++;
 				symbolCounter++;
-				
-				
-				/////////////////////////////////////////////////////////////////
-				//int a;
-				//for (a=0;a<energyBuffer.getBufferCounter();a++)	{
-					//int ar[]=circBuf.extractData(a,1);
-					//String st=Integer.toString(energyBuffer.directAccess(a))+","+Integer.toString(ar[0]);
-					//if (a==energyBuffer.returnHighestBin())	st=st+",10000";
-					//else if (a==energyBuffer.returnLowestBin())	st=st+",-10000";
-					//else st=st+",0";		
-					//theApp.debugDump(st);
-				//}
-				
-				/////////////////////////////////////////////////////////////////
-				
 				return outLines;
 			}
 		}
@@ -168,16 +105,6 @@ public class CROWD36 extends MFSK {
 			//theApp.debugDump(Long.toString(sampleCount)+","+Long.toString(symbolCounter)+","+Integer.toString(circBuf.getLast()));
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
-				
-				
-				//theApp.debugDump("BBB");	
-				//int a;
-				//int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
-				//for (a=0;a<data.length;a++)	{
-					//String st=Integer.toString(data[a]);
-					//theApp.debugDump(st);
-				//}
-							
 				symbolCounter=0;				
 				int freq=crowd36Freq(circBuf,waveData,0);
 				outLines=displayMessage(freq,waveData.fromFile);
@@ -203,37 +130,47 @@ public class CROWD36 extends MFSK {
 	}
 	
 	private String[] displayMessage (int freq,boolean isFile)	{
-		//String tChar=getChar(freq);
 		String outLines[]=new String[2];
-		
 		int tone=getTone(freq);
-		toneFreq[tone]++;
+		String ch=getChar(tone);
+		lineBuffer.append(ch);
+		if (ch.length()>0) lineCount++;
 		
-		outLines[0]=lineBuffer.toString();;
-		lineBuffer.delete(0,lineBuffer.length());
-		lineCount=0;
-		outLines[0]="UNID "+freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol)+" tone "+Long.toString(tone);
+		if (lineCount==50)	{
+			outLines[0]=lineBuffer.toString();;
+			lineBuffer.delete(0,lineBuffer.length());
+			lineCount=0;
+			return outLines;
+		}
+		
+		//outLines[0]=lineBuffer.toString();;
+		//lineBuffer.delete(0,lineBuffer.length());
+		//lineCount=0;
+		//outLines[0]="UNID "+freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol)+" tone "+Long.toString(tone);
 			
-       return outLines;
+       //return outLines;
 		
 		
-		//return null;
+		return null;
 	}
 	
 	private String getChar(int tone)	{
-		final int errorAllowance=15;
-	    //if ((tone>(1995-errorAllowance))&&(tone<(1995+errorAllowance))) return ("R");
-	    //else if ((tone>(1033-errorAllowance))&&(tone<(1033+errorAllowance))) return ("Y");
-	
-		return null;
+		final String C36A[]={"","","Q","X","W","V","E","K"," ","B","R","J","","G","T","F","","M","Y","C","","Z","U","L","*","D","I","H","","S","O","N","","A","P",""};
+		final String F36A[]={"","","1","/","2",";","3","("," ","?","4","'","","8","5","!","",".","6",":","","","7",")","","$","8","#","","","9",",","","-","0",""};
+		
+		if (tone==16) figureShift=true;
+		else if (tone==28) figureShift=false;
+		
+		//figureShift=false;
+
+		if (figureShift==false) return C36A[tone];
+		else return F36A[tone];
 	}
 	
 	// Convert from a frequency to a tone number
 	private int getTone (int freq)	{
 		int a,index=-1,lowVal=999,dif;
-		final int Tones[]={300,340,380,420,460,500,54,580,620,660,700,
-				740,780,820,860,900,940,980,1020,1060,1100,1140,1180,1220,1260,
-				1300,1340,1380,1420,1460,1500,1540,1580,1620,1660,1700};
+		final int Tones[]={300,340,380,420,460,500,540,580,620,660,700,740,780,820,860,900,940,980,1020,1060,1100,1140,1180,1220,1260,1300,1340,1380,1420,1460,1500,1540,1580,1620,1660,1700};
 		for (a=0;a<Tones.length;a++)	{
 			dif=Math.abs(Tones[a]-freq);
 			if (dif<lowVal)	{
