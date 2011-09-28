@@ -52,6 +52,7 @@ public class Rivet {
 	private WaveData waveData=new WaveData();
 	private boolean logging=false;
 	public FileWriter file;
+	private boolean debug=false;
 	
 	public final String MODENAMES[]={"CROWD36","XPA","XPA2"};
     
@@ -265,6 +266,14 @@ public class Rivet {
 	public void addLine(String line,Color col,Font font) {
 		if (logging==true) fileWrite(line);
 		display_view.add_line(line,col,font);
+	}
+
+	public boolean isDebug() {
+		return debug;
+	}
+
+	public void setDebug(boolean debug) {
+		this.debug = debug;
 	}
 	
 

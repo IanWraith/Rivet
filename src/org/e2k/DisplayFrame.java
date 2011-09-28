@@ -26,7 +26,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public static final long serialVersionUID=1;
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
-	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item;
+	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item;
 	private JMenuItem XPA_item,XPA2_item,CROWD36_item;
 	
 	// Constructor
@@ -39,6 +39,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		setJMenuBar(menuBar);
 		// Main
 		JMenu mainMenu=new JMenu("Main");
+		mainMenu.add(debug_item=new JRadioButtonMenuItem("Debug Mode",theApp.isDebug()));		
+		debug_item.addActionListener(this);
 		mainMenu.add(wavLoad_item=new JMenuItem("Load a WAV File"));		
 		wavLoad_item.addActionListener(this);
 		mainMenu.add(save_to_file=new JRadioButtonMenuItem("Save to File",theApp.getLogging()));
@@ -101,6 +103,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="Help") {
 			BareBonesBrowserLaunch.openURL("https://github.com/IanWraith/Rivet/wiki");
 		}
+		// Debug mode
+		if (event_name=="Debug Mode")	{
+			if (theApp.isDebug()==true) theApp.setDebug(false);
+			else theApp.setDebug(true);
+		}
 		// Run through all the mode names
 		for (int a=0;a<theApp.MODENAMES.length;a++)	{
 			if (event_name==theApp.MODENAMES[a]) theApp.setSystem(a);
@@ -141,6 +148,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		CROWD36_item.setSelected(theApp.isCROWD36());
 		XPA_item.setSelected(theApp.isXPA());
 		XPA2_item.setSelected(theApp.isXPA2());
+		debug_item.setSelected(theApp.isDebug());
 	}
 	
 	// Display a dialog box so the user can select a WAV file they wish to process
