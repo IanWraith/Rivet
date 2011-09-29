@@ -34,7 +34,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 6) by Ian Wraith";
+	public String program_version="Rivet (Build 7) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -146,11 +146,16 @@ public class Rivet {
 		waveData=inputThread.startFileLoad(fileName);
 		// Make sure the program knows this data is coming from a file
 		waveData.fromFile=true;
-		// Reset the system objects
 		// Clear the data buffer
 		circBuffer.setBufferCounter(0);
+		// Reset the system objects
+		// CROWD36
+		if (system==0) crowd36Handler.setState(0);
 		// XPA
-		if (system==1) xpaHandler.setState(0);
+		else if (system==1) xpaHandler.setState(0);
+		// XPA2
+		else if (system==2) xpa2Handler.setState(0);
+		
 	}
 	
 	// This is called when the input thread is busy getting data from a WAV file
