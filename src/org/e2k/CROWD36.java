@@ -64,6 +64,9 @@ public class CROWD36 extends MFSK {
 			waveData.Clear();
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
+			// Clear the display side of things
+			lineCount=0;
+			lineBuffer.delete(0,lineBuffer.length());
 			theApp.setStatusLabel("Known Tone Hunt");
 			return null;
 		}
@@ -170,7 +173,7 @@ public class CROWD36 extends MFSK {
 		if (tone==16) figureShift=true;
 		else if (tone==28) figureShift=false;
 		
-		//figureShift=false;
+		figureShift=false;
 
 		try	{
 			if (figureShift==false) out= C36A[tone];
@@ -220,6 +223,14 @@ public class CROWD36 extends MFSK {
 			line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) at "+Long.toString(sampleCount);
 			return line;
 		}
+	
+	public int getLineCount()	{
+		return this.lineCount;
+	}
+	
+	public String getLineBuffer ()	{
+		return this.lineBuffer.toString();
+	}
 	
 
 

@@ -176,6 +176,10 @@ public class Rivet {
 					// Keep adding null data to the circular buffer to move it along
 					circBuffer.addToCircBuffer(0);
 				}
+				// Check if there is anything left to display
+				if (system==0)	{
+					if (crowd36Handler.getLineCount()>0) addLine(crowd36Handler.getLineBuffer(),Color.BLACK,plainFont);
+				}
 				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
 				addLine(disp,Color.BLACK,plainFont);				
