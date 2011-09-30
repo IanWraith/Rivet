@@ -28,6 +28,8 @@ public class XPA extends MFSK {
 	private StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private long syncFoundPoint;
+	private int longCorrectionFactor;
+	private int shortCorrectionFactor;
 	
 	public XPA (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -74,6 +76,8 @@ public class XPA extends MFSK {
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			waveData.Clear();
+			longCorrectionFactor=0;
+			shortCorrectionFactor=0;
 			previousCharacter=null;
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
@@ -82,7 +86,7 @@ public class XPA extends MFSK {
 		}
 		// Hunting for a start tone
 		if (state==1)	{
-			outLines[0]=startToneHunt(circBuf,waveData);
+			if (sampleCount>=0) outLines[0]=startToneHunt(circBuf,waveData);
 			if (outLines[0]!=null)	{
 				// Have start tone
 				state=2;
@@ -92,9 +96,10 @@ public class XPA extends MFSK {
 		}
 		// Look for a sync high (1120 Hz) 
 		if (state==2)	{
-			final int ERRORALLOWANCE=20;
+			final int ERRORALLOWANCE=50;
 			// First do a short FFT to check for the sync high tone
 			int sfft1=doShortFFT (circBuf,waveData,0);
+			sfft1=sfft1+shortCorrectionFactor;
 			if (toneTest(sfft1,1120,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
@@ -102,6 +107,7 @@ public class XPA extends MFSK {
 			}
 			// If that passes to a proper long FFT to ensure the tone is really there
 			int lfft=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
+			lfft=lfft+longCorrectionFactor;
 			if (toneTest(lfft,1120,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
@@ -140,6 +146,7 @@ public class XPA extends MFSK {
 			if (symbolCounter>=(long)samplesPerSymbol)	{
 				symbolCounter=0;				
 				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
+				freq=freq+longCorrectionFactor;
 				outLines=displayMessage(freq,waveData.fromFile);
 			}
 		}
@@ -154,37 +161,30 @@ public class XPA extends MFSK {
 		String line;
 		final int HighTONE=1280;
 		final int LowTONE=520;
-		final int ErrorALLOWANCE=50;
-		int shortFreq=doShortFFT(circBuf,waveData,0);
-		// Low start tone
-		if (toneTest(shortFreq,LowTONE,ErrorALLOWANCE)==true)	{
-			// Do a long FFT to ensure this is OK
-			int longFreq=doFFT(circBuf,waveData,0);
-			if (toneTest(longFreq,LowTONE,ErrorALLOWANCE)==false) return null;
-			// and check again a symbol later to prevent false positives
-			longFreq=doFFT(circBuf,waveData,(int)samplesPerSymbol);
-			if (toneTest(longFreq,LowTONE,ErrorALLOWANCE)==false) return null;
-			// Update the correction factors
-			waveData.shortCorrectionFactor=shortFreq-LowTONE;
-			waveData.longCorrectionFactor=longFreq-LowTONE;
-			line=theApp.getTimeStamp()+" XPA Low Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
-			return line;
-		}
-		// High start tone
-		else if (toneTest(shortFreq,HighTONE,ErrorALLOWANCE)==true)	{
-			// Do a long FFT to ensure this is OK
-			int longFreq=doFFT(circBuf,waveData,0);
-			if (toneTest(longFreq,HighTONE,ErrorALLOWANCE)==false) return null;
-			// and check again a symbol later to prevent false positives
-			longFreq=doFFT(circBuf,waveData,(int)samplesPerSymbol);
-			if (toneTest(longFreq,HighTONE,ErrorALLOWANCE)==false) return null;
-			// Update the correction factors
-			waveData.shortCorrectionFactor=shortFreq-HighTONE;
-			waveData.longCorrectionFactor=longFreq-HighTONE;
-			line=theApp.getTimeStamp()+" XPA High Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
-			return line;
-		}
-		else return null;
+		final int toneDIFFERENCE=HighTONE-LowTONE;
+		final int ErrorALLOWANCE=40;
+		// Look for a low start tone followed by a high start tone
+	    int tone1=doFFT(circBuf,waveData,0);
+	    int tone2=doFFT(circBuf,waveData,(int)samplesPerSymbol*1);
+	    int tone3=doFFT(circBuf,waveData,(int)samplesPerSymbol*2);
+	    int tone4=doFFT(circBuf,waveData,(int)samplesPerSymbol*3);
+		// Check tone1 and 2 are the same and that tones 3 and 4 are the same also
+	    if ((tone1!=tone2)||(tone3!=tone4)) return null;
+	    // Check tones2 and 3 aren't the same
+	    if (tone2==tone3) return null;
+	    // Find the frequency difference between the tones
+	    int difference=tone3-tone1;
+	    // Check the difference is correct
+	    if ((difference<(toneDIFFERENCE-ErrorALLOWANCE)||(difference>(toneDIFFERENCE+ErrorALLOWANCE)))) return null;
+	    // Tones found
+	    // Calculate the long error correction factor
+	    longCorrectionFactor=LowTONE-tone1;
+	    // Calculate the short error correction factor
+	    int stone=doShortFFT(circBuf,waveData,0);
+	    shortCorrectionFactor=LowTONE-stone;
+	    // Tell the user
+	    line=theApp.getTimeStamp()+" XPA Start Tones Found (correcting by "+Integer.toString(longCorrectionFactor)+" Hz)";
+	    return line;
 	}
 	
 	// Return a String for a tone
