@@ -205,7 +205,7 @@ public class CROWD36 extends MFSK {
 	// Hunt for known CROWD 36 tones
 	private String syncToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 			String line;
-			final int ErrorALLOWANCE=100;
+			final int ErrorALLOWANCE=50;
 			// Get 4 symbols
 			int freq1=crowd36Freq(circBuf,waveData,0);
 			// Check this first tone isn't just noise
@@ -217,7 +217,11 @@ public class CROWD36 extends MFSK {
 			if ((freq1!=freq3)||(freq2!=freq4)) return null;
 			// Find the difference between the frequencies
 			int dif=freq1-freq2;
-			if ((dif<(1040-ErrorALLOWANCE))||(dif>(1040+ErrorALLOWANCE))) return null;
+			// Check for a 1040 HZ sync difference
+			if ((dif<(1040-ErrorALLOWANCE))||(dif>(1040+ErrorALLOWANCE)))	{
+				// Then if not a 1240 Hz difference
+				if ((dif<(1240-ErrorALLOWANCE))||(dif>(1240+ErrorALLOWANCE))) return null;
+			}
 			// Calculate the correction value
 			correctionValue=1700-freq1;
 			line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) at "+Long.toString(sampleCount);
