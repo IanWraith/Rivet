@@ -184,7 +184,7 @@ public class XPA extends MFSK {
 	    // Calculate the long error correction factor
 	    longCorrectionFactor=LowTONE-tone1;
 	    // Calculate the short error correction factor
-	    int stone=doShortFFT(circBuf,waveData,0);
+	    int stone=doShortFFT(circBuf,waveData,(int)samplesPerSymbol*1);
 	    shortCorrectionFactor=LowTONE-stone;
 	    // Tell the user
 	    line=theApp.getTimeStamp()+" XPA Start Tones Found (correcting by "+Integer.toString(longCorrectionFactor)+" Hz)";
