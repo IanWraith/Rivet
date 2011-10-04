@@ -26,7 +26,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public static final long serialVersionUID=1;
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
-	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item;
+	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item;
 	private JMenuItem XPA_item,XPA2_item,CROWD36_item;
 	
 	// Constructor
@@ -45,6 +45,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		wavLoad_item.addActionListener(this);
 		mainMenu.add(save_to_file=new JRadioButtonMenuItem("Save to File",theApp.getLogging()));
 		save_to_file.addActionListener(this);
+		mainMenu.add(soundcard_item=new JRadioButtonMenuItem("Soundcard Input",theApp.isSoundCardInput()));
+		soundcard_item.addActionListener(this);
 		mainMenu.add(exit_item=new JMenuItem("Exit"));		
 		exit_item.addActionListener(this);
 		menuBar.add(mainMenu);
@@ -131,6 +133,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 				 closeLogFile();
 			 }
 		}	
+		// Soundcard Input
+		if (event_name=="Soundcard Input")	{
+			if (theApp.isSoundCardInput()==true) theApp.setSoundCardInput(false);
+			else theApp.setSoundCardInput(true);
+		}
 		// Exit 
 		if (event_name=="Exit") {
 			// If logging then close the log file
@@ -149,6 +156,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		XPA_item.setSelected(theApp.isXPA());
 		XPA2_item.setSelected(theApp.isXPA2());
 		debug_item.setSelected(theApp.isDebug());
+		soundcard_item.setSelected(theApp.isSoundCardInput());
 	}
 	
 	// Display a dialog box so the user can select a WAV file they wish to process

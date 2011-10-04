@@ -52,6 +52,7 @@ public class Rivet {
 	private boolean logging=false;
 	public FileWriter file;
 	private boolean debug=false;
+	private boolean soundCardInput=false;
 	
 	public final String MODENAMES[]={"CROWD36","XPA","XPA2"};
     
@@ -239,7 +240,7 @@ public class Rivet {
 	}
 	
 	private void updateProgressBar ()	{
-		window.progressBarUpdate(inputThread.returnFileLoadPercentage());
+		if (soundCardInput==false) window.progressBarUpdate(inputThread.returnFileLoadPercentage());
 	}
 	
 	public void setStatusLabel (String st)	{
@@ -282,6 +283,14 @@ public class Rivet {
 
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+	}
+
+	public boolean isSoundCardInput() {
+		return soundCardInput;
+	}
+
+	public void setSoundCardInput(boolean soundCardInput) {
+		this.soundCardInput = soundCardInput;
 	}
 	
 
