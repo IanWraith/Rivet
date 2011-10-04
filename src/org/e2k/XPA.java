@@ -166,7 +166,11 @@ public class XPA extends MFSK {
 		// Look for a low start tone followed by a high start tone
 	    int tone1=doFFT(circBuf,waveData,0);
 	    int tone2=doFFT(circBuf,waveData,(int)samplesPerSymbol*1);
+	    // Check tone1 is the same as tone2
+	    if (tone1!=tone2) return null;
 	    int tone3=doFFT(circBuf,waveData,(int)samplesPerSymbol*2);
+	    // Check the first tone is lower than the second tone
+	    if (tone1>tone3) return null;
 	    int tone4=doFFT(circBuf,waveData,(int)samplesPerSymbol*3);
 		// Check tone1 and 2 are the same and that tones 3 and 4 are the same also
 	    if ((tone1!=tone2)||(tone3!=tone4)) return null;
