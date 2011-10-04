@@ -45,18 +45,18 @@ public class CROWD36 extends MFSK {
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
-			if (waveData.sampleRate>11025)	{
+			if (waveData.getSampleRate()>11025)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nCROWD36 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
 			// Check this is a mono recording
-			if (waveData.channels!=1)	{
+			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
-			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.sampleRate);
+			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
@@ -108,7 +108,7 @@ public class CROWD36 extends MFSK {
 			if (symbolCounter>=samplesPerSymbol)	{
 				symbolCounter=0;				
 				int freq=crowd36Freq(circBuf,waveData,0);
-				outLines=displayMessage(freq,waveData.fromFile);
+				outLines=displayMessage(freq,waveData.isFromFile());
 			}
 		}
 		sampleCount++;
@@ -119,12 +119,12 @@ public class CROWD36 extends MFSK {
 	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 		
 		// 8 KHz sampling
-		if (waveData.sampleRate==8000.0)	{
+		if (waveData.getSampleRate()==8000.0)	{
 			int freq=doCR36_8000FFT(circBuf,waveData,pos);
 			freq=freq+correctionValue;
 			return freq;
 		}
-		else if (waveData.sampleRate==11025.0)	{
+		else if (waveData.getSampleRate()==11025.0)	{
 			int freq=doCR36_11025FFT(circBuf,waveData,pos);
 			freq=freq+correctionValue;
 			return freq;

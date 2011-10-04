@@ -92,7 +92,7 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,FFT_1024_SIZE);
 		fft1024.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate);  
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 	}
 	
@@ -101,7 +101,7 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,FFT_128_SIZE);
 		fft128.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate);  
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 	}
 	
@@ -110,7 +110,7 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,FFT_512_SIZE);
 		fft512.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate);  
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 	}
 	
@@ -119,7 +119,7 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,FFT_256_SIZE);
 		fft256.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate);  
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 	}
 	
@@ -128,7 +128,7 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,FFT_200_SIZE);
 		fft200.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate);  
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 	}
 	
@@ -138,7 +138,7 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,FFT_8_SIZE);
 		fft8.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate);  
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 	}
 	
@@ -180,7 +180,7 @@ public class MFSK {
 	    }
 	    fft512.realForward(datar);
 	    double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate);  
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 	}
 	
@@ -196,7 +196,7 @@ public class MFSK {
 	    }
 	    fft512.realForward(datar);
 	    double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate);  
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 	}
 	

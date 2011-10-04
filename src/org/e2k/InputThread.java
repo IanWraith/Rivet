@@ -76,11 +76,11 @@ public class InputThread extends Thread {
     		fileCounter=0;
     		sampleCounter=0;
 			audioInputStream=AudioSystem.getAudioInputStream(wavFile);  
-			waveData.bytesPerFrame=audioInputStream.getFormat().getFrameSize();
-	    	waveData.sampleRate=audioInputStream.getFormat().getSampleRate();
-	    	waveData.sampleSizeInBits=audioInputStream.getFormat().getSampleSizeInBits();
-	    	waveData.channels=audioInputStream.getFormat().getChannels();
-	    	waveData.endian=audioInputStream.getFormat().isBigEndian();
+			waveData.setBytesPerFrame(audioInputStream.getFormat().getFrameSize());
+	    	waveData.setSampleRate(audioInputStream.getFormat().getSampleRate());
+	    	waveData.setSampleSizeInBits(audioInputStream.getFormat().getSampleSizeInBits());
+	    	waveData.setChannels(audioInputStream.getFormat().getChannels());
+	    	waveData.setEndian(audioInputStream.getFormat().isBigEndian());
     		loadingFile=true;
     	}
     	catch (Exception e)	{

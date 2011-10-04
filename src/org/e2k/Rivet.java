@@ -21,7 +21,6 @@ import java.io.FileWriter;
 import java.io.PipedInputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.text.DateFormat;
 import java.util.Date;
 import javax.swing.JOptionPane;
@@ -145,7 +144,7 @@ public class Rivet {
 		addLine(disp,Color.BLACK,plainFont);
 		waveData=inputThread.startFileLoad(fileName);
 		// Make sure the program knows this data is coming from a file
-		waveData.fromFile=true;
+		waveData.setFromFile(true);
 		// Clear the data buffer
 		circBuffer.setBufferCounter(0);
 		// Reset the system objects

@@ -14,10 +14,60 @@
 package org.e2k;
 
 public class WaveData {
-	public boolean endian=false;
-	public boolean fromFile=false;
-	public double sampleRate=0.0;
-	public int channels=0;
-	public int sampleSizeInBits=0;
-	public int bytesPerFrame=0;
+	private boolean endian=false;
+	private boolean fromFile=false;
+	private double sampleRate=0.0;
+	private int channels=0;
+	private int sampleSizeInBits=0;
+	private int bytesPerFrame=0;
+	
+	public boolean isEndian() {
+		return endian;
+	}
+	
+	public void setEndian(boolean endian) {
+		this.endian = endian;
+	}
+	
+	public boolean isFromFile() {
+		return fromFile;
+	}
+	
+	public void setFromFile(boolean fromFile) {
+		this.fromFile = fromFile;
+	}
+	
+	public double getSampleRate() {
+		return sampleRate;
+	}
+	
+	public void setSampleRate(double sampleRate) {
+		this.sampleRate = sampleRate;
+	}
+	
+	public int getChannels() {
+		return channels;
+	}
+	
+	public void setChannels(int channels) {
+		this.channels = channels;
+	}
+	
+	public int getSampleSizeInBits() {
+		return sampleSizeInBits;
+	}
+	
+	public void setSampleSizeInBits(int sampleSizeInBits) {
+		this.sampleSizeInBits = sampleSizeInBits;
+	}
+	
+	public int getBytesPerFrame() {
+		return bytesPerFrame;
+	}
+	
+	public void setBytesPerFrame(int bytesPerFrame) {
+		this.bytesPerFrame = bytesPerFrame;
+	}
+	
+	
 }
