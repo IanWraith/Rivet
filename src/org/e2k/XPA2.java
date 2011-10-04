@@ -15,6 +15,7 @@ public class XPA2 extends MFSK {
 	private int groupCount=0;
 	private StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
+	private int correctionFactor;
 		
 	public XPA2 (Rivet tapp)	{
 		theApp=tapp;
@@ -34,9 +35,9 @@ public class XPA2 extends MFSK {
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
-			if (waveData.sampleRate>11025)	{
+			if (waveData.sampleRate!=11025)	{
 				state=-1;
-				JOptionPane.showMessageDialog(null,"WAV files containing\nXPA2 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(null,"WAV files containing\nXPA2 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
 			// Check this is a mono recording
@@ -48,6 +49,12 @@ public class XPA2 extends MFSK {
 			samplesPerSymbol=samplesPerSymbol(BAUDRATE,waveData.sampleRate);
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
+			symbolCounter=0;
+			waveData.Clear();
+			correctionFactor=0;
+			previousCharacter=null;
+			// Clear the energy buffer
+			energyBuffer.setBufferCounter(0);
 			setHighestFrequencyUsed(1300);
 			state=1;
 			theApp.setStatusLabel("Start Tone Hunt");
@@ -55,7 +62,7 @@ public class XPA2 extends MFSK {
 		}
 		// Hunting for a start tone
 		if (state==1)	{
-			outLines[0]=startToneHunt(circBuf,waveData);
+			if (sampleCount>=0) outLines[0]=startToneHunt(circBuf,waveData);
 			if (outLines[0]!=null)	{
 				// Have start tone
 				state=2;
@@ -66,35 +73,28 @@ public class XPA2 extends MFSK {
 		// Look for a sync (1037 Hz)
 		if (state==2)	{
 			final int SYNCLOW=1037;
-			final int ERRORALLOWANCE=20;
-			int pos=0;
-			int sfft1=doMidFFT (circBuf,waveData,pos);
-			if (toneTest(sfft1,SYNCLOW,ERRORALLOWANCE)==false)	{
-				sampleCount++;
-				symbolCounter++;
-				return null;
-			}	
-			pos=(int)samplesPerSymbol-MID_FFT_SIZE;
-			int sfft2=doMidFFT (circBuf,waveData,pos);
-			if (toneTest(sfft2,SYNCLOW,ERRORALLOWANCE)==false)	{
+			final int ERRORALLOWANCE=30;
+			int freq=xpa2Freq(circBuf,waveData,0);
+			if (toneTest(freq,SYNCLOW,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
 				return null;
 			}
 			state=3;
 			// Remember this value as it is the start of the energy values
-			syncFoundPoint=sampleCount;
+			syncFoundPoint=symbolCounter;
 			theApp.setStatusLabel("Sync Found");
 			outLines[0]=theApp.getTimeStamp()+" Sync tone found at position "+Long.toString(sampleCount);
 		}	
 		// Set the symbol timing
 		if (state==3)	{
-			doShortFFT (circBuf,waveData,0);
+			final int lookAHEAD=1;
+			doShortFFT(circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
 			sampleCount++;
 			symbolCounter++;
-			// Gather 3 symbols worth of energy values
-			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*3)) return null;
+			// Gather a symbols worth of energy values
+			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*lookAHEAD)) return null;
 			// Now find the lowest energy value
 			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint;
 			// Calculate what the value of the symbol counter should be
@@ -109,7 +109,7 @@ public class XPA2 extends MFSK {
 			// Only do this at the start of each symbol
 			if (symbolCounter>=(int)samplesPerSymbol)	{
 				symbolCounter=0;					
-				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
+				int freq=xpa2Freq(circBuf,waveData,0);
 				outLines=displayMessage(freq);
 			}
 		}
@@ -117,28 +117,6 @@ public class XPA2 extends MFSK {
 		sampleCount++;
 		symbolCounter++;
 		return outLines;
-	}
-	
-	// Hunt for an XPA2 start tone
-	private String startToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
-		String line;
-		final int ErrorALLOWANCE=20;
-		final int LowTONE=980;
-		int midFreq=doMidFFT(circBuf,waveData,0);
-		// Low start tone
-		if (toneTest(midFreq,LowTONE,ErrorALLOWANCE)==true)	{
-			// Check we have a good low start tone by doing a longer FFT
-			int longFreq=doFFT(circBuf,waveData,0);
-			if (toneTest(longFreq,LowTONE,ErrorALLOWANCE)==false) return null;
-			// and check again a symbol later to prevent false positives
-			longFreq=doFFT(circBuf,waveData,(int)samplesPerSymbol);
-			if (toneTest(longFreq,LowTONE,ErrorALLOWANCE)==false) return null;
-			waveData.midCorrectionFactor=midFreq-LowTONE;
-			waveData.longCorrectionFactor=longFreq-LowTONE;
-			line=theApp.getTimeStamp()+" XPA2 Low Start Tone Found ("+Integer.toString(longFreq)+" Hz)";
-			return line;
-		}
-		else return null;
 	}
 	
 	// Return a String for a tone
@@ -234,5 +212,47 @@ public class XPA2 extends MFSK {
         	}
 		return null;
 	}
+	
+		// Hunt for an XPA2 start tone
+		private String startToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
+			final int HighTONE=1212;
+			final int LowTONE=978;
+			final int toneDIFFERENCE=HighTONE-LowTONE;
+			final int ErrorALLOWANCE=40;
+			// Look for a low start tone followed by a high start tone
+		    int tone1=xpa2Freq(circBuf,waveData,0);
+		    int tone2=xpa2Freq(circBuf,waveData,(int)samplesPerSymbol*1);
+		    // Check tone1 is the same as tone2
+		    if (tone1!=tone2) return null;
+		    int tone3=xpa2Freq(circBuf,waveData,(int)samplesPerSymbol*2);
+		    // Check the first tone is lower than the second tone
+		    if (tone1>tone3) return null;
+		    int tone4=xpa2Freq(circBuf,waveData,(int)samplesPerSymbol*3);
+			// Check tone1 and 2 are the same and that tones 3 and 4 are the same also
+		    if ((tone1!=tone2)||(tone3!=tone4)) return null;
+		    // Check tones2 and 3 aren't the same
+		    if (tone2==tone3) return null;
+		    // Find the frequency difference between the tones
+		    int difference=tone3-tone1;
+		    // Check the difference is correct
+		    if ((difference<(toneDIFFERENCE-ErrorALLOWANCE)||(difference>(toneDIFFERENCE+ErrorALLOWANCE)))) return null;
+		    // Tones found
+		    // Calculate the long error correction factor
+		    correctionFactor=LowTONE-tone1;
+		    // Tell the user
+		    String line=theApp.getTimeStamp()+" XPA2 Start Tones Found (correcting by "+Integer.toString(correctionFactor)+" Hz)";
+		    return line;
+		}
+		
+		
+		private int xpa2Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
+			if (waveData.sampleRate==11025.0)	{
+				int freq=doFFT(circBuf,waveData,pos);
+				freq=freq+correctionFactor;
+				return freq;
+			}
+			return -1;
+		}
+	
 	
 }
