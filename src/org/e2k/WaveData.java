@@ -20,17 +20,4 @@ public class WaveData {
 	public int channels=0;
 	public int sampleSizeInBits=0;
 	public int bytesPerFrame=0;
-	public int shortCorrectionFactor=0;
-	public int longCorrectionFactor=0;
-	public int midCorrectionFactor=0;
-	public int CorrectionFactor256=0;
-	
-	// Clear the various correction factors
-	public void Clear()	{
-		shortCorrectionFactor=0;
-		longCorrectionFactor=0;
-		midCorrectionFactor=0;
-		CorrectionFactor256=0;
-	}
-	
 }

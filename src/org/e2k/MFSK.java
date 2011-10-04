@@ -17,18 +17,18 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 public class MFSK {
 		
-	public final int MINI_FFT_SIZE=8;
-	public final int SHORT_FFT_SIZE=128;
+	public final int FFT_8_SIZE=8;
+	public final int FFT_128_SIZE=128;
 	public final int FFT_200_SIZE=200;
 	public final int FFT_256_SIZE=256;
-	public final int MID_FFT_SIZE=512;
-	public final int LONG_FFT_SIZE=1024;
-	private DoubleFFT_1D long_fft=new DoubleFFT_1D(LONG_FFT_SIZE);
+	public final int FFT_512_SIZE=512;
+	public final int FFT_1024_SIZE=1024;
+	private DoubleFFT_1D fft1024=new DoubleFFT_1D(FFT_1024_SIZE);
 	private DoubleFFT_1D fft200=new DoubleFFT_1D(FFT_200_SIZE);
 	private DoubleFFT_1D fft256=new DoubleFFT_1D(FFT_256_SIZE);
-	private DoubleFFT_1D mid_fft=new DoubleFFT_1D(MID_FFT_SIZE);
-	private DoubleFFT_1D mini_fft=new DoubleFFT_1D(MINI_FFT_SIZE);
-	private DoubleFFT_1D short_fft=new DoubleFFT_1D(SHORT_FFT_SIZE);
+	private DoubleFFT_1D fft512=new DoubleFFT_1D(FFT_512_SIZE);
+	private DoubleFFT_1D fft8=new DoubleFFT_1D(FFT_8_SIZE);
+	private DoubleFFT_1D fft128=new DoubleFFT_1D(FFT_128_SIZE);
 	private double totalEnergy;
 	private int highestFrequency=-1;
 	private int secondHighestBin=-1;
@@ -64,15 +64,15 @@ public class MFSK {
 	}
 		
 	// Given the real data in a double array return the largest frequency component
-	public int getFFTFreq (double[]x,double sampleFreq,int correctionFactor)	{
+	public int getFFTFreq (double[]x,double sampleFreq)	{
 		int bin=findHighBin(x);
 		double len=x.length*2;
-		double ret=((sampleFreq/len)*bin)-correctionFactor;
+		double ret=((sampleFreq/len)*bin);
 		// If the returned frequency is higher then the highest request frequency use the next one
 		if ((secondHighestBin!=-1)&&(highestFrequency!=-1))	{
-			if ((int)ret>highestFrequency) ret=((sampleFreq/len)*secondHighestBin)-correctionFactor;
+			if ((int)ret>highestFrequency) ret=((sampleFreq/len)*secondHighestBin);
 			// If the second highest bin frqeuency is to high try the third highest
-			if (((int)ret>highestFrequency)&&(thirdHighestBin!=-1)) ret=((sampleFreq/len)*thirdHighestBin)-correctionFactor;
+			if (((int)ret>highestFrequency)&&(thirdHighestBin!=-1)) ret=((sampleFreq/len)*thirdHighestBin);
 		}
 		return (int)ret;
 	}
@@ -81,36 +81,36 @@ public class MFSK {
 	// So instead I am doing a FFT in the middle of the symbol
 	public int symbolFreq (CircularDataBuffer circBuf,WaveData waveData,int start,double samplePerSymbol)	{
 		// There must be at least LONG_FFT_SIZE samples Per Symbol
-		if (samplePerSymbol<LONG_FFT_SIZE) return -1;
-		int fftStart=start+(((int)samplePerSymbol-LONG_FFT_SIZE)/2);
-		double freq=doFFT(circBuf,waveData,fftStart);
+		if (samplePerSymbol<FFT_1024_SIZE) return -1;
+		int fftStart=start+(((int)samplePerSymbol-FFT_1024_SIZE)/2);
+		double freq=do1024FFT(circBuf,waveData,fftStart);
 		return (int)freq;
 	}
 	
-	public int doFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+	public int do1024FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
-	    double datar[]=circBuf.extractDataDouble(start,LONG_FFT_SIZE);
-		long_fft.realForward(datar);
+	    double datar[]=circBuf.extractDataDouble(start,FFT_1024_SIZE);
+		fft1024.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.longCorrectionFactor);  
+		int freq=getFFTFreq (spec,waveData.sampleRate);  
 		return freq;
 	}
 	
-	public int doShortFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+	public int do128FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
-	    double datar[]=circBuf.extractDataDouble(start,SHORT_FFT_SIZE);
-		short_fft.realForward(datar);
+	    double datar[]=circBuf.extractDataDouble(start,FFT_128_SIZE);
+		fft128.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.shortCorrectionFactor);  
+		int freq=getFFTFreq (spec,waveData.sampleRate);  
 		return freq;
 	}
 	
-	public int doMidFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+	public int do512FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
-	    double datar[]=circBuf.extractDataDouble(start,MID_FFT_SIZE);
-		mid_fft.realForward(datar);
+	    double datar[]=circBuf.extractDataDouble(start,FFT_512_SIZE);
+		fft512.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.shortCorrectionFactor);  
+		int freq=getFFTFreq (spec,waveData.sampleRate);  
 		return freq;
 	}
 	
@@ -119,7 +119,7 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,FFT_256_SIZE);
 		fft256.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.CorrectionFactor256);  
+		int freq=getFFTFreq (spec,waveData.sampleRate);  
 		return freq;
 	}
 	
@@ -128,16 +128,17 @@ public class MFSK {
 	    double datar[]=circBuf.extractDataDouble(start,FFT_200_SIZE);
 		fft200.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,0);  
+		int freq=getFFTFreq (spec,waveData.sampleRate);  
 		return freq;
 	}
 	
-	public int doMiniFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+
+	public int do8FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
-	    double datar[]=circBuf.extractDataDouble(start,MINI_FFT_SIZE);
-		mini_fft.realForward(datar);
+	    double datar[]=circBuf.extractDataDouble(start,FFT_8_SIZE);
+		fft8.realForward(datar);
 		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,waveData.shortCorrectionFactor);  
+		int freq=getFFTFreq (spec,waveData.sampleRate);  
 		return freq;
 	}
 	
@@ -177,9 +178,9 @@ public class MFSK {
 	    	else datar[a]=0.0;
 	    	c++;
 	    }
-	    mid_fft.realForward(datar);
+	    fft512.realForward(datar);
 	    double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,0);  
+		int freq=getFFTFreq (spec,waveData.sampleRate);  
 		return freq;
 	}
 	
@@ -193,11 +194,12 @@ public class MFSK {
 	    	else datar[a]=0.0;
 	    	c++;
 	    }
-	    mid_fft.realForward(datar);
+	    fft512.realForward(datar);
 	    double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.sampleRate,0);  
+		int freq=getFFTFreq (spec,waveData.sampleRate);  
 		return freq;
 	}
+	
 	
 	// Show what percentage of the total the highest spectral value is
 	public double getPercentageOfTotal()	{

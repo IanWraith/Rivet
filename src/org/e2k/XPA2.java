@@ -50,7 +50,6 @@ public class XPA2 extends MFSK {
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
-			waveData.Clear();
 			correctionFactor=0;
 			previousCharacter=null;
 			// Clear the energy buffer
@@ -89,7 +88,7 @@ public class XPA2 extends MFSK {
 		// Set the symbol timing
 		if (state==3)	{
 			final int lookAHEAD=1;
-			doShortFFT(circBuf,waveData,0);
+			do128FFT(circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
 			sampleCount++;
 			symbolCounter++;
@@ -247,7 +246,7 @@ public class XPA2 extends MFSK {
 		
 		private int xpa2Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 			if (waveData.sampleRate==11025.0)	{
-				int freq=doFFT(circBuf,waveData,pos);
+				int freq=do1024FFT(circBuf,waveData,pos);
 				freq=freq+correctionFactor;
 				return freq;
 			}

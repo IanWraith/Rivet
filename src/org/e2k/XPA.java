@@ -75,7 +75,6 @@ public class XPA extends MFSK {
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
-			waveData.Clear();
 			longCorrectionFactor=0;
 			shortCorrectionFactor=0;
 			previousCharacter=null;
@@ -98,7 +97,7 @@ public class XPA extends MFSK {
 		if (state==2)	{
 			final int ERRORALLOWANCE=50;
 			// First do a short FFT to check for the sync high tone
-			int sfft1=doShortFFT (circBuf,waveData,0);
+			int sfft1=do128FFT (circBuf,waveData,0);
 			sfft1=sfft1+shortCorrectionFactor;
 			if (toneTest(sfft1,1120,ERRORALLOWANCE)==false)	{
 				sampleCount++;
@@ -124,7 +123,7 @@ public class XPA extends MFSK {
 		
 		// Set the symbol timing
 		if (state==3)	{
-			doMiniFFT (circBuf,waveData,0);
+			do8FFT (circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
 			sampleCount++;
 			symbolCounter++;
@@ -164,14 +163,14 @@ public class XPA extends MFSK {
 		final int toneDIFFERENCE=HighTONE-LowTONE;
 		final int ErrorALLOWANCE=40;
 		// Look for a low start tone followed by a high start tone
-	    int tone1=doFFT(circBuf,waveData,0);
-	    int tone2=doFFT(circBuf,waveData,(int)samplesPerSymbol*1);
+	    int tone1=do1024FFT(circBuf,waveData,0);
+	    int tone2=do1024FFT(circBuf,waveData,(int)samplesPerSymbol*1);
 	    // Check tone1 is the same as tone2
 	    if (tone1!=tone2) return null;
-	    int tone3=doFFT(circBuf,waveData,(int)samplesPerSymbol*2);
+	    int tone3=do1024FFT(circBuf,waveData,(int)samplesPerSymbol*2);
 	    // Check the first tone is lower than the second tone
 	    if (tone1>tone3) return null;
-	    int tone4=doFFT(circBuf,waveData,(int)samplesPerSymbol*3);
+	    int tone4=do1024FFT(circBuf,waveData,(int)samplesPerSymbol*3);
 		// Check tone1 and 2 are the same and that tones 3 and 4 are the same also
 	    if ((tone1!=tone2)||(tone3!=tone4)) return null;
 	    // Check tones2 and 3 aren't the same
@@ -184,7 +183,7 @@ public class XPA extends MFSK {
 	    // Calculate the long error correction factor
 	    longCorrectionFactor=LowTONE-tone1;
 	    // Calculate the short error correction factor
-	    int stone=doShortFFT(circBuf,waveData,(int)samplesPerSymbol*1);
+	    int stone=do128FFT(circBuf,waveData,(int)samplesPerSymbol*1);
 	    shortCorrectionFactor=LowTONE-stone;
 	    // Tell the user
 	    line=theApp.getTimeStamp()+" XPA Start Tones Found (correcting by "+Integer.toString(longCorrectionFactor)+" Hz)";

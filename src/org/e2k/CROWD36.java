@@ -61,7 +61,6 @@ public class CROWD36 extends MFSK {
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
-			waveData.Clear();
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
 			// Clear the display side of things
