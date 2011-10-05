@@ -42,12 +42,14 @@ public class InputThread extends Thread {
 	private int volumeBufferCounter=0;
 	private static int ISIZE=4096;
 	private byte buffer[]=new byte[ISIZE+1];
+	private Rivet theApp; 
 	
  
 	public InputThread (Rivet TtheApp) {
     	audioReady=false;
     	gettingAudio=false;
     	loadingFile=false;
+    	theApp=TtheApp;
     	setPriority(Thread.MIN_PRIORITY);
         start();
         Thread.yield();
@@ -82,6 +84,7 @@ public class InputThread extends Thread {
 	    	waveData.setSampleSizeInBits(audioInputStream.getFormat().getSampleSizeInBits());
 	    	waveData.setChannels(audioInputStream.getFormat().getChannels());
 	    	waveData.setEndian(audioInputStream.getFormat().isBigEndian());
+	    	theApp.setSoundCardInput(false);
     		loadingFile=true;
     	}
     	catch (Exception e)	{
@@ -227,6 +230,7 @@ public class InputThread extends Thread {
 			  Line.open(format);
 			  Line.start();
 			  audioReady=true;
+			  loadingFile=false;
 		  } catch (Exception e) {
 			  String err="Fatal error in setupAudio()\n"+e.getMessage();
 			  JOptionPane.showMessageDialog(null,err,"Rivet",JOptionPane.ERROR_MESSAGE);
@@ -248,7 +252,7 @@ public class InputThread extends Thread {
     	}
     }
     
- // Add this sample to the circular volume buffer
+    // Add this sample to the circular volume buffer
     private void addToVolumeBuffer (int tsample)	{
     	volumeBuffer[volumeBufferCounter]=tsample;
     	volumeBufferCounter++;
