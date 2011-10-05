@@ -21,12 +21,9 @@ import javax.sound.sampled.TargetDataLine;
 import javax.swing.JOptionPane;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PipedOutputStream;
 
 public class InputThread extends Thread {
-	
-	private boolean run;
 	private boolean audioReady;
 	private boolean gettingAudio;
 	private boolean loadingFile;
@@ -39,9 +36,15 @@ public class InputThread extends Thread {
     private long fileCounter;
     private String errorCause="None";
     private long sampleCounter=0;
-   
+    private TargetDataLine Line;
+    private static int VOLUMEBUFFERSIZE=100;
+	private int volumeBuffer[]=new int[VOLUMEBUFFERSIZE];
+	private int volumeBufferCounter=0;
+	private static int ISIZE=4096;
+	private byte buffer[]=new byte[ISIZE+1];
+	
+ 
 	public InputThread (Rivet TtheApp) {
-    	run=false;
     	audioReady=false;
     	gettingAudio=false;
     	loadingFile=false;
@@ -54,12 +57,10 @@ public class InputThread extends Thread {
     public void run()	{
     	// Run continuously
     	for (;;)	{
-    		// If it hasn't been already then setup the audio device
-    		//if (audioReady==false) setupAudio();
     		// If the audio device is ready , the program wants to and we aren't already then
     		// get data from the audio device.
-    		//if ((audioReady==true)&&(run==true)&&(gettingAudio==false)) getSample();
-    		if (loadingFile==true) getFileData();
+    		if ((audioReady==true)&&(loadingFile==false)&&(gettingAudio==false)) getSample();
+    		else if (loadingFile==true) getFileData();
     		// Add the following so the thread doesn't eat all of the CPU time
     		else	{
     			try	{sleep(1);}
@@ -109,7 +110,7 @@ public class InputThread extends Thread {
     	return true;
     }
     
- // Read in an int from a wav file
+    // Read in an int from a wav file
 	private boolean grabWavBlock () {
 	    // Decide how to handle the WAV data
 	    // 16 bit LE
@@ -208,6 +209,102 @@ public class InputThread extends Thread {
     // Return the sample counter
     public long getSampleCounter()	{
     	return this.sampleCounter;
+    }
+    
+    // Setup the input audio device
+    public void setupAudio (WaveData waveData)	{
+		  try {
+			  // If the audio is already setup then close it
+			  if (audioReady==true)	{
+				  closeAudio(); 
+				  return;
+			  }
+			  sampleCounter=0;
+			  // Sample according to the the WaveData objects parameters
+			  AudioFormat format=new AudioFormat((int)waveData.getSampleRate(),waveData.getSampleSizeInBits(),waveData.getChannels(),true,waveData.isEndian());
+			  DataLine.Info info=new DataLine.Info(TargetDataLine.class,format);
+			  Line=(TargetDataLine) AudioSystem.getLine(info);
+			  Line.open(format);
+			  Line.start();
+			  audioReady=true;
+		  } catch (Exception e) {
+			  String err="Fatal error in setupAudio()\n"+e.getMessage();
+			  JOptionPane.showMessageDialog(null,err,"Rivet",JOptionPane.ERROR_MESSAGE);
+			  System.exit(0);
+	   		}
+    }
+    
+    // Close the audio device
+    public boolean closeAudio ()	{
+    	try	{
+    		Line.close();
+    		audioReady=false;
+    		return true;
+    	}
+    	catch (Exception e)	{
+    		String err="Error in closeAudio()\n"+e.getMessage();
+			JOptionPane.showMessageDialog(null,err,"Rivet",JOptionPane.ERROR_MESSAGE);
+			return false;
+    	}
+    }
+    
+ // Add this sample to the circular volume buffer
+    private void addToVolumeBuffer (int tsample)	{
+    	volumeBuffer[volumeBufferCounter]=tsample;
+    	volumeBufferCounter++;
+    	if (volumeBufferCounter==VOLUMEBUFFERSIZE) volumeBufferCounter=0;
+    }
+    
+    // Return the average volume over the last VOLUMEBUFFERSIZE samples
+    public int returnVolumeAverage ()	{
+    	long va=0;
+    	int a,volumeAverage=0;
+    	for (a=0;a<VOLUMEBUFFERSIZE;a++)	{
+    		va=va+Math.abs(volumeBuffer[a]);
+    	}
+    	volumeAverage=(int)va/VOLUMEBUFFERSIZE;	
+    	return volumeAverage;
+    }
+    
+    // Read in 2 bytes from the audio source combine them together into a single integer
+    // then write that into the sound buffer
+    private void getSample ()	{
+    	// Tell the main thread we getting audio
+    	gettingAudio=true;
+    	int a,sample,count,total=0;
+    	// READ in ISIZE bytes and convert them into ISIZE/2 integers
+    	// Doing it this way reduces CPU loading
+		try	{
+				while (total<ISIZE)	{
+					count=Line.read(buffer,0,ISIZE);
+					total=total+count;
+			  		}
+			  	} catch (Exception e)	{
+			  		String err=e.getMessage();
+			  		JOptionPane.showMessageDialog(null,err,"Rivet", JOptionPane.ERROR_MESSAGE);
+			  	}
+		// Get the required number of samples
+		for (a=0;a<ISIZE;a=a+2)	{
+			sample=(buffer[a]<<8)+buffer[a+1];
+			// Add this sample to the circular volume buffer
+			addToVolumeBuffer(sample);
+			try		{
+				// Put the sample into the output pipe
+				outPipe.writeInt(sample);
+				sampleCounter++;
+				}
+				catch (Exception e)	{
+					String err=e.getMessage();
+					JOptionPane.showMessageDialog(null,err,"Rivet", JOptionPane.ERROR_MESSAGE);
+				}
+		}
+		// The the main thread we have stopped fetching audio
+		gettingAudio=false;	
+    }
+    
+    // Tell the main program if the audio interface is setup
+    public boolean getAudioReady()	{
+    	return this.audioReady;
     }
     
 }

@@ -73,6 +73,7 @@ public class Rivet {
 		// The main loop
 		while (RUNNING)	{
 			if ((theApp.inputThread.getLoadingFileState()==true)&&(theApp.pReady==true)) theApp.getWavData();
+			else if ((theApp.inputThread.getAudioReady()==true)&&(theApp.pReady==true)) theApp.getAudioData();
 			else	{
 				// Add the following so the thread doesn't eat all of the CPU time
 				try	{Thread.sleep(1);}
@@ -191,6 +192,23 @@ public class Rivet {
 			}	
 	}
 	
+	// This is called when the input thread is busy getting data from the sound card
+	private void getAudioData()	{
+			// Get the sample from the input thread
+			try	{
+				// Add the data from the thread pipe to the circular buffer
+				circBuffer.addToCircBuffer(inPipeData.readInt());
+				// Process this data
+				processData();
+	    		// Update the volume bar evry 50 samples
+	    		if (inputThread.getSampleCounter()%50==0) updateVolumeBar();
+				}
+			catch (Exception e)	{
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(null,"Error in getAudioData()","Rivet", JOptionPane.ERROR_MESSAGE);
+				}	
+		}
+	
 			
 	// A central data processing class
 	private void processData ()	{		
@@ -240,7 +258,13 @@ public class Rivet {
 	}
 	
 	private void updateProgressBar ()	{
-		if (soundCardInput==false) window.progressBarUpdate(inputThread.returnFileLoadPercentage());
+		window.progressBarUpdate(inputThread.returnFileLoadPercentage());
+	}
+	
+	private void updateVolumeBar ()	{
+		// Calculate as a percentage of 18000 (the max value)
+		int pval=(int)(((float)inputThread.returnVolumeAverage()/(float)18000.0)*(float)100);
+		window.progressBarUpdate(pval);
 	}
 	
 	public void setStatusLabel (String st)	{
@@ -289,8 +313,40 @@ public class Rivet {
 		return soundCardInput;
 	}
 
-	public void setSoundCardInput(boolean soundCardInput) {
-		this.soundCardInput = soundCardInput;
+	public void setSoundCardInput(boolean s) {
+		// If the soundcard is already running we need to close it
+		if (this.soundCardInput==true)	{
+			// Try to close the audio device
+			if (inputThread.closeAudio()==true) this.soundCardInput=false;
+		}
+		else	{
+			// CROWD36
+			if (system==0)	{
+				WaveData waveSetting=new WaveData();
+				waveSetting.setChannels(1);
+				waveSetting.setEndian(true);
+				waveSetting.setSampleSizeInBits(16);
+				waveSetting.setFromFile(false);
+				waveSetting.setSampleRate(8000.0);
+				waveSetting.setBytesPerFrame(2);
+				inputThread.setupAudio(waveSetting); 
+				waveData=waveSetting;
+				this.soundCardInput=true;	
+			}
+			// XPA or XPA2
+			else if ((system==1)||(system==2))	{
+				WaveData waveSetting=new WaveData();
+				waveSetting.setChannels(1);
+				waveSetting.setEndian(true);
+				waveSetting.setSampleSizeInBits(16);
+				waveSetting.setFromFile(false);
+				waveSetting.setSampleRate(11025.0);
+				waveSetting.setBytesPerFrame(2);
+				inputThread.setupAudio(waveSetting); 
+				waveData=waveSetting;
+				this.soundCardInput=true;	
+			}	
+		}
 	}
 	
 
