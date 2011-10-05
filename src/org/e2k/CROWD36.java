@@ -217,10 +217,9 @@ public class CROWD36 extends MFSK {
 			int freq4=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*3);
 			// Check 2 of the symbol frequencies are different
 			if ((freq1!=freq3)||(freq2!=freq4)) return null;
-			// Check 2 of the symbol frequencies are the same
+			// Check that 2 of the symbol frequencies are the same
 			if ((freq1==freq2)||(freq3==freq4)) return null;
-			// TODO : The value below (1620) needs changing
-			correctionValue=1620-freq1;
+			correctionValue=1700-freq1;
 			String line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) at "+Long.toString(sampleCount);
 			return line;
 		}
