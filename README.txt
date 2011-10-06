@@ -21,10 +21,12 @@ Change Log
 
 Build 4 adds an online help facility and XPA2 decoding.
 Build 5 adds the foundations of CROWD36 decoding and hopefully fixes the logging bug.
+Build 6 added basic CROWD36 decoding
+Build 7 allows direct sound card decoding.
 
 Reported Bugs
 -------------
 
-1) Some users report the log feature isn't working. I'm looking into this.
+None at the moment :)
 
 Ian Wraith (31st August 2011) 
