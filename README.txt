@@ -23,6 +23,7 @@ Build 4 adds an online help facility and XPA2 decoding.
 Build 5 adds the foundations of CROWD36 decoding and hopefully fixes the logging bug.
 Build 6 added basic CROWD36 decoding
 Build 7 allows direct sound card decoding.
+Build 8 fixed a bug which caused the program to read from the sound card after a WAV file had been loaded.
 
 Reported Bugs
 -------------
