@@ -84,7 +84,7 @@ public class InputThread extends Thread {
 	    	waveData.setSampleSizeInBits(audioInputStream.getFormat().getSampleSizeInBits());
 	    	waveData.setChannels(audioInputStream.getFormat().getChannels());
 	    	waveData.setEndian(audioInputStream.getFormat().isBigEndian());
-	    	theApp.setSoundCardInput(false);
+	    	theApp.setSoundCardInputOnly(false);
     		loadingFile=true;
     	}
     	catch (Exception e)	{
@@ -97,12 +97,13 @@ public class InputThread extends Thread {
     private boolean getFileData ()	{
     	// Load the .WAV file until it has all been read
     	if (grabWavBlock()==false)	{
-    		loadingFile=false;
     		try	{
     			// Flush anything remaining in the outpipe
     			outPipe.flush();
     			// Close the audio stream
     			audioInputStream.close();
+    			// Make sure the program knows the WAV file load operation is over
+    			loadingFile=false;
     		}
     		catch (Exception e)	{
     			errorCause=e.toString();
