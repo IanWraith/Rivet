@@ -95,7 +95,8 @@ public class CROWD36 extends MFSK {
 				symbolCounter=(int)samplesPerSymbol-(perfectPoint-sampleCount);
 				state=3;
 				theApp.setStatusLabel("Symbol Timing Achieved");
-				outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
+				if (theApp.isSoundCardInput()==true) outLines[0]=theApp.getTimeStamp()+" Symbol timing found";
+				else outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
 				sampleCount++;
 				symbolCounter++;
 				return outLines;
@@ -219,8 +220,13 @@ public class CROWD36 extends MFSK {
 			if ((freq1!=freq3)||(freq2!=freq4)) return null;
 			// Check that 2 of the symbol frequencies are the same
 			if ((freq1==freq2)||(freq3==freq4)) return null;
+			// Calculate the difference between the sync tones
+			int difference=freq1-freq2;
+			// was 1700
 			correctionValue=1700-freq1;
-			String line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) at "+Long.toString(sampleCount);
+			String line;
+			if (theApp.isSoundCardInput()==true)  line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) sync tone difference "+Integer.toString(difference)+" Hz";
+			else line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) at "+Long.toString(sampleCount)+" sync tone difference "+Integer.toString(difference)+" Hz";
 			return line;
 		}
 	
