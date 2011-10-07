@@ -353,4 +353,14 @@ public class Rivet {
 		this.soundCardInput=s;
 	}
 	
+	// Reset the decoder state
+	public void resetDecoderState()	{
+		// CROWD36
+		if (system==0) crowd36Handler.setState(0);
+		// XPA
+		else if (system==1) xpaHandler.setState(0);
+		// XPA2
+		else if (system==2)	xpa2Handler.setState(0);
+	}
+	
 }

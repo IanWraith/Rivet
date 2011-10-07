@@ -26,7 +26,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public static final long serialVersionUID=1;
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
-	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item;
+	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item;
 	private JMenuItem XPA_item,XPA2_item,CROWD36_item;
 	
 	// Constructor
@@ -43,6 +43,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		debug_item.addActionListener(this);
 		mainMenu.add(wavLoad_item=new JMenuItem("Load a WAV File"));		
 		wavLoad_item.addActionListener(this);
+		mainMenu.add(reset_item=new JMenuItem("Reset Decoding State"));
+		reset_item.addActionListener(this);
 		mainMenu.add(save_to_file=new JRadioButtonMenuItem("Save to File",theApp.getLogging()));
 		save_to_file.addActionListener(this);
 		mainMenu.add(soundcard_item=new JRadioButtonMenuItem("Soundcard Input",theApp.isSoundCardInput()));
@@ -137,6 +139,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="Soundcard Input")	{
 			if (theApp.isSoundCardInput()==true) theApp.setSoundCardInput(false);
 			else theApp.setSoundCardInput(true);
+		}
+		// Reset the decoder state
+		if (event_name=="Reset Decoding State")	{
+			theApp.resetDecoderState();
 		}
 		// Exit 
 		if (event_name=="Exit") {
