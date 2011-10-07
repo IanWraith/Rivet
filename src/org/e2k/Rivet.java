@@ -44,6 +44,7 @@ public class Rivet {
     public XPA xpaHandler=new XPA(this,10);	
     public XPA2 xpa2Handler=new XPA2(this);	
     public CROWD36 crowd36Handler=new CROWD36(this,40);	
+    public FSK200500 fsk200500Handler=new FSK200500(this,200);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -54,7 +55,7 @@ public class Rivet {
 	private boolean debug=false;
 	private boolean soundCardInput=false;
 	
-	public final String MODENAMES[]={"CROWD36","XPA","XPA2"};
+	public final String MODENAMES[]={"CROWD36","XPA","XPA2","FSK200/500"};
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
@@ -139,6 +140,11 @@ public class Rivet {
 		else return false;
 	}
 	
+	public boolean isFSK200500()	{
+		if (system==3) return true;
+		else return false;
+	}
+	
 	// Tell the input thread to start to load a .WAV file
 	public void loadWAVfile(String fileName)	{
 		String disp;
@@ -156,6 +162,8 @@ public class Rivet {
 		else if (system==1) xpaHandler.setState(0);
 		// XPA2
 		else if (system==2) xpa2Handler.setState(0);
+		// FSK200/500
+		else if (system==3) fsk200500Handler.setState(0);
 		
 	}
 	
@@ -221,6 +229,8 @@ public class Rivet {
 			else if (system==1) outLines=xpaHandler.decode(circBuffer,waveData);
 			// XPA2
 			else if (system==2)	outLines=xpa2Handler.decode(circBuffer,waveData);
+			// FSK200/500
+			else if (system==3)	outLines=fsk200500Handler.decode(circBuffer,waveData);
 			// Return if nothing at all has been returned
 			if (outLines==null) return;
 			// Display the decode objects output
@@ -346,6 +356,19 @@ public class Rivet {
 				waveData=waveSetting;
 				this.soundCardInput=true;	
 			}	
+			// FSK200/500
+			else if (system==1)	{
+				WaveData waveSetting=new WaveData();
+				waveSetting.setChannels(1);
+				waveSetting.setEndian(true);
+				waveSetting.setSampleSizeInBits(16);
+				waveSetting.setFromFile(false);
+				waveSetting.setSampleRate(11025.0);
+				waveSetting.setBytesPerFrame(2);
+				inputThread.setupAudio(waveSetting); 
+				waveData=waveSetting;
+				this.soundCardInput=true;	
+			}	
 		}
 	}
 	
@@ -361,6 +384,8 @@ public class Rivet {
 		else if (system==1) xpaHandler.setState(0);
 		// XPA2
 		else if (system==2)	xpa2Handler.setState(0);
+		// FSK200/500
+		else if (system==3)	fsk200500Handler.setState(0);
 	}
 	
 }

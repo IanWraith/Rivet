@@ -18,6 +18,7 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 public class MFSK {
 		
 	public final int FFT_8_SIZE=8;
+	public final int FFT_64_SIZE=64;
 	public final int FFT_128_SIZE=128;
 	public final int FFT_200_SIZE=200;
 	public final int FFT_256_SIZE=256;
@@ -29,6 +30,7 @@ public class MFSK {
 	private DoubleFFT_1D fft512=new DoubleFFT_1D(FFT_512_SIZE);
 	private DoubleFFT_1D fft8=new DoubleFFT_1D(FFT_8_SIZE);
 	private DoubleFFT_1D fft128=new DoubleFFT_1D(FFT_128_SIZE);
+	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
 	private double totalEnergy;
 	private int highestFrequency=-1;
 	private int secondHighestBin=-1;
@@ -100,6 +102,15 @@ public class MFSK {
 		// Get the data from the circular buffer
 	    double datar[]=circBuf.extractDataDouble(start,FFT_128_SIZE);
 		fft128.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
+	}
+	
+	public int do64FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+	    double datar[]=circBuf.extractDataDouble(start,FFT_64_SIZE);
+		fft64.realForward(datar);
 		double spec[]=getSpectrum(datar);
 		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
@@ -200,6 +211,21 @@ public class MFSK {
 		return freq;
 	}
 	
+	public int doFSK200500_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+	    double datao[]=circBuf.extractDataDouble(start,40);
+	    double datar[]=new double[64];
+	    int a,c=0;
+	    for (a=0;a<64;a++)	{
+	    	if (c<40) datar[a]=datao[c];
+	    	else datar[a]=0.0;
+	    	c++;
+	    }
+	    fft64.realForward(datar);
+	    double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
+	}
 	
 	// Show what percentage of the total the highest spectral value is
 	public double getPercentageOfTotal()	{
