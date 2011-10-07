@@ -167,14 +167,14 @@ public class CROWD36 extends MFSK {
 	
 	private String getChar(int tone)	{
 		String out="";
-		final String C36A[]={"zero","unperf","Q","X","W","V","E","K"," ","B","R","J","ctl","G","T","F","","M","Y","C","cr","Z","U","L","*","D","I","H","ls","S","O","N","-","A","P","=",""};
-		final String F36A[]={"zero","unperf","1","/","2",";","3","("," ","?","4","'","ctl","8","5","!","",".","6",":","cr","+","7",")","*","$","8","#","ls","bell","9",",","-","-","0","",""};
+		final String C36A[]={"zero","unperf","Q","X","W","V","E","K"," ","B","R","J","ctl","G","T","F","fs","M","Y","C","cr","Z","U","L","*","D","I","H","ls","S","O","N","-","A","P","=",""};
+		final String F36A[]={"zero","unperf","1","/","2",";","3","("," ","?","4","'","ctl","8","5","!","fs",".","6",":","cr","+","7",")","*","$","8","#","ls","bell","9",",","-","-","0","",""};
 		
 		if (tone==16) figureShift=true;
 		else if (tone==28) figureShift=false;
 		
 		figureShift=false;
-		
+				
 		try	{
 			if ((tone<0)||(tone>36)) tone=35;
 			if (figureShift==false) out=C36A[tone];
@@ -191,9 +191,9 @@ public class CROWD36 extends MFSK {
 	// Convert from a frequency to a tone number
 	private int getTone (int freq)	{
 		int a,index=-1,lowVal=999,dif;
-		final int Tones[]={0,340,380,420,460,500,540,580,620,660,700,740,780,820,860,900,940,980,1020,1060,1100,1140,1180,1220,1260,1300,1340,1380,1420,1460,1500,1540,1580,1620,1660,1700,1740};
-		for (a=0;a<Tones.length;a++)	{
-			dif=Math.abs(Tones[a]-freq);
+		final int Tones[]={340,380,420,460,500,540,580,620,660,700,740,780,820,860,900,940,980,1020,1060,1100,1140,1180,1220,1260,1300,1340,1380,1420,1460,1500,1540,1580,1620,1660,1700,1740};
+		for (a=1;a<Tones.length;a++)	{
+			dif=Math.abs(Tones[a-1]-freq);
 			if (dif<lowVal)	{
 				lowVal=dif;
 				index=a;
@@ -205,6 +205,7 @@ public class CROWD36 extends MFSK {
 	
 	// Hunt for known CROWD 36 tones
 	private String syncToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
+			int difference;
 			// Get 4 symbols
 			int freq1=crowd36Freq(circBuf,waveData,0);
 			// Check this first tone isn't just noise
@@ -212,6 +213,9 @@ public class CROWD36 extends MFSK {
 			int freq2=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*1);
 			// Check we have a high low
 			if (freq2>freq1) return null;
+			// Check there is more than 100 Hz of difference
+			difference=freq1-freq2;
+			if (difference<100) return null;
 			int freq3=crowd36Freq(circBuf,waveData,(int)samplesPerSymbol*2);
 			// Don't waste time carrying on if freq1 isn't the same as freq3
 			if (freq1!=freq3) return null;
@@ -221,7 +225,7 @@ public class CROWD36 extends MFSK {
 			// Check that 2 of the symbol frequencies are the same
 			if ((freq1==freq2)||(freq3==freq4)) return null;
 			// Calculate the difference between the sync tones
-			int difference=freq1-freq2;
+			difference=freq1-freq2;
 			// was 1700
 			correctionValue=1700-freq1;
 			String line;
@@ -237,6 +241,8 @@ public class CROWD36 extends MFSK {
 	public String getLineBuffer ()	{
 		return this.lineBuffer.toString();
 	}
+	
+
 	
 
 
