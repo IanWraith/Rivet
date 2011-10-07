@@ -117,7 +117,8 @@ public class XPA extends MFSK {
 			// Remember this value as it is the start of the energy values
 			syncFoundPoint=sampleCount;
 			theApp.setStatusLabel("Sync Found");
-			outLines[0]=theApp.getTimeStamp()+" High sync tone found at position "+Long.toString(sampleCount);
+			if (theApp.isSoundCardInput()==true)  outLines[0]=theApp.getTimeStamp()+" High sync tone found";
+			else outLines[0]=theApp.getTimeStamp()+" High sync tone found at position "+Long.toString(sampleCount);
 			return outLines;
 		}
 		
@@ -135,7 +136,8 @@ public class XPA extends MFSK {
 			symbolCounter=symbolCounter-perfectPoint;
 			state=4;
 			theApp.setStatusLabel("Symbol Timing Achieved");
-			outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
+			if (theApp.isSoundCardInput()==true)  outLines[0]=theApp.getTimeStamp()+" Symbol timing found";
+			else outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
 			return outLines;
 		}
 		
