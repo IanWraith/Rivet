@@ -98,8 +98,6 @@ public class InputThread extends Thread {
     	// Load the .WAV file until it has all been read
     	if (grabWavBlock()==false)	{
     		try	{
-    			// Flush anything remaining in the outpipe
-    			outPipe.flush();
     			// Close the audio stream
     			audioInputStream.close();
     			// Make sure the program knows the WAV file load operation is over
