@@ -54,6 +54,7 @@ public class Rivet {
 	public FileWriter file;
 	private boolean debug=false;
 	private boolean soundCardInput=false;
+	private boolean wavFileLoadOngoing=false;
 	
 	public final String MODENAMES[]={"CROWD36","XPA","XPA2","FSK200/500"};
     
@@ -73,7 +74,7 @@ public class Rivet {
 			}
 		// The main loop
 		while (RUNNING)	{
-			if ((theApp.inputThread.getLoadingFileState()==true)&&(theApp.pReady==true)) theApp.getWavData();
+			if ((theApp.wavFileLoadOngoing==true)&&(theApp.pReady==true)) theApp.getWavData();
 			else if ((theApp.inputThread.getAudioReady()==true)&&(theApp.pReady==true)) theApp.getAudioData();
 			else	{
 				// Add the following so the thread doesn't eat all of the CPU time
@@ -164,7 +165,8 @@ public class Rivet {
 		else if (system==2) xpa2Handler.setState(0);
 		// FSK200/500
 		else if (system==3) fsk200500Handler.setState(0);
-		
+		// Ensure the program knows we have a WAV file load ongoing
+		wavFileLoadOngoing=true;
 	}
 	
 	// This is called when the input thread is busy getting data from a WAV file
@@ -188,10 +190,12 @@ public class Rivet {
 				// Check if there is anything left to display
 				if (system==0)	{
 					if (crowd36Handler.getLineCount()>0) addLine(crowd36Handler.getLineBuffer(),Color.BLACK,plainFont);
+					addLine(crowd36Handler.lowHighFreqs(),Color.BLACK,plainFont);
 				}
 				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
-				addLine(disp,Color.BLACK,plainFont);				
+				addLine(disp,Color.BLACK,plainFont);		
+				wavFileLoadOngoing=false;
 				}
 			}
 		catch (Exception e)	{
@@ -208,7 +212,7 @@ public class Rivet {
 				circBuffer.addToCircBuffer(inPipeData.readInt());
 				// Process this data
 				processData();
-	    		// Update the volume bar evry 50 samples
+	    		// Update the volume bar every 50 samples
 	    		if (inputThread.getSampleCounter()%50==0) updateVolumeBar();
 				}
 			catch (Exception e)	{

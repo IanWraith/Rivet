@@ -16,6 +16,8 @@ public class CROWD36 extends MFSK {
 	private boolean figureShift=false; 
 	private int lineCount=0;
 	private int correctionValue=0;
+	private int highFreq=-1;
+	private int lowFreq=5000;
 	
 	public CROWD36 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -191,6 +193,10 @@ public class CROWD36 extends MFSK {
 	// Convert from a frequency to a tone number
 	private int getTone (int freq)	{
 		int a,index=-1,lowVal=999,dif;
+		// Store the highest and lowest frequencies detected
+		if (freq>highFreq) highFreq=freq;
+		else if (freq<lowFreq) lowFreq=freq;
+		// Match the frequency to a tone number
 		final int Tones[]={340,380,420,460,500,540,580,620,660,700,740,780,820,860,900,940,980,1020,1060,1100,1140,1180,1220,1260,1300,1340,1380,1420,1460,1500,1540,1580,1620,1660,1700,1740};
 		for (a=1;a<Tones.length;a++)	{
 			dif=Math.abs(Tones[a-1]-freq);
@@ -241,7 +247,11 @@ public class CROWD36 extends MFSK {
 	}
 	
 
-	
+	public String lowHighFreqs ()	{
+		String line;
+		line="Lowest frequency "+Integer.toString(lowFreq)+" Hz : Highest Frequency "+Integer.toString(highFreq)+" Hz";
+		return line;
+	}
 
 
 }
