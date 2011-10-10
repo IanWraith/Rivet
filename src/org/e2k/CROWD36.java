@@ -228,9 +228,7 @@ public class CROWD36 extends MFSK {
 			difference=freq1-freq2;
 			// was 1700
 			correctionValue=1700-freq1;
-			String line;
-			if (theApp.isSoundCardInput()==true)  line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) sync tone difference "+Integer.toString(difference)+" Hz";
-			else line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) at "+Long.toString(sampleCount)+" sync tone difference "+Integer.toString(difference)+" Hz";
+			String line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) sync tone difference "+Integer.toString(difference)+" Hz";
 			return line;
 		}
 	

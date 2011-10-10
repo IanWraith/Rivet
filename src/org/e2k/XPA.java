@@ -34,7 +34,6 @@ public class XPA extends MFSK {
 	public XPA (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
-		setHighestFrequencyUsed(1350);
 	}
 	
 	public void setBaudRate(int baudRate) {
@@ -117,8 +116,7 @@ public class XPA extends MFSK {
 			// Remember this value as it is the start of the energy values
 			syncFoundPoint=sampleCount;
 			theApp.setStatusLabel("Sync Found");
-			if (theApp.isSoundCardInput()==true)  outLines[0]=theApp.getTimeStamp()+" High sync tone found";
-			else outLines[0]=theApp.getTimeStamp()+" High sync tone found at position "+Long.toString(sampleCount);
+			outLines[0]=theApp.getTimeStamp()+" High sync tone found";
 			return outLines;
 		}
 		
@@ -136,8 +134,7 @@ public class XPA extends MFSK {
 			symbolCounter=symbolCounter-perfectPoint;
 			state=4;
 			theApp.setStatusLabel("Symbol Timing Achieved");
-			if (theApp.isSoundCardInput()==true)  outLines[0]=theApp.getTimeStamp()+" Symbol timing found";
-			else outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
+			outLines[0]=theApp.getTimeStamp()+" Symbol timing found";
 			return outLines;
 		}
 		

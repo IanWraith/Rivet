@@ -83,8 +83,7 @@ public class XPA2 extends MFSK {
 			// Remember this value as it is the start of the energy values
 			syncFoundPoint=symbolCounter;
 			theApp.setStatusLabel("Sync Found");
-			if (theApp.isSoundCardInput()==true) outLines[0]=theApp.getTimeStamp()+" Sync tone found";
-			else outLines[0]=theApp.getTimeStamp()+" Sync tone found at position "+Long.toString(sampleCount);
+			outLines[0]=theApp.getTimeStamp()+" Sync tone found";
 		}	
 		// Set the symbol timing
 		if (state==3)	{
@@ -101,8 +100,7 @@ public class XPA2 extends MFSK {
 			symbolCounter=symbolCounter-perfectPoint;
 			state=4;
 			theApp.setStatusLabel("Symbol Timing Achieved");
-			if (theApp.isSoundCardInput()==true) outLines[0]=theApp.getTimeStamp()+" Symbol timing found"; 
-			else outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
+			outLines[0]=theApp.getTimeStamp()+" Symbol timing found"; 
 			return outLines;
 		}
 		// Get valid data
