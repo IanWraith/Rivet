@@ -95,9 +95,9 @@ public class XPA2 extends MFSK {
 			// Gather a symbols worth of energy values
 			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*lookAHEAD)) return null;
 			// Now find the lowest energy value
-			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint;
+			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint+(int)samplesPerSymbol;
 			// Calculate what the value of the symbol counter should be
-			symbolCounter=symbolCounter-perfectPoint;
+			symbolCounter=(int)samplesPerSymbol-(perfectPoint-sampleCount);
 			state=4;
 			theApp.setStatusLabel("Symbol Timing Achieved");
 			outLines[0]=theApp.getTimeStamp()+" Symbol timing found"; 
