@@ -35,9 +35,9 @@ public class XPA2 extends MFSK {
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
-			if (waveData.getSampleRate()!=11025)	{
+			if (waveData.getSampleRate()>11025.0)	{
 				state=-1;
-				JOptionPane.showMessageDialog(null,"WAV files containing\nXPA2 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(null,"WAV files containing\nXPA2 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
 			// Check this is a mono recording
@@ -245,7 +245,12 @@ public class XPA2 extends MFSK {
 		
 		
 		private int xpa2Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
-			if (waveData.getSampleRate()==11025.0)	{
+			if (waveData.getSampleRate()==8000.0)	{
+				int freq=do1024FFT(circBuf,waveData,pos);
+				freq=freq+correctionFactor;
+				return freq;
+			}
+			else if (waveData.getSampleRate()==11025.0)	{
 				int freq=do1024FFT(circBuf,waveData,pos);
 				freq=freq+correctionFactor;
 				return freq;
