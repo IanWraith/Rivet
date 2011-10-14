@@ -95,7 +95,7 @@ public class XPA2 extends MFSK {
 		}	
 		// Set the symbol timing
 		if (state==3)	{
-			final int lookAHEAD=3;
+			final int lookAHEAD=1;
 			if (waveData.getSampleRate()==11025.0) do128FFT(circBuf,waveData,0);
 			else if (waveData.getSampleRate()==8000.0) do8FFT(circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
