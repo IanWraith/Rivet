@@ -79,6 +79,14 @@ public class XPA2 extends MFSK {
 				symbolCounter++;
 				return null;
 			}
+			
+			int a;
+			int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
+			for (a=0;a<data.length;a++)	{
+				String line=Integer.toString(data[a]);
+				theApp.debugDump(line);
+			}
+			
 			state=3;
 			// Remember this value as it is the start of the energy values
 			syncFoundPoint=symbolCounter;
@@ -87,13 +95,21 @@ public class XPA2 extends MFSK {
 		}	
 		// Set the symbol timing
 		if (state==3)	{
-			final int lookAHEAD=1;
-			do128FFT(circBuf,waveData,0);
+			final int lookAHEAD=3;
+			if (waveData.getSampleRate()==11025.0) do128FFT(circBuf,waveData,0);
+			else if (waveData.getSampleRate()==8000.0) do8FFT(circBuf,waveData,0);
 			energyBuffer.addToCircBuffer((int)getTotalEnergy());
 			sampleCount++;
 			symbolCounter++;
 			// Gather a symbols worth of energy values
 			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*lookAHEAD)) return null;
+			
+			//int a;
+			//for (a=0;a<(int)(samplesPerSymbol*lookAHEAD);a++)	{
+				//String line=Integer.toString(energyBuffer.directAccess(a));
+				//theApp.debugDump(line);
+			//}
+			
 			// Now find the lowest energy value
 			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint+(int)samplesPerSymbol;
 			// Calculate what the value of the symbol counter should be
@@ -248,6 +264,8 @@ public class XPA2 extends MFSK {
 			if (waveData.getSampleRate()==8000.0)	{
 				int freq=do1024FFT(circBuf,waveData,pos);
 				freq=freq+correctionFactor;
+				// The line below is used if the waveform is inverted. But this needs sorting properly.
+				//freq=3000-freq+correctionFactor;
 				return freq;
 			}
 			else if (waveData.getSampleRate()==11025.0)	{
