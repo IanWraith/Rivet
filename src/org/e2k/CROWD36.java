@@ -19,6 +19,8 @@ public class CROWD36 extends MFSK {
 	private int highFreq=-1;
 	private int lowFreq=5000;
 	
+	// Update to test new PC setup
+	
 	public CROWD36 (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
