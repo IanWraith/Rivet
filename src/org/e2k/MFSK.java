@@ -82,10 +82,19 @@ public class MFSK {
 	// We have a problem since FFT sizes must be to a power of 2 but samples per symbol can be any value
 	// So instead I am doing a FFT in the middle of the symbol
 	public int symbolFreq (CircularDataBuffer circBuf,WaveData waveData,int start,double samplePerSymbol)	{
+		double freq=-1;
 		// There must be at least LONG_FFT_SIZE samples Per Symbol
-		if (samplePerSymbol<FFT_1024_SIZE) return -1;
-		int fftStart=start+(((int)samplePerSymbol-FFT_1024_SIZE)/2);
-		double freq=do1024FFT(circBuf,waveData,fftStart);
+		if (samplePerSymbol<FFT_1024_SIZE)	{
+			// If not do an 512 point FFT
+			// First check this is possible
+			if (samplePerSymbol<FFT_512_SIZE) return -1;
+			int fftStart=start+(((int)samplePerSymbol-FFT_512_SIZE)/2);
+			freq=do512FFT(circBuf,waveData,fftStart);
+		}
+		else	{
+			int fftStart=start+(((int)samplePerSymbol-FFT_1024_SIZE)/2);
+			freq=do1024FFT(circBuf,waveData,fftStart);
+		}
 		return (int)freq;
 	}
 	
