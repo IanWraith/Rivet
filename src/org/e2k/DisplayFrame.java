@@ -27,7 +27,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item;
-	private JMenuItem XPA_item,XPA2_item,CROWD36_item;//,FSK200500_item;
+	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item;//,FSK200500_item;
 	
 	// Constructor
 	public DisplayFrame(String title,Rivet theApp) {
@@ -58,8 +58,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		CROWD36_item.addActionListener(this);
 		//modeMenu.add(FSK200500_item=new JRadioButtonMenuItem(theApp.MODENAMES[3],theApp.isFSK200500()));
 		//FSK200500_item.addActionListener(this);
-		modeMenu.add(XPA_item=new JRadioButtonMenuItem(theApp.MODENAMES[1],theApp.isXPA()));
-		XPA_item.addActionListener(this);
+		modeMenu.add(XPA_10_item=new JRadioButtonMenuItem(theApp.MODENAMES[1],theApp.isXPA_10()));
+		XPA_10_item.addActionListener(this);
+		modeMenu.add(XPA_20_item=new JRadioButtonMenuItem(theApp.MODENAMES[3],theApp.isXPA_20()));
+		XPA_20_item.addActionListener(this);
 		modeMenu.add(XPA2_item=new JRadioButtonMenuItem(theApp.MODENAMES[2],theApp.isXPA2()));
 		XPA2_item.addActionListener(this);
 		menuBar.add(modeMenu);
@@ -161,7 +163,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private void menuItemUpdate()	{
 		save_to_file.setSelected(theApp.getLogging());
 		CROWD36_item.setSelected(theApp.isCROWD36());
-		XPA_item.setSelected(theApp.isXPA());
+		XPA_10_item.setSelected(theApp.isXPA_10());
+		XPA_20_item.setSelected(theApp.isXPA_20());
 		XPA2_item.setSelected(theApp.isXPA2());
 		//FSK200500_item.setSelected(theApp.isFSK200500());
 		debug_item.setSelected(theApp.isDebug());

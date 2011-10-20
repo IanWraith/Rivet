@@ -94,7 +94,7 @@ public class XPA extends MFSK {
 		}
 		// Look for a sync high (1120 Hz) 
 		if (state==2)	{
-			final int ERRORALLOWANCE=50;
+			final int ERRORALLOWANCE=40;
 			// First do a short FFT to check for the sync high tone
 			int sfft1=do128FFT (circBuf,waveData,0);
 			sfft1=sfft1+shortCorrectionFactor;
@@ -247,7 +247,7 @@ public class XPA extends MFSK {
 			return null;
 		}
 		
-		if ((tChar!="Sync High")&&(tChar!="Sync Low"))	{
+		if ((tChar!="Sync High")&&(tChar!="Sync Low")&&(tChar!="Start High")&&(tChar!="Start Low"))	{
 			tlength=tChar.length();
 			lineBuffer.append(tChar);
 			llength=lineBuffer.length();
