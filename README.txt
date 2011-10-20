@@ -24,6 +24,7 @@ Build 5 adds the foundations of CROWD36 decoding and hopefully fixes the logging
 Build 6 added basic CROWD36 decoding
 Build 7 allows direct sound card decoding.
 Build 8 fixed a bug which caused the program to read from the sound card after a WAV file had been loaded.
+        also improved XPA and XPA2 symbol timing and support for 20 baud XPA.
 
 Reported Bugs
 -------------
