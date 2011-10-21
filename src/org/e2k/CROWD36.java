@@ -18,6 +18,7 @@ public class CROWD36 extends MFSK {
 	private int correctionValue=0;
 	private int highFreq=-1;
 	private int lowFreq=5000;
+	private final int Tones[]={1410,1450,1490,1530,1570,1610,1650,1690,1730,1770,1810,1850,1890,1930,1970,2010,2050,2090,2130,2170,2210,2250,2290,2330,2370,2410,2450,2490,2530,2570,2610,2650,2690,2730};
 	
 	// Update to test new PC setup
 	
@@ -143,7 +144,12 @@ public class CROWD36 extends MFSK {
 		int tone=getTone(freq);
 		String ch=getChar(tone);
 		
+		
 		if (theApp.isDebug()==false)	{
+			
+			if (ch.equals("ls")) return null;
+			else if (ch.equals("fs")) return null;
+			
 			if (ch.equals("cr"))	{
 				lineCount=50;
 			}
@@ -171,16 +177,16 @@ public class CROWD36 extends MFSK {
 	
 	private String getChar(int tone)	{
 		String out="";
-		final String C36A[]={"zero","unperf","Q","X","W","V","E","K"," ","B","R","J","ctl","G","T","F","fs","M","Y","C","cr","Z","U","L","*","D","I","H","ls","S","O","N","-","A","P","=",""};
-		final String F36A[]={"zero","unperf","1","/","2",";","3","("," ","?","4","'","ctl","8","5","!","fs",".","6",":","cr","+","7",")","*","$","8","#","ls","bell","9",",","-","-","0","",""};
+		final String C36A[]={"Q" , "X" , "W" , "V" , "E" , "K" , " " , "B" , "R" , "J" , "" , "G" , "T" ,"F" , "fs" , "M" , "Y" , "C" , "cr" , "Z" , "U" , "L" , "" , "D" , "I" , "H" , "ls" , "S" , "O" , "N" , "" , "A" , "P" , ""};
+		final String F36A[]={"1" , "/" , "2" , ";" , "3" , "(" , " " , "?" , "4" , "'" , "" , "8" , "5" ,"!" , "fs" , "." , "6" , ":" , "cr" , "+" , "7" , ")" , "" , "$" , "8" , "#" , "ls" , ""  , "9" , "," , "" , ""  , "0" , ""};
 		
 		if (tone==16) figureShift=true;
 		else if (tone==28) figureShift=false;
 		
-		figureShift=false;
+		//figureShift=true;
 				
 		try	{
-			if ((tone<0)||(tone>36)) tone=35;
+			if ((tone<0)||(tone>33)) tone=33;
 			if (figureShift==false) out=C36A[tone];
 			else out=F36A[tone];
 		}
@@ -199,9 +205,8 @@ public class CROWD36 extends MFSK {
 		if (freq>highFreq) highFreq=freq;
 		else if (freq<lowFreq) lowFreq=freq;
 		// Match the frequency to a tone number
-		final int Tones[]={340,380,420,460,500,540,580,620,660,700,740,780,820,860,900,940,980,1020,1060,1100,1140,1180,1220,1260,1300,1340,1380,1420,1460,1500,1540,1580,1620,1660,1700,1740};
-		for (a=1;a<Tones.length;a++)	{
-			dif=Math.abs(Tones[a-1]-freq);
+		for (a=0;a<Tones.length;a++)	{
+			dif=Math.abs(Tones[a]-freq);
 			if (dif<lowVal)	{
 				lowVal=dif;
 				index=a;
@@ -234,8 +239,8 @@ public class CROWD36 extends MFSK {
 			if ((freq1==freq2)||(freq3==freq4)) return null;
 			// Calculate the difference between the sync tones
 			difference=freq1-freq2;
-			// was 1700
-			correctionValue=1700-freq1;
+			// was 33
+			correctionValue=Tones[31]-freq1;
 			String line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) sync tone difference "+Integer.toString(difference)+" Hz";
 			return line;
 		}
