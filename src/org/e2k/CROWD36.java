@@ -177,11 +177,11 @@ public class CROWD36 extends MFSK {
 	
 	private String getChar(int tone)	{
 		String out="";
-		final String C36A[]={"Q" , "X" , "W" , "V" , "E" , "K" , " " , "B" , "R" , "J" , "" , "G" , "T" ,"F" , "fs" , "M" , "Y" , "C" , "cr" , "Z" , "U" , "L" , "" , "D" , "I" , "H" , "ls" , "S" , "O" , "N" , "" , "A" , "P" , ""};
-		final String F36A[]={"1" , "/" , "2" , ";" , "3" , "(" , " " , "?" , "4" , "'" , "" , "8" , "5" ,"!" , "fs" , "." , "6" , ":" , "cr" , "+" , "7" , ")" , "" , "$" , "8" , "#" , "ls" , ""  , "9" , "," , "" , ""  , "0" , ""};
+		final String C36A[]={"Q" , "X" , "W" , "V" , "E" , "K" , " " , "B" , "R" , "J" , "<*10>" , "G" , "T" ,"F" , "<fs>" , "M" , "Y" , "C" , "cr" , "Z" , "U" , "L" , "<*22>" , "D" , "I" , "H" , "<ls>" , "S" , "O" , "N" , "<*30>" , "A" , "P" , "<*33>"};
+		final String F36A[]={"1" , "\u0429" , "2" , "=" , "3" , "(" , " " , "?" , "4" , "\u042e" , "<*10>" , "8" , "5" ,"\u042d" , "<fs>" , "." , "6" , ":" , "cr" , "+" , "7" , ")" , "<*22>" , " " , "8" , "\u0449" , "<ls>" , ""  , "9" , "," , "<*30>" , "-"  , "0" , "<*33>"};
 		
-		if (tone==16) figureShift=true;
-		else if (tone==28) figureShift=false;
+		//if (tone==16) figureShift=true;
+		//else if (tone==28) figureShift=false;
 		
 		//figureShift=true;
 				
@@ -189,6 +189,11 @@ public class CROWD36 extends MFSK {
 			if ((tone<0)||(tone>33)) tone=33;
 			if (figureShift==false) out=C36A[tone];
 			else out=F36A[tone];
+			
+			if (out.equals("<ls>")) figureShift=false;
+			else if (out.equals("<fs>")) figureShift=true;
+			else if (out.equals("cr")) figureShift=false;
+			
 		}
 		catch (Exception e)	{
 			JOptionPane.showMessageDialog(null,e.toString(),"Rivet", JOptionPane.INFORMATION_MESSAGE);
@@ -218,7 +223,7 @@ public class CROWD36 extends MFSK {
 	
 	// Hunt for known CROWD 36 tones
 	private String syncToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
-			int difference;
+			int difference,sHigh=31;
 			// Get 4 symbols
 			int freq1=crowd36Freq(circBuf,waveData,0);
 			// Check this first tone isn't just noise
@@ -239,8 +244,9 @@ public class CROWD36 extends MFSK {
 			if ((freq1==freq2)||(freq3==freq4)) return null;
 			// Calculate the difference between the sync tones
 			difference=freq1-freq2;
-			// was 33
-			correctionValue=Tones[31]-freq1;
+			if (difference==875) sHigh=23; 
+			// was 31
+			correctionValue=Tones[sHigh]-freq1;
 			String line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) sync tone difference "+Integer.toString(difference)+" Hz";
 			return line;
 		}
