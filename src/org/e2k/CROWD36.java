@@ -63,6 +63,10 @@ public class CROWD36 extends MFSK {
 			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
+			figureShift=false;
+			highFreq=-1;
+			lowFreq=5000;
+			correctionValue=0;
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
