@@ -15,6 +15,7 @@ package org.e2k;
 
 import java.awt.*;
 import javax.swing.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.File;
 import java.io.FileWriter;
@@ -26,9 +27,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public static final long serialVersionUID=1;
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
-	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item;
+	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item;//,FSK200500_item;
 	
+ 
 	// Constructor
 	public DisplayFrame(String title,Rivet theApp) {
 		setTitle(title);
@@ -39,6 +41,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		setJMenuBar(menuBar);
 		// Main
 		JMenu mainMenu=new JMenu("Main");
+		mainMenu.add(copy_item=new JMenuItem("Copy All to the Clipboard"));
+		copy_item.addActionListener(this);
 		mainMenu.add(debug_item=new JRadioButtonMenuItem("Debug Mode",theApp.isDebug()));		
 		debug_item.addActionListener(this);
 		mainMenu.add(wavLoad_item=new JMenuItem("Load a WAV File"));		
@@ -76,7 +80,6 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		add(vscrollbar,BorderLayout.EAST);
 		// Add a listener for this
 		vscrollbar.addAdjustmentListener(new MyAdjustmentListener());
-		
 		// Setup the status bar
 		getContentPane().add(statusBar, java.awt.BorderLayout.SOUTH);
 		statusBar.setLoggingStatus("Not Logging");
@@ -101,7 +104,12 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	
 	// Handle all menu events
 	public void actionPerformed (ActionEvent event) {
-		String event_name=event.getActionCommand();
+		String event_name=event.getActionCommand();	
+		// Copy all
+		if (event_name=="Copy All to the Clipboard")	{
+			String contents=theApp.getAllText();
+			setClipboard(contents);
+		}
 		// About
 		if (event_name=="About")	{
 			String line=theApp.program_version+"\r\n"+"ianwraith@gmail.com\r\nfor the Enigma2000 group.";
@@ -270,6 +278,12 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		}
 		theApp.setLogging(true);
 		return true;
+	}
+	
+	// This sets the clipboard with a string passed to it
+	private void setClipboard(String str) {
+	    StringSelection ss=new StringSelection(str);
+	    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, null);
 	}
 
 }

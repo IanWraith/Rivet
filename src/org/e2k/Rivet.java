@@ -401,4 +401,11 @@ public class Rivet {
 		//else if (system==3)	fsk200500Handler.setState(0);
 	}
 	
+	// Gets all the text on the screen and returns it as a string
+	public String getAllText()	{
+		String all=display_view.getText();
+		return all;
+	}
+	
+	
 }
