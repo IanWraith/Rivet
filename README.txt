@@ -3,9 +3,9 @@ of the Enigma 2000 group.
 
 http://groups.yahoo.com/group/enigma2000/
 
-Currently the program decodes the modes XPA and XPA2 but more modes will be added soon.
-At the moment the program only decodes pre-recorded .WAV files (mono and recorded at a
-rate of 11.025 KHz or less) but I hope to add sound card decoding soon.
+Currently the program decodes the modes XPA , XPA2 and CROWD36 (partiall) but more modes will be added soon.
+The program can decode directly from your PCs soundcard or from a WAV file (mono and using a sample rate of
+11.025 KHz or 8 KHz).
 
 The program is written in Java so it should run on any PC which has Java installed.
 If you haven't got Java then you can download it for free from ..
@@ -25,10 +25,11 @@ Build 6 added basic CROWD36 decoding
 Build 7 allows direct sound card decoding.
 Build 8 fixed a bug which caused the program to read from the sound card after a WAV file had been loaded.
         also improved XPA and XPA2 symbol timing and support for 20 baud XPA.
+Build 9 improves CROWD36 decoding and adds the copy to clipboard feature.
 
 Reported Bugs
 -------------
 
-None at the moment :)
+Still problems with CROWD36 decoding. Not a bug as such but more a lack of understanding of this mode.
 
-Ian Wraith (31st August 2011) 
+Ian Wraith (26th October 2011) 
