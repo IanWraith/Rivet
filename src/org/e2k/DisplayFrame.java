@@ -28,7 +28,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item;
-	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item;//,FSK200500_item;
+	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item;//,FSK200500_item;
 	
  
 	// Constructor
@@ -68,6 +68,9 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		XPA_20_item.addActionListener(this);
 		modeMenu.add(XPA2_item=new JRadioButtonMenuItem(theApp.MODENAMES[2],theApp.isXPA2()));
 		XPA2_item.addActionListener(this);
+		modeMenu.addSeparator();
+		modeMenu.add(experimental_item=new JRadioButtonMenuItem(theApp.MODENAMES[4],theApp.isExperimental()));
+		experimental_item.addActionListener(this);
 		menuBar.add(modeMenu);
 		// Help
 		JMenu helpMenu=new JMenu("Help");
@@ -174,6 +177,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		XPA_10_item.setSelected(theApp.isXPA_10());
 		XPA_20_item.setSelected(theApp.isXPA_20());
 		XPA2_item.setSelected(theApp.isXPA2());
+		experimental_item.setSelected(theApp.isExperimental());
 		//FSK200500_item.setSelected(theApp.isFSK200500());
 		debug_item.setSelected(theApp.isDebug());
 		soundcard_item.setSelected(theApp.isSoundCardInput());

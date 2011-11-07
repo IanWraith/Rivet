@@ -33,7 +33,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 9) by Ian Wraith";
+	public String program_version="Rivet (Build 10) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -45,6 +45,7 @@ public class Rivet {
     public XPA2 xpa2Handler=new XPA2(this);	
     public CROWD36 crowd36Handler=new CROWD36(this,40);	
     public FSK200500 fsk200500Handler=new FSK200500(this,200);
+    public FSK FSKHandler=new FSK(this,50);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -56,7 +57,7 @@ public class Rivet {
 	private boolean soundCardInput=false;
 	private boolean wavFileLoadOngoing=false;
 	
-	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)"};//"FSK200/500"
+	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental"};//"FSK200/500"
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
@@ -150,6 +151,11 @@ public class Rivet {
 		else return false;
 	}
 	
+	public boolean isExperimental()	{
+		if (system==4) return true;
+		else return false;
+	}
+	
 	//public boolean isFSK200500()	{
 		//if (system==3) return true;
 		//else return false;
@@ -172,6 +178,8 @@ public class Rivet {
 		else if ((system==1)||(system==3)) xpaHandler.setState(0);
 		// XPA2
 		else if (system==2) xpa2Handler.setState(0);
+		// Experimental
+		else if (system==4) FSKHandler.setState(0);
 		// FSK200/500
 		//else if (system==3) fsk200500Handler.setState(0);
 		// Ensure the program knows we have a WAV file load ongoing
@@ -200,6 +208,7 @@ public class Rivet {
 				if (system==0)	{
 					if (crowd36Handler.getLineCount()>0) addLine(crowd36Handler.getLineBuffer(),Color.BLACK,plainFont);
 					addLine(crowd36Handler.lowHighFreqs(),Color.BLACK,plainFont);
+					addLine(crowd36Handler.toneResults(),Color.BLACK,plainFont);
 				}
 				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
@@ -244,6 +253,8 @@ public class Rivet {
 			else if (system==2)	outLines=xpa2Handler.decode(circBuffer,waveData);
 			// FSK200/500
 			//else if (system==3)	outLines=fsk200500Handler.decode(circBuffer,waveData);
+			// Experimental
+			else if (system==4)	outLines=FSKHandler.decode(circBuffer,waveData);
 			// Return if nothing at all has been returned
 			if (outLines==null) return;
 			// Display the decode objects output
