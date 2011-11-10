@@ -19,6 +19,10 @@ public class CROWD36 extends MFSK {
 	private int highFreq=-1;
 	private int lowFreq=5000;
 	private final int Tones[]={1410,1450,1490,1530,1570,1610,1650,1690,1730,1770,1810,1850,1890,1930,1970,2010,2050,2090,2130,2170,2210,2250,2290,2330,2370,2410,2450,2490,2530,2570,2610,2650,2690,2730};
+	private int toneCount[]=new int[34];
+	private int toneLowCount;
+	private int toneHighCount;
+	private int syncHighTone=24;
 	
 	// Update to test new PC setup
 	
@@ -67,6 +71,7 @@ public class CROWD36 extends MFSK {
 			highFreq=-1;
 			lowFreq=5000;
 			correctionValue=0;
+			toneCountClear();
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
@@ -146,6 +151,9 @@ public class CROWD36 extends MFSK {
 	private String[] displayMessage (int freq,boolean isFile)	{
 		String outLines[]=new String[2];
 		int tone=getTone(freq);
+		
+		//tone=34-tone;
+		
 		String ch=getChar(tone);
 		
 		
@@ -194,7 +202,17 @@ public class CROWD36 extends MFSK {
 		//figureShift=true;
 				
 		try	{
-			if ((tone<0)||(tone>33)) tone=33;
+			
+			if (tone<0)	{
+				toneLowCount++;
+				tone=0;
+			}
+			else if (tone>33)	{
+				toneHighCount++;
+				tone=33;
+			}
+			else toneCount[tone]++;
+				
 			if (figureShift==false) out=C36A[tone];
 			else out=F36A[tone];
 			
@@ -225,7 +243,10 @@ public class CROWD36 extends MFSK {
 				index=a;
 			}
 		}
-		return index;
+		
+		if ((index==0)&&(lowVal>40)) return -1;
+		else if ((index==33)&&(lowVal>40)) return 34;
+		else return index;
 	}
 	
 	
@@ -252,11 +273,7 @@ public class CROWD36 extends MFSK {
 			if ((freq1==freq2)||(freq3==freq4)) return null;
 			// Calculate the difference between the sync tones
 			difference=freq1-freq2;
-			// Normally the high sync tone is 31 but on certain occasions it is tone 23
-			if (difference==875) sHigh=23; 
-			else sHigh=31;
-			// was 31
-			correctionValue=Tones[sHigh]-freq1;
+			correctionValue=Tones[syncHighTone]-freq1;
 			String line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) sync tone difference "+Integer.toString(difference)+" Hz";
 			return line;
 		}
@@ -275,6 +292,37 @@ public class CROWD36 extends MFSK {
 		line="Lowest frequency "+Integer.toString(lowFreq)+" Hz : Highest Frequency "+Integer.toString(highFreq)+" Hz";
 		return line;
 	}
+	
+	private void toneCountClear()	{
+		int a;
+		toneHighCount=0;
+		toneLowCount=0;
+		for (a=0;a<toneCount.length;a++)	{
+			toneCount[a]=0;
+		}
+	}
+	
+	public String toneResults()	{
+		StringBuffer out=new StringBuffer();
+		int a;
+		out.append("Low "+Integer.toString(toneLowCount));
+		for (a=0;a<toneCount.length;a++)	{
+			out.append(" T"+Integer.toString(a)+",");
+			out.append(Integer.toString(toneCount[a]));
+		}
+		out.append("High "+Integer.toString(toneHighCount));
+		return out.toString();
+	}
+
+	public int getSyncHighTone() {
+		return syncHighTone;
+	}
+
+	public void setSyncHighTone(int syncHighTone) {
+		this.syncHighTone = syncHighTone;
+	}
+	
+	
 
 
 }

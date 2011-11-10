@@ -23,7 +23,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.util.Date;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 public class Rivet {
@@ -416,6 +419,28 @@ public class Rivet {
 	public String getAllText()	{
 		String all=display_view.getText();
 		return all;
+	}
+	
+	// Allows the user to set the CROWD36 high sync tone number
+	public void getCROWD36SyncHighTone ()	{
+		 //Create a panel that will contain the sync number
+		 JPanel panel=new JPanel();
+		 //Set JPanel layout using GridLayout
+		 panel.setLayout(new GridLayout(2,1));
+		 //Create a label with text (Username)
+		 JLabel label=new JLabel("High Sync Tone Number (0 to 33)");
+		//Create text field that will use to enter the high sync tone
+		 JTextField toneField=new JTextField(2);
+		 toneField.setText(Integer.toString(crowd36Handler.getSyncHighTone()));
+		 panel.add(label);
+		 panel.add(toneField);
+		 panel.setVisible(true);
+		 // Show JOptionPane that will ask user for this information
+		 int resp=JOptionPane.showConfirmDialog(window,panel,"Enter the CROWD36 High Sync Tone Number",JOptionPane.OK_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE);
+		 if (resp==JOptionPane.OK_OPTION)	{
+		 String sval=new String (toneField.getText());
+		 crowd36Handler.setSyncHighTone(Integer.parseInt(sval));
+		 }	
 	}
 	
 	

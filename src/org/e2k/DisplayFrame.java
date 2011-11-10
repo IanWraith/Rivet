@@ -29,6 +29,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item;//,FSK200500_item;
+	private JMenuItem CROWD36_sync_item;
 	
  
 	// Constructor
@@ -72,6 +73,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		modeMenu.add(experimental_item=new JRadioButtonMenuItem(theApp.MODENAMES[4],theApp.isExperimental()));
 		experimental_item.addActionListener(this);
 		menuBar.add(modeMenu);
+		// Options
+		JMenu optionsMenu=new JMenu("Options");
+		optionsMenu.add(CROWD36_sync_item=new JMenuItem("Set the CROWD36 Sync High Tone"));
+		CROWD36_sync_item.addActionListener(this);
+		menuBar.add(optionsMenu);
 		// Help
 		JMenu helpMenu=new JMenu("Help");
 		helpMenu.add(about_item=new JMenuItem("About"));		
@@ -159,6 +165,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="Reset Decoding State")	{
 			theApp.resetDecoderState();
 		}
+		// Set the CROWD36 sync tone
+		if (event_name=="Set the CROWD36 Sync High Tone")	{
+			theApp.getCROWD36SyncHighTone();
+		}
+		
 		// Exit 
 		if (event_name=="Exit") {
 			// If logging then close the log file
