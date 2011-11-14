@@ -6,14 +6,13 @@ public class CIS3650 extends FSK {
 
 	public final int FFT_128_SIZE=128;
 	private DoubleFFT_1D fft128=new DoubleFFT_1D(FFT_128_SIZE);
-	private int baudRate;
 	private int shift;
 	private int state=0;
-	private double samplesPerSymbol;
+	private double samplesPerSymbol50;
+	private double samplesPerSymbol36;
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	private long energyStartPoint;
 	private StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int highTone;
@@ -23,8 +22,7 @@ public class CIS3650 extends FSK {
 	private String line="";
 	private int ccount=0;
 	
-	public CIS3650 (Rivet tapp,int baud)	{
-		baudRate=baud;
+	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
 	}
 	
@@ -36,43 +34,99 @@ public class CIS3650 extends FSK {
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
-			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
+			samplesPerSymbol36=samplesPerSymbol(36.0,waveData.getSampleRate());
+			samplesPerSymbol50=samplesPerSymbol(50.0,waveData.getSampleRate());
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
 			state=1;
-			highTone=-1;
-			lowTone=9999;
 			line="";
 			ccount=0;
 			return null;
 		}
 		
+		
+		// Look for a 36 baud or a 50 baud alternating sequence
 		if (state==1)	{
-			
 			sampleCount++;
 			if (sampleCount<0) return null;
+			int pos=0;
+			int f0=do128FFT(circBuf,waveData,pos);
+			pos=(int)samplesPerSymbol36*1;
+			int f1=do128FFT(circBuf,waveData,pos);
+			if (f0==f1) return null;
+			pos=(int)samplesPerSymbol36*2;
+			int f2=do128FFT(circBuf,waveData,pos);
+			pos=(int)samplesPerSymbol36*3;
+			int f3=do128FFT(circBuf,waveData,pos);
+			// Look for a 36 baud alternating sequence
+			if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
+				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 36 baud sync sequence found";
+				if (f0>f1)	{
+					highTone=f0;
+					lowTone=f1;
+				}
+				else	{
+					highTone=f1;
+					lowTone=f0;
+				}
+				centre=(highTone+lowTone)/2;
+				shift=highTone-lowTone;
+				// Now we need to look for the start of the 50 baud data
+				state=2;
+				return outLines;
+			}
+			// Look for an alternating 50 baud sequence
+			pos=(int)samplesPerSymbol50*1;
+			f1=do128FFT(circBuf,waveData,pos);
+			pos=(int)samplesPerSymbol50*2;
+			f2=do128FFT(circBuf,waveData,pos);
+			pos=(int)samplesPerSymbol50*3;
+			f3=do128FFT(circBuf,waveData,pos);
+			if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
+				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
+				if (f0>f1)	{
+					highTone=f0;
+					lowTone=f1;
+				}
+				else	{
+					highTone=f1;
+					lowTone=f0;
+				}
+				centre=(highTone+lowTone)/2;
+				shift=highTone-lowTone;
+				// Jump the next stage to acquire symbol timing
+				state=3;
+				return outLines;
+			}
+			
+		}
+		
+		
+		// Look for 50 baud data
+		if (state==2)	{
+			
+			}
+		
+		// Acquire symbol timing
+		if (state==3)	{
 			
 			int f=do128FFT(circBuf,waveData,0);
 			energyBuffer.addToCircBuffer(getHighSpectrum());
-			
-			if (f>highTone) highTone=f;
-			if (f<lowTone) lowTone=f;
-			
+					
 			sampleCount++;
 			symbolCounter++;
 			// Gather a symbols worth of energy values
-			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*1)) return null;
+			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol50*1)) return null;
 			int pos=energyBuffer.returnHighestBin();
 			// Calculate what the value of the symbol counter should be
 			symbolCounter=symbolCounter-pos;
-			centre=(highTone+lowTone)/2;
-			shift=highTone-lowTone;
-			state=2;
+			state=4;
 		}
 		
-		if (state==2)	{
+		// Read in symbols
+		if (state==4)	{
 			
-			if (symbolCounter>=(long)samplesPerSymbol)	{
+			if (symbolCounter>=(long)samplesPerSymbol50)	{
 				symbolCounter=0;		
 				int freq=do128FFT(circBuf,waveData,0);
 				boolean bit=freqDecision(freq);

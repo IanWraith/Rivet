@@ -48,7 +48,7 @@ public class Rivet {
     public XPA2 xpa2Handler=new XPA2(this);	
     public CROWD36 crowd36Handler=new CROWD36(this,40);	
     public FSK200500 fsk200500Handler=new FSK200500(this,200);
-    public CIS3650 cis3650Handler=new CIS3650(this,50);
+    public CIS3650 cis3650Handler=new CIS3650(this);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -60,7 +60,7 @@ public class Rivet {
 	private boolean soundCardInput=false;
 	private boolean wavFileLoadOngoing=false;
 	
-	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS36-50"};//"FSK200/500"
+	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50"};//"FSK200/500"
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
