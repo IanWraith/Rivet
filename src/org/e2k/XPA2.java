@@ -54,7 +54,6 @@ public class XPA2 extends MFSK {
 			previousCharacter=null;
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
-			setHighestFrequencyUsed(1300);
 			state=1;
 			theApp.setStatusLabel("Start Tone Hunt");
 			return null;
