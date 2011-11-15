@@ -29,7 +29,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item;//,FSK200500_item;
-	private JMenuItem CROWD36_sync_item;
+	private JMenuItem CROWD36_sync_item,invert_item;
 	
  
 	// Constructor
@@ -77,6 +77,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		menuBar.add(modeMenu);
 		// Options
 		JMenu optionsMenu=new JMenu("Options");
+		optionsMenu.add(invert_item=new JRadioButtonMenuItem("Invert",theApp.isInvertSignal()));
+		invert_item.addActionListener(this);
 		optionsMenu.add(CROWD36_sync_item=new JMenuItem("Set the CROWD36 Sync High Tone"));
 		CROWD36_sync_item.addActionListener(this);
 		menuBar.add(optionsMenu);
@@ -171,6 +173,12 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="Set the CROWD36 Sync High Tone")	{
 			theApp.getCROWD36SyncHighTone();
 		}
+		// Invert the input signal
+		if (event_name=="Invert")	{
+			if (theApp.isInvertSignal()==true) theApp.setInvertSignal(false);
+			else theApp.setInvertSignal(true);
+		}
+		
 		
 		// Exit 
 		if (event_name=="Exit") {

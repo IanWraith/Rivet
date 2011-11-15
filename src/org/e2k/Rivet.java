@@ -59,6 +59,7 @@ public class Rivet {
 	private boolean debug=false;
 	private boolean soundCardInput=false;
 	private boolean wavFileLoadOngoing=false;
+	private boolean invertSignal=false;
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50"};//"FSK200/500"
     
@@ -465,6 +466,14 @@ public class Rivet {
 		 String sval=new String (toneField.getText());
 		 crowd36Handler.setSyncHighTone(Integer.parseInt(sval));
 		 }	
+	}
+
+	public boolean isInvertSignal() {
+		return invertSignal;
+	}
+
+	public void setInvertSignal(boolean invertSignal) {
+		this.invertSignal = invertSignal;
 	}
 	
 	
