@@ -203,6 +203,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		//FSK200500_item.setSelected(theApp.isFSK200500());
 		debug_item.setSelected(theApp.isDebug());
 		soundcard_item.setSelected(theApp.isSoundCardInput());
+		invert_item.setSelected(theApp.isInvertSignal());
 	}
 	
 	// Display a dialog box so the user can select a WAV file they wish to process
