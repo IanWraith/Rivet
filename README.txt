@@ -19,13 +19,14 @@ http://sites.google.com/site/piotrwendykier/software/jtransforms
 Change Log
 ----------
 
-Build 4 adds an online help facility and XPA2 decoding.
-Build 5 adds the foundations of CROWD36 decoding and hopefully fixes the logging bug.
-Build 6 added basic CROWD36 decoding
-Build 7 allows direct sound card decoding.
-Build 8 fixed a bug which caused the program to read from the sound card after a WAV file had been loaded.
-        also improved XPA and XPA2 symbol timing and support for 20 baud XPA.
-Build 9 improves CROWD36 decoding and adds the copy to clipboard feature.
+Build 04 adds an online help facility and XPA2 decoding.
+Build 05 adds the foundations of CROWD36 decoding and hopefully fixes the logging bug.
+Build 06 added basic CROWD36 decoding
+Build 07 allows direct sound card decoding.
+Build 08 fixed a bug which caused the program to read from the sound card after a WAV file had been loaded.
+         also improved XPA and XPA2 symbol timing and support for 20 baud XPA.
+Build 09 improves CROWD36 decoding and adds the copy to clipboard feature.
+Build 10 adds basic binary CIS 36-50 decoding and the option to define the CROWD36 high sync tone in use.
 
 Reported Bugs
 -------------
