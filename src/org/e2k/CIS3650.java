@@ -15,7 +15,7 @@ public class CIS3650 extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	private StringBuffer lineBuffer=new StringBuffer();
+	public StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int highTone;
 	private int lowTone;
@@ -23,7 +23,6 @@ public class CIS3650 extends FSK {
 	private long syncFoundPoint;
 	private int syncState;
 	private String line="";
-	private int ccount=0;
 	private int syncBuffer=0;
 	
 	public CIS3650 (Rivet tapp)	{
@@ -56,7 +55,7 @@ public class CIS3650 extends FSK {
 			energyBuffer.setBufferCounter(0);
 			state=1;
 			line="";
-			ccount=0;
+			lineBuffer.delete(0,lineBuffer.length());
 			syncState=0;
 			syncBuffer=0;
 			return null;
@@ -166,28 +165,32 @@ public class CIS3650 extends FSK {
 		
 		// Read in symbols
 		if (state==4)	{
-			
 			if (symbolCounter>=(long)samplesPerSymbol50)	{
 				symbolCounter=0;		
 				boolean bit=getSymbolBit(circBuf,waveData,0);
 				if (syncState==1)	{
 					addToSyncBuffer(bit);
-					// Look for the CIS 36-50 sync sequence
+					// Look for the first CIS 36-50 sync sequence
 					if (syncBuffer==0xEBEB4141)	{
 						syncState=2;
-						outLines[0]=theApp.getTimeStamp()+" CIS 36-50 sync words found";
+						outLines[0]="CIS 36-50 SYNC";
+						syncBuffer=0;
 					}	
 				}
-				// Once we have the sync sequence just show binary
+				// Once we have the sync sequence look for the rest
 				else if (syncState==2)	{
-					if (bit==true) line=line+"1";
-					else line=line+"0";
-					ccount++;
-					if (ccount==60)	{
-						outLines[0]=line;
-						line="";
-						ccount=0;
-					}
+					addToSyncBuffer(bit);
+					if (bit==true) lineBuffer.append("1");
+					else lineBuffer.append("0");
+					// Look for the CIS 36-50 sync sequence
+					if (syncBuffer==0xEBEB4141)	{
+						lineBuffer.delete((lineBuffer.length()-32),lineBuffer.length());
+						outLines[0]=lineBuffer.toString();
+						outLines[1]="CIS 36-50 SYNC";
+						lineBuffer.delete(0,lineBuffer.length());
+						syncBuffer=0;
+					}	
+					
 				}
 				
 			}

@@ -36,7 +36,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 10) by Ian Wraith";
+	public String program_version="Rivet (Build 11) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -219,6 +219,12 @@ public class Rivet {
 					addLine(crowd36Handler.lowHighFreqs(),Color.BLACK,plainFont);
 					addLine(crowd36Handler.toneResults(),Color.BLACK,plainFont);
 				}
+				
+				
+				// Test only remove ///////////////////////////////////////////////////////////////
+				if (system==5) addLine(cis3650Handler.lineBuffer.toString(),Color.BLACK,plainFont);
+				///////////////////////////////////////////////////////////////////////////////////
+				
 				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
 				addLine(disp,Color.BLACK,plainFont);		
