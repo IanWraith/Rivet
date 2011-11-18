@@ -27,6 +27,7 @@ Build 08 fixed a bug which caused the program to read from the sound card after 
          also improved XPA and XPA2 symbol timing and support for 20 baud XPA.
 Build 09 improves CROWD36 decoding and adds the copy to clipboard feature.
 Build 10 adds basic binary CIS 36-50 decoding and the option to define the CROWD36 high sync tone in use.
+Build 11 improves the display of CIS 36-50 messages.
 
 Reported Bugs
 -------------
