@@ -219,11 +219,10 @@ public class Rivet {
 					addLine(crowd36Handler.lowHighFreqs(),Color.BLACK,plainFont);
 					addLine(crowd36Handler.toneResults(),Color.BLACK,plainFont);
 				}
+				else if (system==5)	{
+					addLine(cis3650Handler.lineBuffer.toString(),Color.BLACK,plainFont);
+				}
 				
-				
-				// Test only remove ///////////////////////////////////////////////////////////////
-				if (system==5) addLine(cis3650Handler.lineBuffer.toString(),Color.BLACK,plainFont);
-				///////////////////////////////////////////////////////////////////////////////////
 				
 				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";

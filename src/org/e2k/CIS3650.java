@@ -23,7 +23,7 @@ public class CIS3650 extends FSK {
 	private long syncFoundPoint;
 	private int syncState;
 	private String line="";
-	private int syncBuffer=0;
+	private int buffer32=0;
 	
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -57,7 +57,7 @@ public class CIS3650 extends FSK {
 			line="";
 			lineBuffer.delete(0,lineBuffer.length());
 			syncState=0;
-			syncBuffer=0;
+			buffer32=0;
 			return null;
 		}
 		
@@ -169,26 +169,34 @@ public class CIS3650 extends FSK {
 				symbolCounter=0;		
 				boolean bit=getSymbolBit(circBuf,waveData,0);
 				if (syncState==1)	{
-					addToSyncBuffer(bit);
-					// Look for the first CIS 36-50 sync sequence
-					if (syncBuffer==0xEBEB4141)	{
+					addToBuffer32(bit);
+					// Look for the first CIS 36-50 message start sequence
+					if (buffer32==0xEBEB4141)	{
 						syncState=2;
-						outLines[0]="CIS 36-50 SYNC";
-						syncBuffer=0;
+						outLines[0]="Message Start";
+						buffer32=0;
 					}	
 				}
 				// Once we have the sync sequence look for the rest
 				else if (syncState==2)	{
-					addToSyncBuffer(bit);
+					addToBuffer32(bit);
 					if (bit==true) lineBuffer.append("1");
 					else lineBuffer.append("0");
 					// Look for the CIS 36-50 sync sequence
-					if (syncBuffer==0xEBEB4141)	{
+					if (buffer32==0xEBEB4141)	{
 						lineBuffer.delete((lineBuffer.length()-32),lineBuffer.length());
 						outLines[0]=lineBuffer.toString();
-						outLines[1]="CIS 36-50 SYNC";
+						outLines[1]="Message Start";
 						lineBuffer.delete(0,lineBuffer.length());
-						syncBuffer=0;
+						buffer32=0;
+					}	
+					// Look for what appears to be the CIS 36-50 end of message marker
+					if (getBuffer31()==0x1020408)	{
+						lineBuffer.delete((lineBuffer.length()-31),lineBuffer.length());
+						outLines[0]=lineBuffer.toString();
+						outLines[1]="Message End";
+						lineBuffer.delete(0,lineBuffer.length());
+						buffer32=0;
 					}	
 					
 				}
@@ -245,11 +253,18 @@ public class CIS3650 extends FSK {
 		}
 	}
 	
-	// Add the bit to a 32 bit long sync buffer
-	private void addToSyncBuffer(boolean bit)	{
-		syncBuffer=syncBuffer<<1;
-		syncBuffer=syncBuffer&0xFFFFFFFF;
-		if (bit==true) syncBuffer++;
+	// Add the bit to a 32 bit long sbuffer
+	private void addToBuffer32(boolean bit)	{
+		buffer32=buffer32<<1;
+		buffer32=buffer32&0xFFFFFFFF;
+		if (bit==true) buffer32++;
 	}
+	
+	// Get a 31 bit version of the buffer
+	private int getBuffer31 ()	{
+		return buffer32&0x7FFFFFFF;
+	}
+	
+	
 	
 }
