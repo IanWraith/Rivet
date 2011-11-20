@@ -24,6 +24,7 @@ public class CIS3650 extends FSK {
 	private int syncState;
 	private String line="";
 	private int buffer32=0;
+	int characterCount;
 	
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -58,6 +59,7 @@ public class CIS3650 extends FSK {
 			lineBuffer.delete(0,lineBuffer.length());
 			syncState=0;
 			buffer32=0;
+			characterCount=0;
 			return null;
 		}
 		
@@ -168,36 +170,50 @@ public class CIS3650 extends FSK {
 			if (symbolCounter>=(long)samplesPerSymbol50)	{
 				symbolCounter=0;		
 				boolean bit=getSymbolBit(circBuf,waveData,0);
-				if (syncState==1)	{
-					addToBuffer32(bit);
-					// Look for the first CIS 36-50 message start sequence
-					if (buffer32==0xEBEB4141)	{
-						syncState=2;
-						outLines[0]="Message Start";
-						buffer32=0;
-					}	
+				if (theApp.isDebug()==false)	{
+					if (syncState==1)	{
+						addToBuffer32(bit);
+						// Look for the first CIS 36-50 message start sequence
+						if (buffer32==0xEBEB4141)	{
+							syncState=2;
+							outLines[0]="Message Start";
+							buffer32=0;
+						}	
+					}
+					// Once we have the sync sequence look for the rest
+					else if (syncState==2)	{
+						addToBuffer32(bit);
+						if (bit==true) lineBuffer.append("1");
+						else lineBuffer.append("0");
+						// Look for the CIS 36-50 sync sequence
+						if (buffer32==0xEBEB4141)	{
+							lineBuffer.delete((lineBuffer.length()-32),lineBuffer.length());
+							outLines[0]=lineBuffer.toString();
+							outLines[1]="Message Start";
+							lineBuffer.delete(0,lineBuffer.length());
+							buffer32=0;
+						}	
+						// Look for what appears to be the CIS 36-50 end of message marker
+						if (getBuffer31()==0x1020408)	{
+							lineBuffer.delete((lineBuffer.length()-31),lineBuffer.length());
+							outLines[0]=lineBuffer.toString();
+							outLines[1]="Message End";
+							lineBuffer.delete(0,lineBuffer.length());
+							buffer32=0;
+						}	
+					
+					}
 				}
-				// Once we have the sync sequence look for the rest
-				else if (syncState==2)	{
-					addToBuffer32(bit);
-					if (bit==true) lineBuffer.append("1");
+				else	{
+					// Debug mode so just display raw binary
+					if (bit==true)	lineBuffer.append("1");
 					else lineBuffer.append("0");
-					// Look for the CIS 36-50 sync sequence
-					if (buffer32==0xEBEB4141)	{
-						lineBuffer.delete((lineBuffer.length()-32),lineBuffer.length());
+					if (characterCount==60)	{
 						outLines[0]=lineBuffer.toString();
-						outLines[1]="Message Start";
 						lineBuffer.delete(0,lineBuffer.length());
-						buffer32=0;
-					}	
-					// Look for what appears to be the CIS 36-50 end of message marker
-					if (getBuffer31()==0x1020408)	{
-						lineBuffer.delete((lineBuffer.length()-31),lineBuffer.length());
-						outLines[0]=lineBuffer.toString();
-						outLines[1]="Message End";
-						lineBuffer.delete(0,lineBuffer.length());
-						buffer32=0;
-					}	
+						characterCount=0;
+					}
+					else characterCount++;
 					
 				}
 				
