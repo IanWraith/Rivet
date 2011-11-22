@@ -31,9 +31,6 @@ public class MFSK extends FSK {
 	private DoubleFFT_1D fft8=new DoubleFFT_1D(FFT_8_SIZE);
 	private DoubleFFT_1D fft128=new DoubleFFT_1D(FFT_128_SIZE);
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
-	private double totalEnergy;
-	private double highestValue;
-
 	
 	// Test for a specific tone
 	public boolean toneTest (int freq,int tone,int errorAllow)	{
@@ -172,11 +169,5 @@ public class MFSK extends FSK {
 		return freq;
 	}
 	
-	// Show what percentage of the total the highest spectral value is
-	public double getPercentageOfTotal()	{
-		double p=(highestValue/totalEnergy)*100.0;
-		return p;
-	}
-	
-	
+
 }

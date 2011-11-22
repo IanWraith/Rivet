@@ -3,7 +3,8 @@ package org.e2k;
 public class FSK {
 	
 	private int highSpectrum;
-	public double totalEnergy;
+	private double totalEnergy;
+	private double highestValue;
 	
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -40,7 +41,7 @@ public class FSK {
 	// Find the bin containing the hight value from an array of doubles
 	public int findHighBin(double[]x)	{
 			int a,highBin=-1;
-			double highestValue=-1;
+			highestValue=-1;
 			for (a=0;a<x.length;a++)	{
 				if (x[a]>highestValue)	{
 					highestValue=x[a];
@@ -74,6 +75,12 @@ public class FSK {
 	public double windowBlackman (double in,int i,int m)	{
 			double r=0.42-0.5*Math.cos(2*Math.PI*i/m)+0.08*Math.cos(4*Math.PI*i/m);
 			return (in*r);
+		}
+	
+	// Show what percentage of the total the highest spectral value is
+	public double getPercentageOfTotal()	{
+			double p=(highestValue/totalEnergy)*100.0;
+			return p;
 		}
 
 	
