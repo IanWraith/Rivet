@@ -8,7 +8,6 @@ public class CIS3650 extends FSK {
 
 	public final int FFT_64_SIZE=128;
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
-	private int shift;
 	private int state=0;
 	private double samplesPerSymbol50;
 	private double samplesPerSymbol36;
@@ -66,10 +65,13 @@ public class CIS3650 extends FSK {
 		
 		// Look for a 36 baud or a 50 baud alternating sequence
 		if (state==1)	{
+			int shift;
 			sampleCount++;
 			if (sampleCount<0) return null;
 			int pos=0;
 			int f0=getSymbolFreq(circBuf,waveData,pos);
+			// Check this first tone isn't just noise the highest bin must make up 10% of the total
+			if (getPercentageOfTotal()<10.0) return null;
 			pos=(int)samplesPerSymbol36*1;
 			int f1=getSymbolFreq(circBuf,waveData,pos);
 			if (f0==f1) return null;
@@ -90,6 +92,8 @@ public class CIS3650 extends FSK {
 				}
 				centre=(highTone+lowTone)/2;
 				shift=highTone-lowTone;
+				// Check for an incorrect shift
+				if ((shift>275)||(shift<200)) return null;
 				// Now we need to look for the start of the 50 baud data
 				state=2;
 				return outLines;
@@ -114,6 +118,8 @@ public class CIS3650 extends FSK {
 				}
 				centre=(highTone+lowTone)/2;
 				shift=highTone-lowTone;
+				// Check for an incorrect shift
+				if ((shift>275)||(shift<200)) return null;
 				// Jump the next stage to acquire symbol timing
 				state=3;
 				syncState=1;
