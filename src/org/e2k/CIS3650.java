@@ -6,8 +6,6 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 public class CIS3650 extends FSK {
 
-	public final int FFT_64_SIZE=128;
-	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
 	private int state=0;
 	private double samplesPerSymbol50;
 	private double samplesPerSymbol36;
@@ -240,16 +238,7 @@ public class CIS3650 extends FSK {
 		return state;
 	}
 	
-	// A 64 point FFT is fine for both 8000 KHz and 11025 KHz 
-	public int do64FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		// Get the data from the circular buffer
-	    double datar[]=circBuf.extractDataDouble(start,FFT_64_SIZE);
-		fft64.realForward(datar);
-		double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.getSampleRate());  
-		return freq;
-	}
-	
+
 	// Get the frequency at a certain symbol
 	private int getSymbolFreq (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		int fr=do64FFT(circBuf,waveData,start);

@@ -31,12 +31,6 @@ public class MFSK extends FSK {
 	private DoubleFFT_1D fft8=new DoubleFFT_1D(FFT_8_SIZE);
 	private DoubleFFT_1D fft128=new DoubleFFT_1D(FFT_128_SIZE);
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
-	
-	// Test for a specific tone
-	public boolean toneTest (int freq,int tone,int errorAllow)	{
-	    if ((freq>(tone-errorAllow))&&(freq<(tone+errorAllow))) return true;
-	     else return false;
-	  }
 		
 	// We have a problem since FFT sizes must be to a power of 2 but samples per symbol can be any value
 	// So instead I am doing a FFT in the middle of the symbol
@@ -153,21 +147,5 @@ public class MFSK extends FSK {
 		return freq;
 	}
 	
-	public int doFSK200500_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		// Get the data from the circular buffer
-	    double datao[]=circBuf.extractDataDouble(start,40);
-	    double datar[]=new double[64];
-	    int a,c=0;
-	    for (a=0;a<64;a++)	{
-	    	if (c<40) datar[a]=datao[c];
-	    	else datar[a]=0.0;
-	    	c++;
-	    }
-	    fft64.realForward(datar);
-	    double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.getSampleRate());  
-		return freq;
-	}
 	
-
 }

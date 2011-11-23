@@ -1,10 +1,14 @@
 package org.e2k;
 
+import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
+
 public class FSK {
 	
 	private int highSpectrum;
 	private double totalEnergy;
 	private double highestValue;
+	public final int FFT_64_SIZE=64;
+	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
 	
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -82,6 +86,53 @@ public class FSK {
 			double p=(highestValue/totalEnergy)*100.0;
 			return p;
 		}
+	
+	public int doFSK200500_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+	    double datao[]=circBuf.extractDataDouble(start,40);
+	    double datar[]=new double[64];
+	    int a,c=0;
+	    for (a=0;a<64;a++)	{
+	    	if (c<40) datar[a]=datao[c];
+	    	else datar[a]=0.0;
+	    	c++;
+	    }
+	    fft64.realForward(datar);
+	    double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
+	}
+	
+	public int doFSK200500_11025FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+	    double datao[]=circBuf.extractDataDouble(start,55);
+	    double datar[]=new double[64];
+	    int a,c=0;
+	    for (a=0;a<64;a++)	{
+	    	if (c<55) datar[a]=datao[c];
+	    	else datar[a]=0.0;
+	    	c++;
+	    }
+	    fft64.realForward(datar);
+	    double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
+	}
+	
+	// A 64 point FFT is fine for both 8000 KHz and 11025 KHz 
+	public int do64FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+		double datar[]=circBuf.extractDataDouble(start,FFT_64_SIZE);
+		fft64.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
+		}
 
+	// Test for a specific tone
+	public boolean toneTest (int freq,int tone,int errorAllow)	{
+		if ((freq>(tone-errorAllow))&&(freq<(tone+errorAllow))) return true;
+		else return false;
+		}
 	
 }
