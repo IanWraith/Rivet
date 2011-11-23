@@ -2,8 +2,6 @@ package org.e2k;
 
 import javax.swing.JOptionPane;
 
-import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
-
 public class CIS3650 extends FSK {
 
 	private int state=0;
@@ -91,7 +89,7 @@ public class CIS3650 extends FSK {
 				centre=(highTone+lowTone)/2;
 				shift=highTone-lowTone;
 				// Check for an incorrect shift
-				if ((shift>275)||(shift<200)) return null;
+				//if ((shift>275)||(shift<200)) return null;
 				// Now we need to look for the start of the 50 baud data
 				state=2;
 				return outLines;
@@ -117,7 +115,7 @@ public class CIS3650 extends FSK {
 				centre=(highTone+lowTone)/2;
 				shift=highTone-lowTone;
 				// Check for an incorrect shift
-				if ((shift>275)||(shift<200)) return null;
+				//if ((shift>275)||(shift<200)) return null;
 				// Jump the next stage to acquire symbol timing
 				state=3;
 				syncState=1;

@@ -28,10 +28,11 @@ Build 08 fixed a bug which caused the program to read from the sound card after 
 Build 09 improves CROWD36 decoding and adds the copy to clipboard feature.
 Build 10 adds basic binary CIS 36-50 decoding and the option to define the CROWD36 high sync tone in use.
 Build 11 improves the display of CIS 36-50 messages.
+Build 12 adds basic FSK200/500 decoding and improved decoding of CIS 36-50
 
 Reported Bugs
 -------------
 
 Still problems with CROWD36 decoding. Not a bug as such but more a lack of understanding of this mode.
 
-Ian Wraith (26th October 2011) 
+Ian Wraith (23rd November 2011) 
