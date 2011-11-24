@@ -36,7 +36,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 12) by Ian Wraith";
+	public String program_version="Rivet (Build 13) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -477,6 +477,37 @@ public class Rivet {
 
 	public void setInvertSignal(boolean invertSignal) {
 		this.invertSignal = invertSignal;
+	}
+	
+	// Save the programs settings in the rivet_settings.xml file
+	public void saveSettings()	{
+		FileWriter xmlfile;
+		String line;
+		// Open the default file settings //
+		try {
+			xmlfile=new FileWriter("rivet_settings.xml");
+			// Start the XML file //
+			line="<?xml version='1.0' encoding='utf-8' standalone='yes'?><settings>";
+			xmlfile.write(line);
+			// Debug mode
+			line="<debug val='";
+			if (debug==true) line=line+"TRUE";
+			else line=line+"FALSE";
+			line=line+"'/>";
+			xmlfile.write(line);
+			// Mode
+			line="<mode val='"+Integer.toString(system)+"'/>";
+			xmlfile.write(line);
+			// All done so close the root item //
+			line="</settings>";
+			xmlfile.write(line);
+			// Flush and close the file //
+			xmlfile.flush();
+			xmlfile.close();
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(null,"Error : Unable to create the file rivet_settings.xml\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
+			}
+		return;
 	}
 	
 	

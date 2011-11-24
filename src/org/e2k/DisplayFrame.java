@@ -29,7 +29,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item;
-	private JMenuItem CROWD36_sync_item,invert_item;
+	private JMenuItem CROWD36_sync_item,invert_item,save_settings_item;
 	
  
 	// Constructor
@@ -48,6 +48,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		wavLoad_item.addActionListener(this);
 		mainMenu.add(reset_item=new JMenuItem("Reset Decoding State"));
 		reset_item.addActionListener(this);
+		mainMenu.add(save_settings_item=new JMenuItem("Save the Current Settings"));
+		save_settings_item.addActionListener(this);
 		mainMenu.add(save_to_file=new JRadioButtonMenuItem("Save to File",theApp.getLogging()));
 		save_to_file.addActionListener(this);
 		mainMenu.add(soundcard_item=new JRadioButtonMenuItem("Soundcard Input",theApp.isSoundCardInput()));
@@ -178,7 +180,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			if (theApp.isInvertSignal()==true) theApp.setInvertSignal(false);
 			else theApp.setInvertSignal(true);
 		}
-		
+		// Save Settings
+		if (event_name=="Save the Current Settings")	{
+			theApp.saveSettings();
+		}
 		
 		// Exit 
 		if (event_name=="Exit") {
