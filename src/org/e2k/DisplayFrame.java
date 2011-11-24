@@ -44,8 +44,6 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		JMenu mainMenu=new JMenu("Main");
 		mainMenu.add(copy_item=new JMenuItem("Copy All to the Clipboard"));
 		copy_item.addActionListener(this);
-		mainMenu.add(debug_item=new JRadioButtonMenuItem("Debug Mode",theApp.isDebug()));		
-		debug_item.addActionListener(this);
 		mainMenu.add(wavLoad_item=new JMenuItem("Load a WAV File"));		
 		wavLoad_item.addActionListener(this);
 		mainMenu.add(reset_item=new JMenuItem("Reset Decoding State"));
@@ -77,6 +75,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		menuBar.add(modeMenu);
 		// Options
 		JMenu optionsMenu=new JMenu("Options");
+		optionsMenu.add(debug_item=new JRadioButtonMenuItem("Debug Mode",theApp.isDebug()));		
+		debug_item.addActionListener(this);
 		optionsMenu.add(invert_item=new JRadioButtonMenuItem("Invert",theApp.isInvertSignal()));
 		invert_item.addActionListener(this);
 		optionsMenu.add(CROWD36_sync_item=new JMenuItem("Set the CROWD36 Sync High Tone"));
