@@ -498,6 +498,9 @@ public class Rivet {
 			// Mode
 			line="<mode val='"+Integer.toString(system)+"'/>";
 			xmlfile.write(line);
+			// CROWD36 sync tone
+			line="<c36tone val='"+Integer.toString(crowd36Handler.getSyncHighTone())+"'/>";
+			xmlfile.write(line);
 			// All done so close the root item //
 			line="</settings>";
 			xmlfile.write(line);
