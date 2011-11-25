@@ -100,6 +100,16 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		statusBar.setLoggingStatus("Not Logging");
 		statusBar.setStatusLabel("Idle");
 		statusBar.setApp(theApp);
+		// Read in the default settings file
+		try	{
+			theApp.readDefaultSettings();
+			// Update the menus
+			menuItemUpdate();
+		}
+		catch (Exception e)	{
+			// Can't find the default settings file //
+			System.out.println("\nInformative : Unable to read the file rivet_settings.xml");
+		}
 		
 		statusBarUpdate();
 		}

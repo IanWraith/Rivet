@@ -29,10 +29,11 @@ Build 09 improves CROWD36 decoding and adds the copy to clipboard feature.
 Build 10 adds basic binary CIS 36-50 decoding and the option to define the CROWD36 high sync tone in use.
 Build 11 improves the display of CIS 36-50 messages.
 Build 12 adds basic FSK200/500 decoding and improved decoding of CIS 36-50
+Build 13 allows settings to be saved and then reloaded at startup
 
 Reported Bugs
 -------------
 
 Still problems with CROWD36 decoding. Not a bug as such but more a lack of understanding of this mode.
 
-Ian Wraith (23rd November 2011) 
+Ian Wraith (25th November 2011) 

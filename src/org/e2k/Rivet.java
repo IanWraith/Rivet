@@ -17,7 +17,9 @@ import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowAdapter;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -28,6 +30,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 public class Rivet {
 
@@ -512,6 +520,58 @@ public class Rivet {
 			}
 		return;
 	}
+	
+	// Read in the rivet_settings.xml file //
+	public void readDefaultSettings() throws SAXException, IOException,ParserConfigurationException {
+			// Create a parser factory and use it to create a parser
+			SAXParserFactory parserFactory=SAXParserFactory.newInstance();
+			SAXParser parser=parserFactory.newSAXParser();
+			// This is the name of the file you're parsing
+			String filename="rivet_settings.xml";
+			// Instantiate a DefaultHandler subclass to handle events
+			saxHandler handler=new saxHandler();
+			// Start the parser. It reads the file and calls methods of the handler.
+			parser.parse(new File(filename),handler);
+		}
+
+	
+	// This class handles the SAX events
+	public class saxHandler extends DefaultHandler {
+			String value;
+			
+			public void endElement(String namespaceURI,String localName,String qName) throws SAXException {	
+			}
+
+			public void characters(char[] ch,int start,int length) throws SAXException {
+				// Extract the element value as a string //
+				String tval=new String(ch);
+				value=tval.substring(start,(start+length));
+			}
+			
+			// Handle an XML start element //
+			public void startElement(String uri, String localName, String qName,Attributes attributes) throws SAXException {
+				// Check an element has a value //
+				if (attributes.getLength()>0) {
+					// Get the elements value //
+					String aval=attributes.getValue(0);
+					// Decode mode //
+					if (qName.equals("debug")) {
+						if (aval.equals("TRUE")) setDebug(true);
+						else setDebug(false);	
+					}
+					// Mode
+					else if (qName.equals("mode"))	{
+						system=Integer.parseInt(aval);
+					}
+					// Crowd36 sync tone
+					else if (qName.equals("c36tone"))	{
+						crowd36Handler.setSyncHighTone(Integer.parseInt(aval));
+					}
+					
+				}
+			}
+			
+		}
 	
 	
 }
