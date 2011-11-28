@@ -246,20 +246,8 @@ public class CIS3650 extends FSK {
 	// Return the bit value for a certain symbol
 	private boolean getSymbolBit (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		int f=getSymbolFreq(circBuf,waveData,start);
-		boolean bit=freqDecision(f);
+		boolean bit=freqDecision(f,centre,theApp.isInvertSignal());
 		return bit;
-	}
-	
-	// Given a frequency decide the bit value
-	private boolean freqDecision (int freq)	{
-		if (theApp.isInvertSignal()==false)	{
-			if (freq>centre) return true;
-			else return false;
-		}
-		else	{
-			if (freq>centre) return false;
-			else return true;
-		}
 	}
 	
 	// Add the bit to a 32 bit long sbuffer

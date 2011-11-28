@@ -155,22 +155,10 @@ public class FSK200500 extends FSK {
 		return -1;
 	}
 	
-	// Given a frequency decide the bit value
-	private boolean freqDecision (int freq)	{
-		if (theApp.isInvertSignal()==false)	{
-			if (freq>centre) return true;
-			else return false;
-		}
-		else	{
-			if (freq>centre) return false;
-			else return true;
-			}
-		}
-	
 	// Return the bit value for a certain symbol
 	private boolean getSymbolBit (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		int f=fsk200500Freq(circBuf,waveData,start);
-		boolean bit=freqDecision(f);
+		boolean bit=freqDecision(f,centre,theApp.isInvertSignal());
 		return bit;
 		}
 

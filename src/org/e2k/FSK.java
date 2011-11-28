@@ -135,4 +135,16 @@ public class FSK {
 		else return false;
 		}
 	
+	// Given a frequency decide the bit value
+	public boolean freqDecision (int freq,int centreFreq,boolean inv)	{
+		if (inv==false)	{
+			if (freq>centreFreq) return true;
+			else return false;
+			}
+		else	{
+			if (freq>centreFreq) return false;
+			else return true;
+			}
+		}
+	
 }
