@@ -251,8 +251,20 @@ public class XPA2 extends MFSK {
 		    // Check the difference is correct
 		    if ((difference<(toneDIFFERENCE-ErrorALLOWANCE)||(difference>(toneDIFFERENCE+ErrorALLOWANCE)))) return null;
 		    // Tones found
-		    // Calculate the long error correction factor
-		    correctionFactor=LowTONE-tone1;
+		    // Look 6 symbols ahead and check we have a low tone
+		    int toneAhead=xpa2Freq(circBuf,waveData,(int)samplesPerSymbol*6);
+		    if (toneAhead==tone3)	{
+		    	// The signal is inverted
+		    	theApp.setInvertSignal(true);
+		    	// TODO: This appears to be LSB demodulated so inverted signal - Cope with it !
+		    	
+		    }
+		    else	{
+		    	// Isn't inverted
+		    	theApp.setInvertSignal(false);
+		    	// Calculate the long error correction factor
+		    	correctionFactor=LowTONE-tone1;
+		    }  
 		    // Tell the user
 		    String line=theApp.getTimeStamp()+" XPA2 Start Tones Found (correcting by "+Integer.toString(correctionFactor)+" Hz)";
 		    return line;
