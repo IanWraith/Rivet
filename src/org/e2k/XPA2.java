@@ -16,6 +16,7 @@ public class XPA2 extends MFSK {
 	private StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int correctionFactor;
+	private final int PIVOT=5000;
 		
 	public XPA2 (Rivet tapp)	{
 		theApp=tapp;
@@ -52,6 +53,7 @@ public class XPA2 extends MFSK {
 			symbolCounter=0;
 			correctionFactor=0;
 			previousCharacter=null;
+			theApp.setInvertSignal(false);
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
 			state=1;
@@ -256,8 +258,8 @@ public class XPA2 extends MFSK {
 		    if (toneAhead==tone3)	{
 		    	// The signal is inverted
 		    	theApp.setInvertSignal(true);
-		    	// TODO: This appears to be LSB demodulated so inverted signal - Cope with it !
-		    	
+		    	tone3=PIVOT-tone3;
+		    	correctionFactor=LowTONE-tone3;
 		    }
 		    else	{
 		    	// Isn't inverted
@@ -274,9 +276,8 @@ public class XPA2 extends MFSK {
 		private int xpa2Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 			if (waveData.getSampleRate()==8000.0)	{
 				int freq=do1024FFT(circBuf,waveData,pos);
-				freq=freq+correctionFactor;
-				// The line below is used if the waveform is inverted. But this needs sorting properly.
-				//freq=3000-freq+correctionFactor;
+				if (theApp.isInvertSignal()==false) freq=freq+correctionFactor;
+				else freq=PIVOT-freq+correctionFactor;
 				return freq;
 			}
 			else if (waveData.getSampleRate()==11025.0)	{
