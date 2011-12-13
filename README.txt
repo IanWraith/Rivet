@@ -31,6 +31,7 @@ Build 11 improves the display of CIS 36-50 messages.
 Build 12 adds basic FSK200/500 decoding and improved decoding of CIS 36-50
 Build 13 allows settings to be saved and then reloaded at startup
 Build 14 auto detects if the signal needs to be inverted when decoding XPA2.
+Build 15 detects the start and end of CIS36-50 messages.
 
 Reported Bugs
 -------------
