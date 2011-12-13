@@ -19,7 +19,9 @@ public class CIS3650 extends FSK {
 	private int syncState;
 	private String line="";
 	private int buffer32=0;
+	private int buffer16=0;
 	int characterCount;
+	int startCount;
 	
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -54,6 +56,7 @@ public class CIS3650 extends FSK {
 			lineBuffer.delete(0,lineBuffer.length());
 			syncState=0;
 			buffer32=0;
+			buffer16=8;
 			characterCount=0;
 			return null;
 		}
@@ -174,36 +177,46 @@ public class CIS3650 extends FSK {
 				boolean bit=getSymbolBit(circBuf,waveData,0);
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
-						addToBuffer32(bit);
-						// Look for the first CIS 36-50 message start sequence
-						if (buffer32==0xEBEB4141)	{
+						addToBuffer16(bit);
+						// Look for 101010101011100 (0x555C) which appears to be the start of the message
+						if (buffer16==0x555C)	{
 							syncState=2;
 							outLines[0]="Message Start";
 							buffer32=0;
+							startCount=0;
 						}	
 					}
-					// Once we have the sync sequence look for the rest
+					// Once we have the start sequence look for the header
 					else if (syncState==2)	{
 						addToBuffer32(bit);
-						if (bit==true) lineBuffer.append("1");
+						startCount++;
+						if (startCount==32)	{
+							syncState=3;
+							outLines[0]="Header "+Integer.toHexString(buffer32);
+						}
+					}
+					// Read in and display the main body of the message
+					else if (syncState==3)	{
+						addToBuffer16(bit);
+						if (buffer16==0x4081)	{
+							outLines[0]=lineBuffer.toString();
+							lineBuffer.delete(0,lineBuffer.length());
+							characterCount=0;
+							syncState=4;
+						}
+						if (bit==true)	lineBuffer.append("1");
 						else lineBuffer.append("0");
-						// Look for the CIS 36-50 sync sequence
-						if (buffer32==0xEBEB4141)	{
-							lineBuffer.delete((lineBuffer.length()-32),lineBuffer.length());
+						if (characterCount==60)	{
 							outLines[0]=lineBuffer.toString();
-							outLines[1]="Message Start";
 							lineBuffer.delete(0,lineBuffer.length());
-							buffer32=0;
-						}	
-						// Look for what appears to be the CIS 36-50 end of message marker
-						if (getBuffer31()==0x1020408)	{
-							lineBuffer.delete((lineBuffer.length()-31),lineBuffer.length());
-							outLines[0]=lineBuffer.toString();
-							outLines[1]="Message End";
-							lineBuffer.delete(0,lineBuffer.length());
-							buffer32=0;
-						}	
-					
+							characterCount=0;
+						}
+						else characterCount++;
+					}
+					// The message must have ended
+					else if (syncState==4)	{
+						outLines[0]="End of Message";
+						syncState=1;
 					}
 				}
 				else	{
@@ -262,6 +275,12 @@ public class CIS3650 extends FSK {
 		return buffer32&0x7FFFFFFF;
 	}
 	
+	// Add a bit to the 16 bit buffer
+	private void addToBuffer16(boolean bit)	{
+		buffer16=buffer16<<1;
+		buffer16=buffer16&0xFFFF;
+		if (bit==true) buffer16++;
+	}
 	
 	
 }
