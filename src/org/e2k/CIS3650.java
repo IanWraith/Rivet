@@ -64,61 +64,17 @@ public class CIS3650 extends FSK {
 		
 		// Look for a 36 baud or a 50 baud alternating sequence
 		if (state==1)	{
-			int shift;
 			sampleCount++;
 			if (sampleCount<0) return null;
-			int pos=0;
-			int f0=getSymbolFreq(circBuf,waveData,pos);
-			// Check this first tone isn't just noise the highest bin must make up 10% of the total
-			if (getPercentageOfTotal()<10.0) return null;
-			pos=(int)samplesPerSymbol36*1;
-			int f1=getSymbolFreq(circBuf,waveData,pos);
-			if (f0==f1) return null;
-			pos=(int)samplesPerSymbol36*2;
-			int f2=getSymbolFreq(circBuf,waveData,pos);
-			pos=(int)samplesPerSymbol36*3;
-			int f3=getSymbolFreq(circBuf,waveData,pos);
-			// Look for a 36 baud alternating sequence
-			if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
+			
+			if ((syncState==0)&&(detect36Sync(circBuf,waveData)==true))	{
 				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 36 baud sync sequence found";
-				if (f0>f1)	{
-					highTone=f0;
-					lowTone=f1;
-				}
-				else	{
-					highTone=f1;
-					lowTone=f0;
-				}
-				centre=(highTone+lowTone)/2;
-				shift=highTone-lowTone;
-				// Check for an incorrect shift
-				//if ((shift>275)||(shift<200)) return null;
-				// Now we need to look for the start of the 50 baud data
-				state=2;
+				syncState=1;
 				return outLines;
 			}
-			// Look for an alternating 50 baud sequence
-			pos=(int)samplesPerSymbol50*1;
-			f1=do64FFT(circBuf,waveData,pos);
-			if (f0==f1) return null;
-			pos=(int)samplesPerSymbol50*2;
-			f2=do64FFT(circBuf,waveData,pos);
-			pos=(int)samplesPerSymbol50*3;
-			f3=do64FFT(circBuf,waveData,pos);
-			if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
+			
+			if (detect50Sync(circBuf,waveData)==true)	{
 				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
-				if (f0>f1)	{
-					highTone=f0;
-					lowTone=f1;
-				}
-				else	{
-					highTone=f1;
-					lowTone=f0;
-				}
-				centre=(highTone+lowTone)/2;
-				shift=highTone-lowTone;
-				// Check for an incorrect shift
-				//if ((shift>275)||(shift<200)) return null;
 				// Jump the next stage to acquire symbol timing
 				state=3;
 				syncState=1;
@@ -126,36 +82,10 @@ public class CIS3650 extends FSK {
 				return outLines;
 			}
 			
+			
+			
 		}
-		
-		
-		// After a 36 baud sync sequence look for 50 baud opening 9 bits
-		if (state==2)	{
-			// Hunt for 011101011
-			int pos=0,rx=0,a;
-			final int val[]={256,128,64,32,16,8,4,2,1};
-			for (a=0;a<9;a++)	{
-				pos=(int)samplesPerSymbol50*a;
-				if (getSymbolBit(circBuf,waveData,pos)==true) rx=rx+val[a];
-				}
-			// If we find 235 then all is correct and invert should stay as it is
-			if (rx==235)	{
-				syncFoundPoint=sampleCount;
-				syncState=1;
-				state=3;
-				}
-			// If 276 we need to change the invert flag
-			else if (rx==276)	{
-				boolean inv=theApp.isInvertSignal();
-				if (inv==true) inv=false;
-				else inv=true;
-				theApp.setInvertSignal(inv);
-				syncFoundPoint=sampleCount;
-				syncState=1;
-				state=3;
-				}
-			}
-		
+			
 		// Acquire symbol timing
 		if (state==3)	{
 			do64FFT(circBuf,waveData,0);
@@ -182,6 +112,14 @@ public class CIS3650 extends FSK {
 						if (buffer16==0x555C)	{
 							syncState=2;
 							outLines[0]="Message Start";
+							buffer32=0;
+							startCount=0;
+						}	
+						// Cope with an inverted message
+						else if (buffer16==0x2AA3)	{
+							syncState=2;
+							outLines[0]="Message Start (INV)";
+							theApp.setInvertSignal(true);
 							buffer32=0;
 							startCount=0;
 						}	
@@ -280,6 +218,69 @@ public class CIS3650 extends FSK {
 		buffer16=buffer16<<1;
 		buffer16=buffer16&0xFFFF;
 		if (bit==true) buffer16++;
+	}
+	
+	private boolean detect36Sync(CircularDataBuffer circBuf,WaveData waveData)	{
+		int pos=0;
+		int f0=getSymbolFreq(circBuf,waveData,pos);
+		// Check this first tone isn't just noise the highest bin must make up 10% of the total
+		if (getPercentageOfTotal()<10.0) return false;
+		pos=(int)samplesPerSymbol36*1;
+		int f1=getSymbolFreq(circBuf,waveData,pos);
+		if (f0==f1) return false;
+		pos=(int)samplesPerSymbol36*2;
+		int f2=getSymbolFreq(circBuf,waveData,pos);
+		pos=(int)samplesPerSymbol36*3;
+		int f3=getSymbolFreq(circBuf,waveData,pos);
+		// Look for a 36 baud alternating sequence
+		if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
+			if (f0>f1)	{
+				highTone=f0;
+				lowTone=f1;
+			}
+			else	{
+				highTone=f1;
+				lowTone=f0;
+			}
+			centre=(highTone+lowTone)/2;
+			int shift=highTone-lowTone;
+			// Check for an incorrect shift
+			if ((shift>300)||(shift<150)) return false;
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean detect50Sync(CircularDataBuffer circBuf,WaveData waveData)	{
+		int pos=0;
+		int f0=getSymbolFreq(circBuf,waveData,pos);
+		// Check this first tone isn't just noise the highest bin must make up 10% of the total
+		if (getPercentageOfTotal()<10.0) return false;
+		pos=(int)samplesPerSymbol50*1;
+		int f1=getSymbolFreq(circBuf,waveData,pos);
+		if (f0==f1) return false;
+		pos=(int)samplesPerSymbol50*2;
+		int f2=getSymbolFreq(circBuf,waveData,pos);
+		if (f1==f2) return false;
+		pos=(int)samplesPerSymbol50*3;
+		int f3=getSymbolFreq(circBuf,waveData,pos);
+		// Look for a 50 baud alternating sequence
+		if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
+			if (f0>f1)	{
+				highTone=f0;
+				lowTone=f1;
+			}
+			else	{
+				highTone=f1;
+				lowTone=f0;
+			}
+			centre=(highTone+lowTone)/2;
+			int shift=highTone-lowTone;
+			// Check for an incorrect shift
+			if ((shift>300)||(shift<150)) return false;
+			return true;
+		}
+		return false;
 	}
 	
 	
