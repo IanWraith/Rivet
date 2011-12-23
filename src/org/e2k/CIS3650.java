@@ -108,15 +108,15 @@ public class CIS3650 extends FSK {
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
 						addToBuffer16(bit);
-						// Look for 101010101011100 (0x555C) which appears to be the start of the message
-						if (buffer16==0x555C)	{
+						// Look for 0101010101010111 (0x5557) which appears to be the start of the message
+						if (buffer16==0x5557)	{
 							syncState=2;
 							outLines[0]="Message Start";
 							buffer32=0;
 							startCount=0;
 						}	
 						// Cope with an inverted message
-						else if (buffer16==0x2AA3)	{
+						else if (buffer16==0xAAA8)	{
 							syncState=2;
 							outLines[0]="Message Start (INV)";
 							theApp.setInvertSignal(true);
@@ -232,6 +232,9 @@ public class CIS3650 extends FSK {
 		int f2=getSymbolFreq(circBuf,waveData,pos);
 		pos=(int)samplesPerSymbol36*3;
 		int f3=getSymbolFreq(circBuf,waveData,pos);
+		
+		if (f3!=9999) return false;
+		
 		// Look for a 36 baud alternating sequence
 		if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
 			if (f0>f1)	{
@@ -274,6 +277,14 @@ public class CIS3650 extends FSK {
 				highTone=f1;
 				lowTone=f0;
 			}
+			
+			pos=(int)samplesPerSymbol50*4;
+			int f4=getSymbolFreq(circBuf,waveData,pos);
+			pos=(int)samplesPerSymbol50*5;
+			int f5=getSymbolFreq(circBuf,waveData,pos);
+			
+			if ((f3!=f5)||(f2!=f4)) return false;
+			
 			centre=(highTone+lowTone)/2;
 			int shift=highTone-lowTone;
 			// Check for an incorrect shift
