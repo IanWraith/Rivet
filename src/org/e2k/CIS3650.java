@@ -124,6 +124,8 @@ public class CIS3650 extends FSK {
 					
 					// Waste a bit !!!
 					else if (syncState==9)	{
+						if (bit==true) outLines[0]="Missing Bit is true";
+						else outLines[0]="Missing Bit is false";
 						syncState=2;
 					}
 					
