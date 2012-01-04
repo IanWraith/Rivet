@@ -18,10 +18,13 @@ public class CIS3650 extends FSK {
 	private long syncFoundPoint;
 	private int syncState;
 	private String line="";
-	private int buffer32=0;
+	private int buffer7=0;
 	private int buffer16=0;
+	private int buffer21=0;
 	int characterCount;
 	int startCount;
+	int headerCount;
+	int header[]=new int[5];
 	
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -55,8 +58,8 @@ public class CIS3650 extends FSK {
 			line="";
 			lineBuffer.delete(0,lineBuffer.length());
 			syncState=0;
-			buffer32=0;
-			buffer16=8;
+			buffer7=0;
+			buffer21=0;
 			characterCount=0;
 			return null;
 		}
@@ -108,48 +111,58 @@ public class CIS3650 extends FSK {
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
 						addToBuffer16(bit);
-						// Look for 0101010101010111 (0x5557) which appears to be the start of the message
-						if (buffer16==0x5557)	{
-							syncState=2;
+						// Look for 1010101010101110 (0xAAAE) which appears to be the start of the message
+						if (buffer16==0xAAAE)	{
+							syncState=9;
 							outLines[0]="Message Start";
-							buffer32=0;
-							startCount=0;
-						}	
-						// Cope with an inverted message
-						else if (buffer16==0xAAA8)	{
-							syncState=2;
-							outLines[0]="Message Start (INV)";
-							theApp.setInvertSignal(true);
-							buffer32=0;
-							startCount=0;
+							buffer21=0;
+							buffer7=0;
+							headerCount=0;
+							startCount=0;			
 						}	
 					}
+					
+					// Waste a bit !!!
+					else if (syncState==9)	{
+						syncState=2;
+					}
+					
 					// Once we have the start sequence look for the header
 					else if (syncState==2)	{
-						addToBuffer32(bit);
+						addToBuffer7(bit);
 						startCount++;
-						if (startCount==32)	{
-							syncState=3;
-							outLines[0]="Header "+Integer.toHexString(buffer32);
+						if (startCount==7)	{
+							header[headerCount]=buffer7;
+							if (headerCount==4)	{
+								syncState=3;
+								outLines[0]="Header 0x"+Integer.toHexString(header[0])+" 0x"+Integer.toHexString(header[1])+" 0x"+Integer.toHexString(header[2])+" 0x"+Integer.toHexString(header[3])+" 0x"+Integer.toHexString(header[4]);
+							}
+							else headerCount++;
+							startCount=0;
 						}
 					}
 					// Read in and display the main body of the message
 					else if (syncState==3)	{
-						addToBuffer16(bit);
-						if (buffer16==0x4081)	{
+						addToBuffer7(bit);
+						addToBuffer21(bit);
+						startCount++;
+						if (buffer21==0x4081)	{
 							outLines[0]=lineBuffer.toString();
 							lineBuffer.delete(0,lineBuffer.length());
 							characterCount=0;
 							syncState=4;
 						}
-						if (bit==true)	lineBuffer.append("1");
-						else lineBuffer.append("0");
-						if (characterCount==60)	{
+						if (startCount==7)	{
+							lineBuffer.append("0x"+Integer.toHexString(buffer7)+",");
+							startCount=0;
+							buffer7=0;
+							characterCount++;
+						} 
+						if (characterCount==20)	{
 							outLines[0]=lineBuffer.toString();
 							lineBuffer.delete(0,lineBuffer.length());
 							characterCount=0;
 						}
-						else characterCount++;
 					}
 					// The message must have ended
 					else if (syncState==4)	{
@@ -201,23 +214,25 @@ public class CIS3650 extends FSK {
 		return bit;
 	}
 	
-	// Add the bit to a 32 bit long sbuffer
-	private void addToBuffer32(boolean bit)	{
-		buffer32=buffer32<<1;
-		buffer32=buffer32&0xFFFFFFFF;
-		if (bit==true) buffer32++;
-	}
-	
-	// Get a 31 bit version of the buffer
-	private int getBuffer31 ()	{
-		return buffer32&0x7FFFFFFF;
-	}
+	// Add a bit to the 7 bit buffer
+	private void addToBuffer7(boolean bit)	{
+		buffer7<<=1;
+		buffer7=buffer7&0x7F;
+		if (bit==true) buffer7++;
+		}
 	
 	// Add a bit to the 16 bit buffer
 	private void addToBuffer16(boolean bit)	{
-		buffer16=buffer16<<1;
+		buffer16<<=1;
 		buffer16=buffer16&0xFFFF;
 		if (bit==true) buffer16++;
+		}
+		
+	// Add a bit to the 21 bit buffer
+	private void addToBuffer21(boolean bit)	{
+		buffer21<<=1;
+		buffer21=buffer21&0x1FFFFF;
+		if (bit==true) buffer21++;
 	}
 	
 	private boolean detect36Sync(CircularDataBuffer circBuf,WaveData waveData)	{
