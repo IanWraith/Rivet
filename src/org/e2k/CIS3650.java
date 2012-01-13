@@ -27,7 +27,7 @@ public class CIS3650 extends FSK {
 	private int keyCount;
 	private int key1[]=new int[10];
 	private int key2[]=new int[10];
-	private boolean syncBuffer[]=new boolean[45];
+	private boolean syncBuffer[]=new boolean[44];
 
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -114,7 +114,7 @@ public class CIS3650 extends FSK {
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
 						addToSyncBuffer(bit);
-						// Check for 23 of the 44 bits in the buffer being true which signals a sync string
+						// Check if the sync buffer holds a valid sync word
 						if (syncValidCheck()==true)	{
 							syncState=2;
 							outLines[0]="Message Start";
@@ -136,10 +136,11 @@ public class CIS3650 extends FSK {
 							else key2[keyCount-10]=buffer7;
 							if (keyCount==19)	{
 								syncState=3;
-								outLines[0]="Key is 0x";
+								outLines[0]="Key is ";
 								int a;
 								for (a=0;a<10;a++)	{
-									outLines[0]=outLines[0]+Integer.toHexString(key1[a]);
+									outLines[0]=outLines[0]+"0x"+Integer.toHexString(key1[a]);
+									if (a<9) outLines[0]=outLines[0]+",";
 								}
 								// Both keys should be the same
 								if (!Arrays.equals(key1,key2)) outLines[0]=outLines[0]+" (ERROR)"; 
@@ -153,7 +154,7 @@ public class CIS3650 extends FSK {
 						addToBuffer7(bit);
 						addToBuffer21(bit);
 						startCount++;
-						if (buffer21==0x4081)	{
+						if (buffer21==0x1DFBF7)	{
 							outLines[0]=lineBuffer.toString();
 							lineBuffer.delete(0,lineBuffer.length());
 							characterCount=0;
@@ -314,33 +315,63 @@ public class CIS3650 extends FSK {
 	private void addToSyncBuffer (boolean bit)	{
 		int a;
 		// Move all bits one bit to the left
-		for (a=1;a<44;a++)	{
+		for (a=1;a<syncBuffer.length;a++)	{
 			syncBuffer[a-1]=syncBuffer[a];
 		}
-		syncBuffer[43]=bit;
+		int last=syncBuffer.length-1;
+		syncBuffer[last]=bit;
 	}
 	
-	// Return true if 23 out of the 44 bit in the sync buffer are true
+	// Return true if this appears to be a valid sync word
 	private boolean syncValidCheck ()	{
 		int a,count=0;
-		for (a=0;a<44;a++)	{
+		for (a=0;a<syncBuffer.length;a++)	{
 			if (syncBuffer[a]==true) count++;
 		}
-		if (count==23)	{
-			if ((syncBuffer[0]==false)||(syncBuffer[1]==false)||(syncBuffer[1]==false)) return false;
-			else return true;
+		// Check if the last 14 bits of sync buffer are alternating to prevent false triggers
+		int chk=syncBuffer14AsInt();
+		if ((chk==0xaaa)||(chk==0x555)) return false;
+		// If count is 23 and the first three bits are true this OK but we are inverted
+		if ((count==23)&&(syncBuffer[0]==true)&&(syncBuffer[1]==true)&&(syncBuffer[2]==true))	{
+			// Change the invert setting
+			theApp.changeInvertSetting();
+			// Invert the complete sync buffer to reflect the change
+			syncBufferInvert();
+			return true;
 		}
-		else	{
-			return false;
+		// If the count is 21 and the first three bits are false then we are all OK
+		else if ((count==21)&&(syncBuffer[0]==false)&&(syncBuffer[1]==false)&&(syncBuffer[2]==false))	{
+			return true;
 		}
+		// No match
+		else return false;
 	}
 	
 	// Return the sync buffer a long
 	private long syncBufferAsLong ()	{
 		int a,bc=0;
 		long r=0;
-		for (a=43;a>=0;a--)	{
+		for (a=(syncBuffer.length-1);a>=0;a--)	{
 			if (syncBuffer[a]==true) r=r+(long)Math.pow(2.0,bc);
+			bc++;
+		}
+		return r;
+	}
+	
+	// Invert the sync buffer
+	private void syncBufferInvert ()	{
+		int a;
+		for (a=0;a<syncBuffer.length;a++)	{
+			if (syncBuffer[a]==true) syncBuffer[a]=false;
+			else syncBuffer[a]=true;
+		}
+	}
+	
+	// Return the LSB of the sync buffer as an int
+	private int syncBuffer14AsInt ()	{
+		int a,bc=0,r=0;
+		for (a=14;a>=0;a--)	{
+			if (syncBuffer[a]==true) r=r+(int)Math.pow(2.0,bc);
 			bc++;
 		}
 		return r;

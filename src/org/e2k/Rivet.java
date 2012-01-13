@@ -44,7 +44,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 16) by Ian Wraith";
+	public String program_version="Rivet (Build 17) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -573,5 +573,13 @@ public class Rivet {
 			
 		}
 	
+	// Change the invert setting
+	public void changeInvertSetting ()	{
+		if (invertSignal==true) invertSignal=false;
+		else invertSignal=true;
+		// TODO : Fix the menu not updating when the invert signal option is changed
+		// Update the menu to show this
+		//window.repaint();
+	}
 	
 }
