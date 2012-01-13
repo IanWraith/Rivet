@@ -1,5 +1,7 @@
 package org.e2k;
 
+import java.util.Arrays;
+
 import javax.swing.JOptionPane;
 
 public class CIS3650 extends FSK {
@@ -19,13 +21,14 @@ public class CIS3650 extends FSK {
 	private int syncState;
 	private String line="";
 	private int buffer7=0;
-	private int buffer16=0;
 	private int buffer21=0;
-	int characterCount;
-	int startCount;
-	int headerCount;
-	int header[]=new int[5];
-	
+	private int characterCount;
+	private int startCount;
+	private int keyCount;
+	private int key1[]=new int[10];
+	private int key2[]=new int[10];
+	private boolean syncBuffer[]=new boolean[45];
+
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
 	}
@@ -110,36 +113,38 @@ public class CIS3650 extends FSK {
 				boolean bit=getSymbolBit(circBuf,waveData,0);
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
-						addToBuffer16(bit);
-						// Look for 1010101010101110 (0xAAAE) which appears to be the start of the message
-						if (buffer16==0xAAAE)	{
-							syncState=9;
+						addToSyncBuffer(bit);
+						// Check for 23 of the 44 bits in the buffer being true which signals a sync string
+						if (syncValidCheck()==true)	{
+							syncState=2;
 							outLines[0]="Message Start";
+							long header=syncBufferAsLong();
+							outLines[1]="Sync 0x"+Long.toHexString(header);
 							buffer21=0;
 							buffer7=0;
-							headerCount=0;
+							keyCount=0;
 							startCount=0;			
 						}	
 					}
 					
-					// Waste a bit !!!
-					else if (syncState==9)	{
-						if (bit==true) outLines[0]="Missing Bit is true";
-						else outLines[0]="Missing Bit is false";
-						syncState=2;
-					}
-					
-					// Once we have the start sequence look for the header
+					// Once we have the 44 bit sync sequence get the two 70 bit keys
 					else if (syncState==2)	{
 						addToBuffer7(bit);
 						startCount++;
 						if (startCount==7)	{
-							header[headerCount]=buffer7;
-							if (headerCount==4)	{
+							if (keyCount<10) key1[keyCount]=buffer7;
+							else key2[keyCount-10]=buffer7;
+							if (keyCount==19)	{
 								syncState=3;
-								outLines[0]="Header 0x"+Integer.toHexString(header[0])+" 0x"+Integer.toHexString(header[1])+" 0x"+Integer.toHexString(header[2])+" 0x"+Integer.toHexString(header[3])+" 0x"+Integer.toHexString(header[4]);
+								outLines[0]="Key is 0x";
+								int a;
+								for (a=0;a<10;a++)	{
+									outLines[0]=outLines[0]+Integer.toHexString(key1[a]);
+								}
+								// Both keys should be the same
+								if (!Arrays.equals(key1,key2)) outLines[0]=outLines[0]+" (ERROR)"; 
 							}
-							else headerCount++;
+							else keyCount++;
 							startCount=0;
 						}
 					}
@@ -223,13 +228,7 @@ public class CIS3650 extends FSK {
 		if (bit==true) buffer7++;
 		}
 	
-	// Add a bit to the 16 bit buffer
-	private void addToBuffer16(boolean bit)	{
-		buffer16<<=1;
-		buffer16=buffer16&0xFFFF;
-		if (bit==true) buffer16++;
-		}
-		
+	
 	// Add a bit to the 21 bit buffer
 	private void addToBuffer21(boolean bit)	{
 		buffer21<<=1;
@@ -310,6 +309,43 @@ public class CIS3650 extends FSK {
 		}
 		return false;
 	}
+	
+	// Add a bit to the 44 bit sync buffer
+	private void addToSyncBuffer (boolean bit)	{
+		int a;
+		// Move all bits one bit to the left
+		for (a=1;a<44;a++)	{
+			syncBuffer[a-1]=syncBuffer[a];
+		}
+		syncBuffer[43]=bit;
+	}
+	
+	// Return true if 23 out of the 44 bit in the sync buffer are true
+	private boolean syncValidCheck ()	{
+		int a,count=0;
+		for (a=0;a<44;a++)	{
+			if (syncBuffer[a]==true) count++;
+		}
+		if (count==23)	{
+			if ((syncBuffer[0]==false)||(syncBuffer[1]==false)||(syncBuffer[1]==false)) return false;
+			else return true;
+		}
+		else	{
+			return false;
+		}
+	}
+	
+	// Return the sync buffer a long
+	private long syncBufferAsLong ()	{
+		int a,bc=0;
+		long r=0;
+		for (a=43;a>=0;a--)	{
+			if (syncBuffer[a]==true) r=r+(long)Math.pow(2.0,bc);
+			bc++;
+		}
+		return r;
+	}
+	
 	
 	
 }
