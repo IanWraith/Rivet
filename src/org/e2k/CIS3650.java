@@ -28,6 +28,7 @@ public class CIS3650 extends FSK {
 	private int key1[]=new int[10];
 	private int key2[]=new int[10];
 	private boolean syncBuffer[]=new boolean[44];
+	private int syncBufferCounter=0;
 
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -64,6 +65,7 @@ public class CIS3650 extends FSK {
 			buffer7=0;
 			buffer21=0;
 			characterCount=0;
+			syncBufferCounter=0;
 			return null;
 		}
 		
@@ -175,7 +177,8 @@ public class CIS3650 extends FSK {
 					// The message must have ended
 					else if (syncState==4)	{
 						outLines[0]="End of Message";
-						syncState=1;
+						syncBufferCounter=0;
+						state=1;
 					}
 				}
 				else	{
@@ -320,11 +323,13 @@ public class CIS3650 extends FSK {
 		}
 		int last=syncBuffer.length-1;
 		syncBuffer[last]=bit;
+		syncBufferCounter++;
 	}
 	
 	// Return true if this appears to be a valid sync word
 	private boolean syncValidCheck ()	{
 		int a,count=0;
+		if (syncBufferCounter<(syncBuffer.length-1)) return false;
 		for (a=0;a<syncBuffer.length;a++)	{
 			if (syncBuffer[a]==true) count++;
 		}
@@ -376,6 +381,7 @@ public class CIS3650 extends FSK {
 		}
 		return r;
 	}
+	
 	
 	
 	
