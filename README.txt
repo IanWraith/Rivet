@@ -3,7 +3,7 @@ of the Enigma 2000 group.
 
 http://groups.yahoo.com/group/enigma2000/
 
-Currently the program decodes the modes XPA , XPA2 and CROWD36 (partiall) but more modes will be added soon.
+Currently the program decodes the modes XPA , XPA2 , CROWD36 (partially) and CIS36-50 (BEE) but more modes will be added soon.
 The program can decode directly from your PCs soundcard or from a WAV file (mono and using a sample rate of
 11.025 KHz or 8 KHz).
 
@@ -33,10 +33,11 @@ Build 13 allows settings to be saved and then reloaded at startup
 Build 14 auto detects if the signal needs to be inverted when decoding XPA2.
 Build 15 detects the start and end of CIS36-50 messages.
 Build 16 displays CIS36-50 traffic in 7 bit blocks.
+Build 17 incorporates information received on the make up of CIS36-50 messages
 
 Reported Bugs
 -------------
 
 Still problems with CROWD36 decoding. Not a bug as such but more a lack of understanding of this mode.
 
-Ian Wraith (10th January 2011) 
+Ian Wraith (17th January 2011) 
