@@ -362,21 +362,31 @@ public class CIS3650 extends FSK {
 		for (a=0;a<syncBuffer.length;a++)	{
 			if (syncBuffer[a]==true) count++;
 		}
-		// Check if the first and last 8 bits of sync buffer are alternating to prevent false triggers
-		int chk=syncBufferLSB8AsInt();
-		if ((chk==0xaa)||(chk==0x55)) return false;
-		chk=syncBufferMSB8AsInt();
-		if ((chk==0xaa)||(chk==0x55)) return false;
+		
+	
+		
+		//int mid=syncBufferMiddleAsInt();
+		//if ((mid!=0xeb)&&(mid!=14)) return false;
+		
+		
 		// If count is 23 and the first three bits are true this OK but we are inverted
 		if ((count==23)&&(syncBuffer[0]==true)&&(syncBuffer[1]==true)&&(syncBuffer[2]==true))	{
 			// Change the invert setting
 			theApp.changeInvertSetting();
 			// Invert the complete sync buffer to reflect the change
 			syncBufferInvert();
+		
+			int mid=syncBufferMiddleAsInt();
+			if (mid!=235) return false;
+			
 			return true;
 		}
 		// If the count is 21 and the first three bits are false then we are all OK
 		else if ((count==21)&&(syncBuffer[0]==false)&&(syncBuffer[1]==false)&&(syncBuffer[2]==false))	{
+			
+			int mid=syncBufferMiddleAsInt();
+			if (mid!=235) return false;
+			
 			return true;
 		}
 		// No match
@@ -403,25 +413,15 @@ public class CIS3650 extends FSK {
 		}
 	}
 	
-	// Return the LSB of the sync buffer as an int
-	private int syncBufferLSB8AsInt ()	{
-		int a,bc=0,r=0;
-		for (a=8;a>=0;a--)	{
+	
+	private int syncBufferMiddleAsInt ()	{
+		int a,bc=7,r=0;
+		for (a=20;a<28;a++)	{
 			if (syncBuffer[a]==true) r=r+(int)Math.pow(2.0,bc);
-			bc++;
+			bc--;
 		}
 		return r;
 	}
-	
-	// Return the MSB of the sync buffer as an int
-	private int syncBufferMSB8AsInt ()	{
-		int a,bc=0,r=0;
-		for (a=(syncBuffer.length-1);a>=(syncBuffer.length-8);a--)	{
-			if (syncBuffer[a]==true) r=r+(int)Math.pow(2.0,bc);
-			bc++;
-		}
-		return r;
-		}
 	
 	// Check if a number if a valid ITA-3 character
 	private boolean checkITA3Char (int c)	{
