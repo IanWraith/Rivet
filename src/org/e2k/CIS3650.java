@@ -19,9 +19,16 @@ public class CIS3650 extends FSK {
 	public long sampleCount=0;
 	private long symbolCounter=0;
 	public StringBuffer lineBuffer=new StringBuffer();
-	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int highTone;
 	private int lowTone;
+	
+	private int highBin;
+	private int lowBin;
+	private int timingCount;
+	
+	private double lowestDif;
+	private int lowestPoint;
+	
 	private int centre;
 	private long syncFoundPoint;
 	private int syncState;
@@ -64,8 +71,7 @@ public class CIS3650 extends FSK {
 			symbolCounter=0;
 			samplesPerSymbol36=samplesPerSymbol(36.0,waveData.getSampleRate());
 			samplesPerSymbol50=samplesPerSymbol(50.0,waveData.getSampleRate());
-			// Clear the energy buffer
-			energyBuffer.setBufferCounter(0);
+			
 			state=1;
 			lineBuffer.delete(0,lineBuffer.length());
 			syncState=0;
@@ -73,6 +79,7 @@ public class CIS3650 extends FSK {
 			buffer21=0;
 			characterCount=0;
 			syncBufferCounter=0;
+			timingCount=0;
 			return null;
 		}
 		
@@ -92,7 +99,10 @@ public class CIS3650 extends FSK {
 				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
 				// Jump the next stage to acquire symbol timing
 				state=3;
+				timingCount=0;
 				syncState=1;
+				lowestDif=32768;
+				lowestPoint=0;
 				syncFoundPoint=sampleCount;
 				return outLines;
 			}
@@ -100,21 +110,58 @@ public class CIS3650 extends FSK {
 			
 		// Acquire symbol timing
 		if (state==3)	{
-			do64FFT(circBuf,waveData,0);
-			energyBuffer.addToCircBuffer(getHighSpectrum());
+			double vals[]=do64FFTBinRequest(circBuf,waveData,0,lowBin,highBin);
+			double d;
+			if (vals[0]>vals[1]) d=vals[0]-vals[1];
+			else d=vals[1]-vals[0];
+			
+			if (d<lowestDif)	{
+				lowestDif=d;
+				lowestPoint=timingCount;
+			}
+			
+			//String line=Integer.toString(timingCount)+","+Double.toString(vals[0])+","+Double.toString(vals[1])+","+Double.toString(d);
+			//theApp.debugDump(line);
+
+			timingCount++;
 			sampleCount++;
 			symbolCounter++;
-			// Gather a symbols worth of energy values
-			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol50*1)) return null;
-			long perfectPoint=energyBuffer.returnHighestBin()+syncFoundPoint+(int)samplesPerSymbol50;
+			// Gather two symbols worth of energy values
+			if (timingCount<(int)(samplesPerSymbol50*1)) return null;
+			long perfectPoint=lowestPoint+syncFoundPoint+(int)samplesPerSymbol50;
+			long samplesUntil=perfectPoint-sampleCount;
 			// Calculate what the value of the symbol counter should be
-			symbolCounter=(int)samplesPerSymbol50-(perfectPoint-sampleCount);
+			symbolCounter=(int)samplesPerSymbol50-samplesUntil;
+			
+			symbolCounter=symbolCounter+((int)samplesPerSymbol50/4);
+			
+			theApp.debugDump("##");
+			
+			
+			
 			state=4;
 		}
 		
 		// Read in symbols
 		if (state==4)	{
 			if (symbolCounter>=(long)samplesPerSymbol50)	{
+				
+				
+				double vals[]=do64FFTBinRequest(circBuf,waveData,0,lowBin,highBin);
+				double d;
+				if (vals[0]>vals[1]) d=vals[0]-vals[1];
+				else d=vals[1]-vals[0];
+				
+				if (d<lowestDif)	{
+					lowestDif=d;
+					lowestPoint=timingCount;
+				}
+				
+				String line=Double.toString(vals[0])+","+Double.toString(vals[1])+","+Double.toString(d);
+				theApp.debugDump(line);
+
+				
+				
 				symbolCounter=0;		
 				boolean bit=getSymbolBit(circBuf,waveData,0);
 				if (theApp.isDebug()==false)	{
@@ -307,27 +354,35 @@ public class CIS3650 extends FSK {
 	
 	// See if the buffer holds a 50 baud alternating sequence
 	private boolean detect50Sync(CircularDataBuffer circBuf,WaveData waveData)	{
-		int pos=0;
+		int pos=0,b0,b1,b2,b3;
 		int f0=getSymbolFreq(circBuf,waveData,pos);
+		b0=getFreqBin();
 		// Check this first tone isn't just noise the highest bin must make up 10% of the total
 		if (getPercentageOfTotal()<10.0) return false;
 		pos=(int)samplesPerSymbol50*1;
 		int f1=getSymbolFreq(circBuf,waveData,pos);
+		b1=getFreqBin();
 		if (f0==f1) return false;
 		pos=(int)samplesPerSymbol50*2;
 		int f2=getSymbolFreq(circBuf,waveData,pos);
+		b2=getFreqBin();
 		if (f1==f2) return false;
 		pos=(int)samplesPerSymbol50*3;
 		int f3=getSymbolFreq(circBuf,waveData,pos);
+		b3=getFreqBin();
 		// Look for a 50 baud alternating sequence
 		if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
 			if (f0>f1)	{
 				highTone=f0;
+				highBin=b0;
 				lowTone=f1;
+				lowBin=b1;
 			}
 			else	{
 				highTone=f1;
+				highBin=b1;
 				lowTone=f0;
+				lowBin=b0;
 			}
 			pos=(int)samplesPerSymbol50*4;
 			int f4=getSymbolFreq(circBuf,waveData,pos);

@@ -8,6 +8,7 @@ public class FSK {
 	private double totalEnergy;
 	private double highestValue;
 	public final int FFT_64_SIZE=64;
+	private int freqBin;
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
 	
 	// Return the number of samples per baud
@@ -37,6 +38,7 @@ public class FSK {
 	// Given the real data in a double array return the largest frequency component
 	public int getFFTFreq (double[]x,double sampleFreq)	{
 			int bin=findHighBin(x);
+			freqBin=bin-1;
 			double len=x.length*2;
 			double ret=((sampleFreq/len)*bin);
 			return (int)ret;
@@ -128,6 +130,18 @@ public class FSK {
 		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 		}
+	
+	
+	public double[] do64FFTBinRequest (CircularDataBuffer circBuf,WaveData waveData,int start,int bin0,int bin1)	{
+		double vals[]=new double[2];
+		// Get the data from the circular buffer
+		double datar[]=circBuf.extractDataDouble(start,FFT_64_SIZE);
+		fft64.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		vals[0]=spec[bin0];
+		vals[1]=spec[bin1];
+		return vals;
+		}
 
 	// Test for a specific tone
 	public boolean toneTest (int freq,int tone,int errorAllow)	{
@@ -146,5 +160,9 @@ public class FSK {
 			else return true;
 			}
 		}
+	
+	public int getFreqBin ()	{
+		return freqBin;
+	}
 	
 }
