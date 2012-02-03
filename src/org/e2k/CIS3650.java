@@ -21,16 +21,7 @@ public class CIS3650 extends FSK {
 	public StringBuffer lineBuffer=new StringBuffer();
 	private int highTone;
 	private int lowTone;
-	
-	private int highBin;
-	private int lowBin;
-	private int timingCount;
-	
-	private double lowestDif;
-	private int lowestPoint;
-	
 	private int centre;
-	private long syncFoundPoint;
 	private int syncState;
 	private int buffer7=0;
 	private int buffer21=0;
@@ -79,7 +70,6 @@ public class CIS3650 extends FSK {
 			buffer21=0;
 			characterCount=0;
 			syncBufferCounter=0;
-			timingCount=0;
 			return null;
 		}
 		
@@ -99,69 +89,17 @@ public class CIS3650 extends FSK {
 				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
 				// Jump the next stage to acquire symbol timing
 				state=3;
-				timingCount=0;
 				syncState=1;
-				lowestDif=32768;
-				lowestPoint=0;
-				syncFoundPoint=sampleCount;
 				return outLines;
 			}
 		}
 			
-		// Acquire symbol timing
-		if (state==3)	{
-			double vals[]=do64FFTBinRequest(circBuf,waveData,0,lowBin,highBin);
-			double d;
-			if (vals[0]>vals[1]) d=vals[0]-vals[1];
-			else d=vals[1]-vals[0];
-			
-			if (d<lowestDif)	{
-				lowestDif=d;
-				lowestPoint=timingCount;
-			}
-			
-			//String line=Integer.toString(timingCount)+","+Double.toString(vals[0])+","+Double.toString(vals[1])+","+Double.toString(d);
-			//theApp.debugDump(line);
-
-			timingCount++;
-			sampleCount++;
-			symbolCounter++;
-			// Gather two symbols worth of energy values
-			if (timingCount<(int)(samplesPerSymbol50*1)) return null;
-			long perfectPoint=lowestPoint+syncFoundPoint+(int)samplesPerSymbol50;
-			long samplesUntil=perfectPoint-sampleCount;
-			// Calculate what the value of the symbol counter should be
-			symbolCounter=(int)samplesPerSymbol50-samplesUntil;
-			
-			symbolCounter=symbolCounter+((int)samplesPerSymbol50/4);
-			
-			theApp.debugDump("##");
-			
-			
-			
-			state=4;
-		}
-		
 		// Read in symbols
-		if (state==4)	{
-			if (symbolCounter>=(long)samplesPerSymbol50)	{
-				
-				
-				double vals[]=do64FFTBinRequest(circBuf,waveData,0,lowBin,highBin);
-				double d;
-				if (vals[0]>vals[1]) d=vals[0]-vals[1];
-				else d=vals[1]-vals[0];
-				
-				if (d<lowestDif)	{
-					lowestDif=d;
-					lowestPoint=timingCount;
-				}
-				
-				String line=Double.toString(vals[0])+","+Double.toString(vals[1])+","+Double.toString(d);
-				theApp.debugDump(line);
-
-				
-				
+		if (state==3)	{
+			
+			// TODO: Add the early late gate code here
+			
+			if (symbolCounter>=(long)samplesPerSymbol50)	{				
 				symbolCounter=0;		
 				boolean bit=getSymbolBit(circBuf,waveData,0);
 				if (theApp.isDebug()==false)	{
@@ -374,15 +312,11 @@ public class CIS3650 extends FSK {
 		if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
 			if (f0>f1)	{
 				highTone=f0;
-				highBin=b0;
 				lowTone=f1;
-				lowBin=b1;
 			}
 			else	{
 				highTone=f1;
-				highBin=b1;
 				lowTone=f0;
-				lowBin=b0;
 			}
 			pos=(int)samplesPerSymbol50*4;
 			int f4=getSymbolFreq(circBuf,waveData,pos);
