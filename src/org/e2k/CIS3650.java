@@ -96,11 +96,17 @@ public class CIS3650 extends FSK {
 			
 		// Read in symbols
 		if (state==3)	{
-			
-			// TODO: Add the early late gate code here
-			
 			if (symbolCounter>=(long)samplesPerSymbol50)	{				
-				symbolCounter=0;		
+				
+				
+				// TODO : Add the early/late gate code here
+				
+				symbolCounter=0;
+				
+				long gateDif=gateEarlyLate (circBuf,(int)samplesPerSymbol50);	
+				theApp.debugDump(Long.toString(gateDif));
+				
+				
 				boolean bit=getSymbolBit(circBuf,waveData,0);
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{

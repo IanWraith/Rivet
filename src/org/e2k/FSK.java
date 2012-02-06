@@ -165,4 +165,24 @@ public class FSK {
 		return freqBin;
 	}
 	
+	// Return an early/late gate difference value
+	public long gateEarlyLate (CircularDataBuffer circBuf,int samplesPerSymbol)	{
+		int ss=samplesPerSymbol/2;
+		long earlyVal=integrateDump(circBuf,0,ss);
+		long lateVal=integrateDump(circBuf,ss,ss);
+		long gateDif=earlyVal-lateVal;
+		return gateDif;
+	}
+	
+	// A very simple integrate and dump routine
+	private long integrateDump (CircularDataBuffer circBuf,int start,int len)	{
+		int a;
+		long s=0;
+		double datar[]=circBuf.extractDataDouble(start,len);
+		for (a=0;a<datar.length;a++)	{
+			s=s+(long)Math.abs(datar[a]);
+		}
+		return s;
+	}
+	
 }
