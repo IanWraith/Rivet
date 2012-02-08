@@ -137,7 +137,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		}
 		// About
 		if (event_name=="About")	{
-			String line=theApp.program_version+"\r\n"+"ianwraith@gmail.com\r\nfor the Enigma2000 group.";
+			String line=theApp.program_version+"\r\n"+"ianwraith@gmail.com\r\nfor the Enigma2000 group.\r\nFor the latest news follow me on Twitter at ..\r\nhttps://twitter.com/#!/IanWraith";
 			JOptionPane.showMessageDialog(null,line,"Rivet", JOptionPane.INFORMATION_MESSAGE);
 		}
 		// Help
