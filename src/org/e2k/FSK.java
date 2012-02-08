@@ -131,7 +131,7 @@ public class FSK {
 		return freq;
 		}
 	
-	
+	// Does a 64 point FFT then returns the values of two specific bins
 	public double[] do64FFTBinRequest (CircularDataBuffer circBuf,WaveData waveData,int start,int bin0,int bin1)	{
 		double vals[]=new double[2];
 		// Get the data from the circular buffer
@@ -165,24 +165,23 @@ public class FSK {
 		return freqBin;
 	}
 	
-	// Return an early/late gate difference value
-	public long gateEarlyLate (CircularDataBuffer circBuf,int samplesPerSymbol)	{
+	// Return an early/late gate difference value as a percentage of the total 
+	public double gateEarlyLate (CircularDataBuffer circBuf,int samplesPerSymbol)	{
 		int ss=samplesPerSymbol/2;
-		long earlyVal=integrateDump(circBuf,0,ss);
-		long lateVal=integrateDump(circBuf,ss,ss);
-		long gateDif=earlyVal-lateVal;
+		double earlyVal=integrateDump64(circBuf,0);
+		double lateVal=integrateDump64(circBuf,ss);
+		double total=earlyVal+lateVal;
+		double gateDif=earlyVal-lateVal;
+		gateDif=(gateDif/total)*100.0;
 		return gateDif;
 	}
 	
-	// A very simple integrate and dump routine
-	private long integrateDump (CircularDataBuffer circBuf,int start,int len)	{
-		int a;
-		long s=0;
-		double datar[]=circBuf.extractDataDouble(start,len);
-		for (a=0;a<datar.length;a++)	{
-			s=s+(long)Math.abs(datar[a]);
-		}
-		return s;
+	// An integrate and dump routine which uses spectral energy
+	private double integrateDump64 (CircularDataBuffer circBuf,int start)	{
+		double datar[]=circBuf.extractDataDouble(start,FFT_64_SIZE);
+		fft64.realForward(datar);
+		getSpectrum(datar);
+		return totalEnergy;
 	}
 	
 }

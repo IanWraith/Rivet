@@ -35,6 +35,7 @@ public class CIS3650 extends FSK {
 	private final int ITA3VALS[]={26,25,76,28,56,19,97,82,112,35,11,98,97,84,70,74,13,100,42,69,50,73,37,22,21,49,67,88,14,38,104,7,52,41,44,81};
 	private final String ITA3LETS[]={"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","<cr>","<lf>","<let>","<fig>"," ","<unperf>","<Request>","<Idle a>","<Idle b>","<0x51>"}; 
 	private int totalCharacterCount=0;
+	private int totalErrorCount=0;
 	
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -89,6 +90,8 @@ public class CIS3650 extends FSK {
 				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
 				// Jump the next stage to acquire symbol timing
 				state=3;
+				totalErrorCount=0;
+				totalCharacterCount=0;
 				syncState=1;
 				return outLines;
 			}
@@ -96,17 +99,14 @@ public class CIS3650 extends FSK {
 			
 		// Read in symbols
 		if (state==3)	{
-			if (symbolCounter>=(long)samplesPerSymbol50)	{				
-				
-				
-				// TODO : Add the early/late gate code here
-				
-				symbolCounter=0;
-				
-				long gateDif=gateEarlyLate (circBuf,(int)samplesPerSymbol50);	
-				theApp.debugDump(Long.toString(gateDif));
-				
-				
+			// Only demodulate a bit every samplesPerSymbol50 samples
+			if (symbolCounter>=(long)samplesPerSymbol50)	{		
+				// Get the early/late gate difference value
+				double gateDif=gateEarlyLate(circBuf,(int)samplesPerSymbol50);	
+				// Adjust the symbol counter as required to obtain symbol sync
+				if ((symbolCounter<-15)||(symbolCounter>15)) symbolCounter=(int)gateDif/3;
+				else symbolCounter=0;
+				// Demodulate a single bit
 				boolean bit=getSymbolBit(circBuf,waveData,0);
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
@@ -180,6 +180,7 @@ public class CIS3650 extends FSK {
 									lineBuffer.append("<ERROR ");
 									lineBuffer.append(Integer.toString(buffer7));
 									lineBuffer.append("> ");
+									totalErrorCount++;
 								}
 							}
 							startCount=0;
@@ -199,7 +200,8 @@ public class CIS3650 extends FSK {
 					}
 					// The message must have ended
 					else if (syncState==4)	{
-						outLines[0]="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message)";
+						double err=((double)totalErrorCount/(double)totalCharacterCount)*100.0;
+						outLines[0]="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message "+Double.toString(err)+"% of these contained errors)";
 						syncBufferCounter=0;
 						state=1;
 					}
@@ -435,6 +437,7 @@ public class CIS3650 extends FSK {
 		}
 		return 0;
 	}
+	
 	
 	
 }
