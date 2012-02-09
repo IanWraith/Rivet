@@ -104,7 +104,7 @@ public class CIS3650 extends FSK {
 				// Get the early/late gate difference value
 				double gateDif=gateEarlyLate(circBuf,(int)samplesPerSymbol50);	
 				// Adjust the symbol counter as required to obtain symbol sync
-				if ((symbolCounter<-15)||(symbolCounter>15)) symbolCounter=(int)gateDif/3;
+				if ((gateDif<-15)||(gateDif>15)) symbolCounter=(int)gateDif/3;
 				else symbolCounter=0;
 				// Demodulate a single bit
 				boolean bit=getSymbolBit(circBuf,waveData,0);
