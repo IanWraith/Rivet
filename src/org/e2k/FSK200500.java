@@ -43,9 +43,9 @@ public class FSK200500 extends FSK {
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
-			if (waveData.getSampleRate()>11025.0)	{
+			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
-				JOptionPane.showMessageDialog(null,"WAV files containing\nFSK200/500 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(null,"WAV files containing\nFSK200/500 recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
 			// Check this is a mono recording
