@@ -14,7 +14,6 @@ public class FSK200500 extends FSK {
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int characterCount=0;
 	private int centre=0;
-	private long syncFoundPoint;
 	
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -54,6 +53,7 @@ public class FSK200500 extends FSK {
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
+			//baudRate=186;
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
 			// sampleCount must start negative to account for the buffer gradually filling
@@ -74,30 +74,20 @@ public class FSK200500 extends FSK {
 			if (outLines[0]!=null)	{
 				state=2;
 				energyBuffer.setBufferCounter(0);
-				syncFoundPoint=sampleCount;
-				theApp.setStatusLabel("Acquiring Symbol Timing");
 			}
 		}
-		
-		// Set the symbol timing
-		if (state==2)	{
-			do64FFT(circBuf,waveData,0);
-			energyBuffer.addToCircBuffer(getHighSpectrum());
-			sampleCount++;
-			symbolCounter++;
-			// Gather a symbols worth of energy values
-			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*1)) return null;
-			long perfectPoint=energyBuffer.returnHighestBin()+syncFoundPoint+(int)samplesPerSymbol;
-			// Calculate what the value of the symbol counter should be
-			symbolCounter=(int)samplesPerSymbol-(perfectPoint-sampleCount);
-			state=3;
-		}
-		
+				
 		// Decode traffic
-		if (state==3)	{
+		if (state==2)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
-				symbolCounter=0;		
+				// Get the early/late gate difference value
+				double gateDif=gateEarlyLateFSK200500(circBuf,(int)samplesPerSymbol);					
+				// Adjust the symbol counter as required to obtain symbol sync
+				symbolCounter=(int)gateDif/25;
+				//theApp.debugDump(Double.toString(gateDif));
+				
+				
 				boolean bit=getSymbolBit(circBuf,waveData,0);
 				if (bit==true)	lineBuffer.append("1");
 				else lineBuffer.append("0");
@@ -144,12 +134,7 @@ public class FSK200500 extends FSK {
 	private int fsk200500Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 		// 8 KHz sampling
 		if (waveData.getSampleRate()==8000.0)	{
-			int freq=doFSK200500_8000FFT(circBuf,waveData,pos);
-			return freq;
-		}
-		// 11.025 KHz sampling
-		else if (waveData.getSampleRate()==11025.0)	{
-			int freq=doFSK200500_11025FFT(circBuf,waveData,pos);
+			int freq=doFSK200500_8000FFT(circBuf,waveData,pos,(int)samplesPerSymbol);
 			return freq;
 		}
 		return -1;

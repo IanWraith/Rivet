@@ -7,10 +7,12 @@ public class FSK {
 	private int highSpectrum;
 	private double totalEnergy;
 	private double highestValue;
+	public final int FFT_32_SIZE=32;
 	public final int FFT_64_SIZE=64;
 	private int freqBin;
+	private DoubleFFT_1D fft32=new DoubleFFT_1D(FFT_32_SIZE);
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
-	
+
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
 			return (sampleFreq/dbaud);
@@ -89,29 +91,13 @@ public class FSK {
 			return p;
 		}
 	
-	public int doFSK200500_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+	public int doFSK200500_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start,int ss)	{
 		// Get the data from the circular buffer
-	    double datao[]=circBuf.extractDataDouble(start,40);
+	    double datao[]=circBuf.extractDataDouble(start,ss);
 	    double datar[]=new double[64];
 	    int a,c=0;
 	    for (a=0;a<64;a++)	{
-	    	if (c<40) datar[a]=datao[c];
-	    	else datar[a]=0.0;
-	    	c++;
-	    }
-	    fft64.realForward(datar);
-	    double spec[]=getSpectrum(datar);
-		int freq=getFFTFreq (spec,waveData.getSampleRate());  
-		return freq;
-	}
-	
-	public int doFSK200500_11025FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		// Get the data from the circular buffer
-	    double datao[]=circBuf.extractDataDouble(start,55);
-	    double datar[]=new double[64];
-	    int a,c=0;
-	    for (a=0;a<64;a++)	{
-	    	if (c<55) datar[a]=datao[c];
+	    	if (c<ss) datar[a]=datao[c];
 	    	else datar[a]=0.0;
 	    	c++;
 	    }
@@ -165,7 +151,7 @@ public class FSK {
 		return freqBin;
 	}
 	
-	// Return an early/late gate difference value as a percentage of the total 
+	// Return an early/late gate difference value as a percentage of the total (for CIS36-50)
 	public double gateEarlyLate (CircularDataBuffer circBuf,int samplesPerSymbol)	{
 		int ss=samplesPerSymbol/2;
 		double earlyVal=integrateDump64(circBuf,0);
@@ -176,12 +162,36 @@ public class FSK {
 		return gateDif;
 	}
 	
-	// An integrate and dump routine which uses spectral energy
+	// An integrate and dump routine which uses spectral energy (for CIS36-50)
 	private double integrateDump64 (CircularDataBuffer circBuf,int start)	{
 		double datar[]=circBuf.extractDataDouble(start,FFT_64_SIZE);
 		fft64.realForward(datar);
 		getSpectrum(datar);
 		return totalEnergy;
+	}
+	
+	// An integrate and dump routine which uses spectral energy (for FSK200/500)
+	private double integrateDump32 (CircularDataBuffer circBuf,int start,int halfSym)	{
+		int a;
+		double datar[]=new double[FFT_32_SIZE];
+		double samData[]=circBuf.extractDataDouble(start,halfSym);
+		for (a=0;a<FFT_32_SIZE;a++)	{
+			if (a<halfSym) datar[a]=samData[a];
+			else datar[a]=0.0;
+		}
+		fft32.realForward(datar);
+		getSpectrum(datar);
+		return totalEnergy;
+		}
+	
+	public double gateEarlyLateFSK200500 (CircularDataBuffer circBuf,int ss)	{
+		int hs=ss/2;
+		double earlyVal=integrateDump32(circBuf,0,hs);
+		double lateVal=integrateDump32(circBuf,hs,hs);
+		double total=earlyVal+lateVal;
+		double gateDif=earlyVal-lateVal;
+		gateDif=(gateDif/total)*100.0;
+		return gateDif;
 	}
 	
 }
