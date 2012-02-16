@@ -7,10 +7,8 @@ public class FSK {
 	private int highSpectrum;
 	private double totalEnergy;
 	private double highestValue;
-	public final int FFT_32_SIZE=32;
 	public final int FFT_64_SIZE=64;
 	private int freqBin;
-	private DoubleFFT_1D fft32=new DoubleFFT_1D(FFT_32_SIZE);
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
 
 	// Return the number of samples per baud
@@ -91,6 +89,7 @@ public class FSK {
 			return p;
 		}
 	
+	// Runs a 64 point FFT on a FSK200/500 sample recorded at 8 KHz 
 	public int doFSK200500_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start,int ss)	{
 		// Get the data from the circular buffer
 	    double datao[]=circBuf.extractDataDouble(start,ss);
@@ -106,6 +105,25 @@ public class FSK {
 		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 	}
+	
+	// Does a 64 point FFT then returns the values of two specific bins
+	public double[] doFSK200500_8000FFTBinRequest (CircularDataBuffer circBuf,WaveData waveData,int start,int ss,int bin0,int bin1)	{
+		double vals[]=new double[2];
+		// Get the data from the circular buffer
+	    double datao[]=circBuf.extractDataDouble(start,ss);
+	    double datar[]=new double[FFT_64_SIZE];
+	    int a,c=0;
+	    for (a=0;a<FFT_64_SIZE;a++)	{
+	    	if (c<ss) datar[a]=datao[c];
+	    	else datar[a]=0.0;
+	    	c++;
+	    }
+		fft64.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		vals[0]=spec[bin0];
+		vals[1]=spec[bin1];
+		return vals;
+		}
 	
 	// A 64 point FFT is fine for both 8000 KHz and 11025 KHz 
 	public int do64FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
@@ -170,28 +188,34 @@ public class FSK {
 		return totalEnergy;
 	}
 	
-	// An integrate and dump routine which uses spectral energy (for FSK200/500)
-	private double integrateDump32 (CircularDataBuffer circBuf,int start,int halfSym)	{
-		int a;
-		double datar[]=new double[FFT_32_SIZE];
-		double samData[]=circBuf.extractDataDouble(start,halfSym);
-		for (a=0;a<FFT_32_SIZE;a++)	{
-			if (a<halfSym) datar[a]=samData[a];
-			else datar[a]=0.0;
-		}
-		fft32.realForward(datar);
-		getSpectrum(datar);
-		return totalEnergy;
-		}
-	
-	public double gateEarlyLateFSK200500 (CircularDataBuffer circBuf,int ss)	{
+	// Return an early/late gate difference value as a percentage of the total of two specific bins (for FSK200/500)
+	public double gateEarlyLateFSK200500 (CircularDataBuffer circBuf,int ss,int bin0,int bin1)	{
 		int hs=ss/2;
-		double earlyVal=integrateDump32(circBuf,0,hs);
-		double lateVal=integrateDump32(circBuf,hs,hs);
-		double total=earlyVal+lateVal;
-		double gateDif=earlyVal-lateVal;
+		double earlyVal[]=do64FFTHalfSymbolBinRequest (circBuf,0,ss,bin0,bin1);
+		double lateVal[]=do64FFTHalfSymbolBinRequest (circBuf,hs,ss,bin0,bin1);
+		double total=earlyVal[0]+lateVal[0]+earlyVal[1]+lateVal[1];
+		double gateDif=(earlyVal[0]+earlyVal[1])-(lateVal[0]+lateVal[1]);
 		gateDif=(gateDif/total)*100.0;
 		return gateDif;
 	}
+	
+	// Returns two bins from a 64 bin FFT covering half a symbol
+	public double[] do64FFTHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int samples,int bin0,int bin1)	{
+		double vals[]=new double[2];
+		int hs=samples/2;
+		int a;
+		double datar[]=new double[FFT_64_SIZE];
+		// Get the data from the circular buffer
+		double samData[]=circBuf.extractDataDouble(start,samples);
+		for (a=0;a<FFT_64_SIZE;a++)	{
+			if (a<hs) datar[a]=samData[a];
+			else datar[a]=0.0;
+		}
+		fft64.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		vals[0]=spec[bin0];
+		vals[1]=spec[bin1];
+		return vals;
+		}
 	
 }

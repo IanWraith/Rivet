@@ -14,6 +14,8 @@ public class FSK200500 extends FSK {
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int characterCount=0;
 	private int centre=0;
+	private int highBin;
+	private int lowBin;
 	
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -82,15 +84,13 @@ public class FSK200500 extends FSK {
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
 				// Get the early/late gate difference value
-				double gateDif=gateEarlyLateFSK200500(circBuf,(int)samplesPerSymbol);					
+				double gateDif=gateEarlyLateFSK200500(circBuf,(int)samplesPerSymbol,lowBin,highBin);					
 				// Adjust the symbol counter as required to obtain symbol sync
-				symbolCounter=(int)gateDif/25;
-				//theApp.debugDump(Double.toString(gateDif));
-				
-				
-				boolean bit=getSymbolBit(circBuf,waveData,0);
-				if (bit==true)	lineBuffer.append("1");
-				else lineBuffer.append("0");
+				symbolCounter=(int)gateDif/5;
+				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
+				if (ibit>1) symbolCounter=(int)samplesPerSymbol/2;
+				lineBuffer.append(Integer.toString(ibit));
+						
 				if (characterCount==60)	{
 					outLines[0]=lineBuffer.toString();
 					lineBuffer.delete(0,lineBuffer.length());
@@ -109,9 +109,11 @@ public class FSK200500 extends FSK {
 		int difference;
 		// Get 4 symbols
 		int freq1=fsk200500Freq(circBuf,waveData,0);
+		int bin1=getFreqBin();
 		// Check this first tone isn't just noise
 		if (getPercentageOfTotal()<5.0) return null;
 		int freq2=fsk200500Freq(circBuf,waveData,(int)samplesPerSymbol*1);
+		int bin2=getFreqBin();
 		// Check we have a high low
 		if (freq2>freq1) return null;
 		// Check there is more than 450 Hz of difference
@@ -125,6 +127,15 @@ public class FSK200500 extends FSK {
 		if ((freq1!=freq3)||(freq2!=freq4)) return null;
 		// Check that 2 of the symbol frequencies are the same
 		if ((freq1==freq2)||(freq3==freq4)) return null;
+		// Store the bin numbers
+		if (freq1>freq2)	{
+			highBin=bin1;
+			lowBin=bin2;
+		}
+		else	{
+			highBin=bin2;
+			lowBin=bin1;
+		}
 		// Calculate the centre frequency
 		centre=(freq1+freq2)/2;
 		String line=theApp.getTimeStamp()+" FSK200/500 Sync Sequence Found";
@@ -140,11 +151,27 @@ public class FSK200500 extends FSK {
 		return -1;
 	}
 	
-	// Return the bit value for a certain symbol
-	private boolean getSymbolBit (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		int f=fsk200500Freq(circBuf,waveData,start);
-		boolean bit=freqDecision(f,centre,theApp.isInvertSignal());
-		return bit;
+	private int fsk200500FreqHalf (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
+		int sp=(int)samplesPerSymbol/2;
+		int f1=doFSK200500_8000FFT(circBuf,waveData,pos,sp);
+		int f2=doFSK200500_8000FFT(circBuf,waveData,(pos+sp),sp);
+		// Return 0 if full low
+		// Return 1 if full high
+		int dif;
+		if (f1>f2) dif=f1-f2;
+		else dif=f2-f1;
+		if (dif<300)	{
+			if (f1<centre) return 0;
+			else return 1;
 		}
-
+		// Return 2 if low then high
+		// Return 3 if high then low
+		else	{
+			if (f2>f1) return 2;
+			else return 3;
+		}
+		
+	}
+	
+	
 }
