@@ -16,6 +16,7 @@ public class FSK200500 extends FSK {
 	private int centre=0;
 	private int highBin;
 	private int lowBin;
+	private boolean inChar[]=new boolean[7];
 	
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -88,15 +89,26 @@ public class FSK200500 extends FSK {
 				// Adjust the symbol counter as required to obtain symbol sync
 				symbolCounter=(int)gateDif/5;
 				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
-				if (ibit>1) symbolCounter=(int)samplesPerSymbol/2;
-				lineBuffer.append(Integer.toString(ibit));
-						
-				if (characterCount==60)	{
+				// If this is a full bit add it to the character buffer
+				// If it is a half bit it signals the end of a character
+				if (ibit>1)	{
+					symbolCounter=(int)samplesPerSymbol/2;
+					String ch=getBaudotChar();
+					lineBuffer.append(ch);
+					
+					lineBuffer.append(" ");
+					
+					characterCount=characterCount+7;
+				}
+				else	{
+					addToCharBuffer(ibit);	
+				}
+				
+				if (characterCount>60)	{
 					outLines[0]=lineBuffer.toString();
 					lineBuffer.delete(0,lineBuffer.length());
 					characterCount=0;
 				}
-				else characterCount++;
 				
 			}
 		}
@@ -173,5 +185,25 @@ public class FSK200500 extends FSK {
 		
 	}
 	
+	// Add incoming data to the character buffer
+	private void addToCharBuffer (int in)	{
+		int a;
+		for (a=1;a<inChar.length;a++)	{
+			inChar[a-1]=inChar[a];
+		}
+		if (in==0) inChar[6]=false;
+		else inChar[6]=true;
+	}
+	
+	// Returns the baudot character in the character buffer
+	private String getBaudotChar()	{
+		String out="";
+		int a;
+		for (a=1;a<6;a++)	{
+			if (inChar[a]==true) out=out+"1";
+			else out=out+"0";
+		}
+		return out;
+	}
 	
 }
