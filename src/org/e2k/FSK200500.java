@@ -17,6 +17,10 @@ public class FSK200500 extends FSK {
 	private int highBin;
 	private int lowBin;
 	private boolean inChar[]=new boolean[7];
+	private final String BAUDOT_LETTERS[]={"N/A","E","<LF>","A"," ","S","I","U","<CR>","D","R","J","N","F","C","K","T","Z","L","W","H","Y","P","Q","O","B","G","<FIG>","M","X","V","<LET>"};
+	private final String BAUDOT_NUMBERS[]={"N/A","3","<LF>","-"," ","<BELL>","8","7","<CR>","$","4","'",",","!",":","(","5","\"",")","2","#","6","0","1","9","?","&","<FIG>",".","/","=","<LET>"};
+	private boolean lettersMode=true;
+	private final int MAXCHARLENGTH=80;
 	
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -56,7 +60,6 @@ public class FSK200500 extends FSK {
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
-			//baudRate=186;
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
 			// sampleCount must start negative to account for the buffer gradually filling
@@ -66,6 +69,7 @@ public class FSK200500 extends FSK {
 			energyBuffer.setBufferCounter(0);
 			// Clear the display side of things
 			characterCount=0;
+			lettersMode=true;
 			lineBuffer.delete(0,lineBuffer.length());
 			theApp.setStatusLabel("Sync Hunt");
 			return null;
@@ -94,17 +98,21 @@ public class FSK200500 extends FSK {
 				if (ibit>1)	{
 					symbolCounter=(int)samplesPerSymbol/2;
 					String ch=getBaudotChar();
-					lineBuffer.append(ch);
-					
-					lineBuffer.append(" ");
-					
-					characterCount=characterCount+7;
+					// LF
+					if (ch.equals(BAUDOT_LETTERS[2])) characterCount=MAXCHARLENGTH;
+					// CR
+					else if (ch.equals(BAUDOT_LETTERS[8])) characterCount=MAXCHARLENGTH;
+					else	{
+						lineBuffer.append(ch);
+						if (theApp.isDebug()==false) characterCount++;
+						else characterCount=characterCount+3;
+					}
 				}
 				else	{
 					addToCharBuffer(ibit);	
 				}
 				
-				if (characterCount>60)	{
+				if (characterCount>=MAXCHARLENGTH)	{
 					outLines[0]=lineBuffer.toString();
 					lineBuffer.delete(0,lineBuffer.length());
 					characterCount=0;
@@ -128,9 +136,9 @@ public class FSK200500 extends FSK {
 		int bin2=getFreqBin();
 		// Check we have a high low
 		if (freq2>freq1) return null;
-		// Check there is more than 450 Hz of difference
+		// Check there is around 500 Hz of difference between the tones
 		difference=freq1-freq2;
-		if (difference<450) return null;
+		if ((difference<475)||(difference>525) ) return null;
 		int freq3=fsk200500Freq(circBuf,waveData,(int)samplesPerSymbol*2);
 		// Don't waste time carrying on if freq1 isn't the same as freq3
 		if (freq1!=freq3) return null;
@@ -197,13 +205,25 @@ public class FSK200500 extends FSK {
 	
 	// Returns the baudot character in the character buffer
 	private String getBaudotChar()	{
-		String out="";
-		int a;
-		for (a=1;a<6;a++)	{
-			if (inChar[a]==true) out=out+"1";
-			else out=out+"0";
+		int a=0;
+		if (inChar[1]==true) a=16;
+		if (inChar[2]==true) a=a+8;
+		if (inChar[3]==true) a=a+4;
+		if (inChar[4]==true) a=a+2;
+		if (inChar[5]==true) a++;
+		// If in debug mode just return this number
+		if (theApp.isDebug()==true)	return Integer.toString(a)+" ";
+		// Look out for figures or letters shift characters
+		if (a==27)	{
+			lettersMode=false;
+			return "";
 		}
-		return out;
+		else if (a==31)	{
+			lettersMode=true;
+			return "";
+		}
+		else if (lettersMode==true) return BAUDOT_LETTERS[a];
+		else return BAUDOT_NUMBERS[a];
 	}
 	
 }
