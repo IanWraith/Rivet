@@ -188,15 +188,12 @@ public class FSK {
 		return totalEnergy;
 	}
 	
-	// Return an early/late gate difference value as a percentage of the total of two specific bins (for FSK200/500)
-	public double gateEarlyLateFSK200500 (CircularDataBuffer circBuf,int ss,int bin0,int bin1)	{
-		int hs=ss/2;
-		double earlyVal[]=do64FFTHalfSymbolBinRequest (circBuf,0,ss,bin0,bin1);
-		double lateVal[]=do64FFTHalfSymbolBinRequest (circBuf,hs,ss,bin0,bin1);
+	public int gateEarlyLateFSK200500(double earlyVal[],double lateVal[])	{
 		double total=earlyVal[0]+lateVal[0]+earlyVal[1]+lateVal[1];
 		double gateDif=(earlyVal[0]+earlyVal[1])-(lateVal[0]+lateVal[1]);
 		gateDif=(gateDif/total)*100.0;
-		return gateDif;
+		int sa=(int)gateDif/5;
+		return sa;
 	}
 	
 	// Returns two bins from a 64 bin FFT covering half a symbol

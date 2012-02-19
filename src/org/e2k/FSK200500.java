@@ -22,6 +22,8 @@ public class FSK200500 extends FSK {
 	private boolean lettersMode=true;
 	private final int MAXCHARLENGTH=80;
 	
+	private int bcount;
+	
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
@@ -60,6 +62,9 @@ public class FSK200500 extends FSK {
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
+			
+			baudRate=50;
+			
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
 			// sampleCount must start negative to account for the buffer gradually filling
@@ -81,6 +86,9 @@ public class FSK200500 extends FSK {
 			if (outLines[0]!=null)	{
 				state=2;
 				energyBuffer.setBufferCounter(0);
+				
+				bcount=0;
+				
 			}
 		}
 				
@@ -88,14 +96,24 @@ public class FSK200500 extends FSK {
 		if (state==2)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
-				// Get the early/late gate difference value
-				double gateDif=gateEarlyLateFSK200500(circBuf,(int)samplesPerSymbol,lowBin,highBin);					
-				// Adjust the symbol counter as required to obtain symbol sync
-				symbolCounter=(int)gateDif/5;
 				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
+				
+				if (theApp.isInvertSignal()==true)	{
+					if (ibit==0) ibit=1;
+					else if (ibit==1) ibit=0;
+					else if (ibit==2) ibit=3;
+					else if (ibit==3) ibit=2;
+				}
+				
 				// If this is a full bit add it to the character buffer
 				// If it is a half bit it signals the end of a character
 				if (ibit>1)	{
+					
+					
+					if (bcount!=7) lineBuffer.append("("+Integer.toString(bcount)+") ");
+					bcount=0;
+					
+					
 					symbolCounter=(int)samplesPerSymbol/2;
 					String ch=getBaudotChar();
 					// LF
@@ -173,23 +191,36 @@ public class FSK200500 extends FSK {
 	
 	private int fsk200500FreqHalf (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 		int sp=(int)samplesPerSymbol/2;
-		int f1=doFSK200500_8000FFT(circBuf,waveData,pos,sp);
-		int f2=doFSK200500_8000FFT(circBuf,waveData,(pos+sp),sp);
-		// Return 0 if full low
-		// Return 1 if full high
-		int dif;
-		if (f1>f2) dif=f1-f2;
-		else dif=f2-f1;
-		if (dif<300)	{
-			if (f1<centre) return 0;
+		double ff1[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
+		double ff2[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
+		
+		int high1,high2;
+		if (ff1[0]>ff1[1]) high1=0;
+		else high1=1;
+		if (ff2[0]>ff2[1]) high2=0;
+		else high2=1;
+		
+		String line;
+		line=Integer.toString(high1)+","+Integer.toString(high2)+","+Double.toString(ff1[0])+","+Double.toString(ff1[1])+","+Double.toString(ff2[0])+","+Double.toString(ff2[1]);
+		theApp.debugDump(line);
+		
+		// Both the same
+		if (high1==high2)	{
+			symbolCounter=gateEarlyLateFSK200500(ff1,ff2);
+			
+			if (symbolCounter!=0)	{
+				theApp.debugDump(Long.toString(symbolCounter));
+			}
+			
+			if (high1==0) return 0;
 			else return 1;
 		}
-		// Return 2 if low then high
-		// Return 3 if high then low
 		else	{
-			if (f2>f1) return 2;
+			if (high2>high1) return 2;
 			else return 3;
 		}
+		
+		
 		
 	}
 	
@@ -201,6 +232,8 @@ public class FSK200500 extends FSK {
 		}
 		if (in==0) inChar[6]=false;
 		else inChar[6]=true;
+		
+		bcount++;
 	}
 	
 	// Returns the baudot character in the character buffer
@@ -213,8 +246,14 @@ public class FSK200500 extends FSK {
 		if (inChar[5]==true) a++;
 		// If in debug mode just return this number
 		if (theApp.isDebug()==true)	return Integer.toString(a)+" ";
+		
+		theApp.debugDump(BAUDOT_LETTERS[a]);
+		
 		// Look out for figures or letters shift characters
-		if (a==27)	{
+		if (a==0)	{
+			return "";
+		}
+		else if (a==27)	{
 			lettersMode=false;
 			return "";
 		}
