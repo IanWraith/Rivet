@@ -422,7 +422,7 @@ public class Rivet {
 				waveSetting.setEndian(true);
 				waveSetting.setSampleSizeInBits(16);
 				waveSetting.setFromFile(false);
-				waveSetting.setSampleRate(11025.0);
+				waveSetting.setSampleRate(8000.0);
 				waveSetting.setBytesPerFrame(2);
 				inputThread.setupAudio(waveSetting); 
 				waveData=waveSetting;

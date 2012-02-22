@@ -192,8 +192,11 @@ public class FSK {
 		double total=earlyVal[0]+lateVal[0]+earlyVal[1]+lateVal[1];
 		double gateDif=(earlyVal[0]+earlyVal[1])-(lateVal[0]+lateVal[1]);
 		gateDif=(gateDif/total)*100.0;
-		int sa=(int)gateDif/5;
-		return sa;
+		
+		// A value of 2 below is fine for 50 baud
+		
+		int gd=(int)gateDif/2;
+		return gd;
 	}
 	
 	// Returns two bins from a 64 bin FFT covering half a symbol
