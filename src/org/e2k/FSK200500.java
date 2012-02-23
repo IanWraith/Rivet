@@ -60,9 +60,7 @@ public class FSK200500 extends FSK {
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
-			
 			//baudRate=50;
-			
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
 			// sampleCount must start negative to account for the buffer gradually filling
@@ -93,23 +91,22 @@ public class FSK200500 extends FSK {
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
 				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
-				
+				// TODO : Get the invert feature working with FSK200/500
 				if (theApp.isInvertSignal()==true)	{
 					if (ibit==0) ibit=1;
 					else ibit=1;
 				}
-				
 				// If this is a full bit add it to the character buffer
 				// If it is a half bit it signals the end of a character
 				if (ibit==2)	{
 					symbolCounter=(int)samplesPerSymbol/2;
-					
+					// If debugging display the character buffer in binary form + the number of bits since the last character and this baudot character
 					if (theApp.isDebug()==true)	{
-						lineBuffer.append(getCharBuffer());
-						lineBuffer.append(" ("+Integer.toString(bcount)+")");
+						lineBuffer.append(getCharBuffer()+" ("+Integer.toString(bcount)+")  "+getBaudotChar());
 						characterCount=MAXCHARLENGTH;
 					}
 					else	{
+						// Display the character in the standard way
 						String ch=getBaudotChar();
 						// LF
 						if (ch.equals(BAUDOT_LETTERS[2])) characterCount=MAXCHARLENGTH;
@@ -125,13 +122,12 @@ public class FSK200500 extends FSK {
 				else	{
 					addToCharBuffer(ibit);	
 				}
-				
+				// If the character count has reached MAXCHARLENGTH then display this line
 				if (characterCount>=MAXCHARLENGTH)	{
 					outLines[0]=lineBuffer.toString();
 					lineBuffer.delete(0,lineBuffer.length());
 					characterCount=0;
 				}
-				
 			}
 		}
 		sampleCount++;
@@ -139,6 +135,7 @@ public class FSK200500 extends FSK {
 		return outLines;				
 	}
 	
+	// Look for a sequence of 4 alternating tones with 500 Hz difference
 	private String syncSequenceHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		int difference;
 		// Get 4 symbols
@@ -174,6 +171,8 @@ public class FSK200500 extends FSK {
 		return line;
 	}
 	
+	// Find the frequency of a FSK200/500 symbol
+	// Currently the program only supports a sampling rate of 8000 KHz
 	private int fsk200500Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 		// 8 KHz sampling
 		if (waveData.getSampleRate()==8000.0)	{
@@ -183,9 +182,14 @@ public class FSK200500 extends FSK {
 		return -1;
 	}
 	
+	// The "normal" way of determining the frequency of a FSK200/500 symbol
+	// is to do two FFTs of the first and last halves of the symbol
+	// that allows us to use the data for the early/late gate and to detect a half bit (which is used as a stop bit)
 	private int fsk200500FreqHalf (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 		int sp=(int)samplesPerSymbol/2;
+		// First half
 		double ff1[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
+		// Last half
 		double ff2[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
 		int high1,high2;
 		if (ff1[0]>ff1[1]) high1=0;
@@ -201,11 +205,14 @@ public class FSK200500 extends FSK {
 		else	{
 			// Test if this really could be a half bit
 			if (checkValid()==true)	{
+				// Is this a stop bit
 				if (high2>high1) return 2;
+				// No this must be a normal full bit
 				if ((ff1[0]+ff2[0])>(ff1[1]+ff2[1])) return 1;
 				else return 0;
 			}
 			else	{
+				// If there isn't a vaid baudot character in the buffer this can't be a half bit and must be a full bit
 				symbolCounter=gateEarlyLateFSK200500(ff1,ff2);
 				if ((ff1[0]+ff2[0])>(ff1[1]+ff2[1])) return 1;
 				else return 0;
@@ -221,10 +228,11 @@ public class FSK200500 extends FSK {
 		}
 		if (in==0) inChar[6]=false;
 		else inChar[6]=true;
-		
+		// Increment the bit counter
 		bcount++;
 	}
 	
+	// Display the inChar buffer in binary when in debug mode
 	private String getCharBuffer()	{
 		StringBuffer lb=new StringBuffer();
 		int a;
@@ -260,12 +268,22 @@ public class FSK200500 extends FSK {
 		else return BAUDOT_NUMBERS[a];
 	}
 	
+	// Check if this a valid Baudot character this a start and a stop
 	private boolean checkValid()	{
 		if ((inChar[0]==false)&&(inChar[6]==true)&&(bcount>=7)) return true;
 		else return false;
 	}
 	
-	
+	// The FSK200/500 early late gate code
+	private int gateEarlyLateFSK200500(double earlyVal[],double lateVal[])	{
+		double total=earlyVal[0]+lateVal[0]+earlyVal[1]+lateVal[1];
+		double gateDif=(earlyVal[0]+earlyVal[1])-(lateVal[0]+lateVal[1]);
+		gateDif=(gateDif/total)*100.0;
+		// A value of 2 below is fine for 50 baud
+		// 10 seems best for 200 baud
+		int gd=(int)gateDif/10;
+		return gd;
+		}
 	
 	
 }

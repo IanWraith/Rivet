@@ -188,17 +188,6 @@ public class FSK {
 		return totalEnergy;
 	}
 	
-	public int gateEarlyLateFSK200500(double earlyVal[],double lateVal[])	{
-		double total=earlyVal[0]+lateVal[0]+earlyVal[1]+lateVal[1];
-		double gateDif=(earlyVal[0]+earlyVal[1])-(lateVal[0]+lateVal[1]);
-		gateDif=(gateDif/total)*100.0;
-		
-		// A value of 2 below is fine for 50 baud
-		
-		int gd=(int)gateDif/2;
-		return gd;
-	}
-	
 	// Returns two bins from a 64 bin FFT covering half a symbol
 	public double[] do64FFTHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int samples,int bin0,int bin1)	{
 		double vals[]=new double[2];
