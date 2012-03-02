@@ -231,10 +231,14 @@ public class Rivet {
 					addLine(cis3650Handler.lineBuffer.toString(),Color.BLACK,plainFont);
 				}
 				
-				
 				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
 				addLine(disp,Color.BLACK,plainFont);		
+				
+				
+				addLine(fsk200500Handler.getQuailty(),Color.BLACK,plainFont);
+				
+				
 				wavFileLoadOngoing=false;
 				}
 			}

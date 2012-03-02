@@ -9,7 +9,7 @@ public class FSK200500 extends FSK {
 	private double samplesPerSymbol;
 	private Rivet theApp;
 	public long sampleCount=0;
-	private long symbolCounter=0;
+	private int symbolCounter=0;
 	private StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int characterCount=0;
@@ -21,6 +21,12 @@ public class FSK200500 extends FSK {
 	private boolean lettersMode=true;
 	private final int MAXCHARLENGTH=80;
 	private int bcount;
+	
+	private final int EARLYLATEBUFFER=20;
+	private int earlyLateCounter=0;
+	private double earlyLateBuffer[]=new double [EARLYLATEBUFFER];
+	
+	private int missingCharCounter=0;
 
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -60,7 +66,7 @@ public class FSK200500 extends FSK {
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
-			//baudRate=50;
+			baudRate=50;
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
 			// sampleCount must start negative to account for the buffer gradually filling
@@ -117,6 +123,7 @@ public class FSK200500 extends FSK {
 							characterCount++;
 						}
 					}
+					if (bcount!=7) missingCharCounter++;
 					bcount=0;
 				}
 				else	{
@@ -279,11 +286,70 @@ public class FSK200500 extends FSK {
 		double total=earlyVal[0]+lateVal[0]+earlyVal[1]+lateVal[1];
 		double gateDif=(earlyVal[0]+earlyVal[1])-(lateVal[0]+lateVal[1]);
 		gateDif=(gateDif/total)*100.0;
-		// A value of 2 below is fine for 50 baud
-		// 10 seems best for 200 baud
-		int gd=(int)gateDif/10;
+		addToEarlyLateBuffer(gateDif);
+		int gd=averageEarlyLate();
 		return gd;
 		}
+	
+	private void addToEarlyLateBuffer (double in)	{
+		earlyLateBuffer[earlyLateCounter]=in;
+		earlyLateCounter++;
+		if (earlyLateCounter==EARLYLATEBUFFER) earlyLateCounter=0;
+	}
+	
+	private int averageEarlyLate ()	{
+		int a;
+		double t=0;
+		for (a=0;a<EARLYLATEBUFFER;a++)	{
+			t=t+earlyLateBuffer[a];
+		}
+		t=t/(double)EARLYLATEBUFFER;
+		// 50 baud errors with a buffer size of 20
+		// 4 = 104
+		// 5 = 78 
+		// 6 = 98
+		// 200 baud with a buffer size of 20
+		// 527 with no early late gate
+		// 5 = 927
+		// 10 = 584
+		// 20 = 544
+		// 30 = 529
+		// 40 = 527
+		// 50 = 527
+		
+		// 200 baud with a buffer size of 2
+		// 5 = 1630
+		// 20 = 591
+		// 30 = 543
+		// 40 = 536
+		// 50 = 546
+		
+		// 200 baud with a buffer size of 5
+		// 5 = 1334
+		// 20 = 543
+		// 30 = 
+		// 40 = 
+		// 50 = 527
+		
+		// 200 baud with a buffer size of 30
+		// 5 = 
+		// 20 = 544
+		// 30 = 
+		// 40 = 527
+		// 50 = 527
+		
+		a=(int)t/5;
+		
+		theApp.debugDump(Long.toString(sampleCount)+","+Double.toString(t)+","+Integer.toString(a)+","+Integer.toString(bcount));
+		
+		return a;
+	}
+	
+	public String getQuailty()	{
+		String line;
+		line="There were "+Integer.toString(missingCharCounter)+" missing characters";
+		return line;
+	}
 	
 	
 }
