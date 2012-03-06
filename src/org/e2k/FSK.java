@@ -8,8 +8,10 @@ public class FSK {
 	private double totalEnergy;
 	private double highestValue;
 	public final int FFT_64_SIZE=64;
+	public final int FFT_80_SIZE=80;
 	private int freqBin;
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
+	private DoubleFFT_1D fft80=new DoubleFFT_1D(FFT_80_SIZE);
 
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -125,7 +127,7 @@ public class FSK {
 		return vals;
 		}
 	
-	// A 64 point FFT is fine for both 8000 KHz and 11025 KHz 
+	// 64 point FFT 
 	public int do64FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
 		double datar[]=circBuf.extractDataDouble(start,FFT_64_SIZE);
@@ -145,6 +147,27 @@ public class FSK {
 		vals[0]=spec[bin0];
 		vals[1]=spec[bin1];
 		return vals;
+		}
+	
+	// Does a 80 point FFT then returns the values of two specific bins
+	public double[] do80FFTBinRequest (CircularDataBuffer circBuf,WaveData waveData,int start,int bin0,int bin1)	{
+		double vals[]=new double[2];
+		// Get the data from the circular buffer
+		double datar[]=circBuf.extractDataDouble(start,FFT_80_SIZE);
+		fft80.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		vals[0]=spec[bin0];
+		vals[1]=spec[bin1];
+		return vals;
+		}
+	
+	public int do80FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+		double datar[]=circBuf.extractDataDouble(start,FFT_80_SIZE);
+		fft80.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
 		}
 
 	// Test for a specific tone
