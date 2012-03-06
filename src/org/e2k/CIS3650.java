@@ -36,6 +36,18 @@ public class CIS3650 extends FSK {
 	private final String ITA3LETS[]={"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","<cr>","<lf>","<let>","<fig>"," ","<unperf>","<Request>","<Idle a>","<Idle b>","<0x51>"}; 
 	private int totalCharacterCount=0;
 	private int totalErrorCount=0;
+	private int highBin;
+	private int lowBin;
+	private int b7Count;
+	private int countSinceSync;
+	
+	private final int EARLYLATEBUFFER=5;
+	private int earlyLateCounter=0;
+	private double earlyLateBuffer[]=new double [EARLYLATEBUFFER];
+	
+	private String startLine;
+	private String syncLine;
+	private String sessionLine;
 	
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -43,13 +55,13 @@ public class CIS3650 extends FSK {
 	
 	// The main decode routine
 	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
-		String outLines[]=new String[2];
+		String outLines[]=new String[3];
 		
 		if (state==0)	{
 			// Check the sample rate
-			if (waveData.getSampleRate()>11025.0)	{
+			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
-				JOptionPane.showMessageDialog(null,"WAV files containing\nCIS 36-50 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(null,"WAV files containing\nCIS 36-50 recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
 			// Check this is a mono recording
@@ -71,6 +83,7 @@ public class CIS3650 extends FSK {
 			buffer21=0;
 			characterCount=0;
 			syncBufferCounter=0;
+			theApp.setStatusLabel("Sync Hunt");
 			return null;
 		}
 		
@@ -87,13 +100,39 @@ public class CIS3650 extends FSK {
 			}
 			// Look for a 50 baud alternating sync sequence
 			if (detect50Sync(circBuf,waveData)==true)	{
-				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
 				// Jump the next stage to acquire symbol timing
-				state=3;
+				state=2;
 				totalErrorCount=0;
 				totalCharacterCount=0;
 				syncState=1;
+				buffer7=0;
+				b7Count=0;
 				return outLines;
+			}
+		}
+		
+		if (state==2)	{
+			if (symbolCounter>=(long)samplesPerSymbol50)	{		
+				// Get the early/late gate difference value
+				double gateDif=gateEarlyLate(circBuf,(int)samplesPerSymbol50);	
+				addToEarlyLateBuffer(gateDif);
+				symbolCounter=averageEarlyLate();
+				// Demodulate a single bit
+				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
+				addToBuffer7(bit);
+				b7Count++;
+				if (b7Count==4)	{
+					buffer7=buffer7&0xF;
+					// Look for 0101 (5) or 1010 (10)
+					if ((buffer7==5)||(buffer7==10))	{
+						state=3;
+						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
+						b7Count=0;
+						countSinceSync=0;
+						theApp.setStatusLabel("50 Baud Sync Found");
+					}
+					else state=0;
+				}
 			}
 		}
 			
@@ -102,20 +141,28 @@ public class CIS3650 extends FSK {
 			// Only demodulate a bit every samplesPerSymbol50 samples
 			if (symbolCounter>=(long)samplesPerSymbol50)	{		
 				// Get the early/late gate difference value
-				double gateDif=gateEarlyLate(circBuf,(int)samplesPerSymbol50);	
-				// Adjust the symbol counter as required to obtain symbol sync
-				symbolCounter=(int)gateDif/3;
+				double gateDif=gateEarlyLate(circBuf,(int)samplesPerSymbol50);
+				addToEarlyLateBuffer(gateDif);
+				symbolCounter=averageEarlyLate();
 				// Demodulate a single bit
-				boolean bit=getSymbolBit(circBuf,waveData,0);
+				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
+				// Increment the count since sync
+				countSinceSync++;
+				// If no sync work has been found in 500 bits then go back to hunting
+				if ((syncState==1)&&(countSinceSync==500))	{
+					state=1;
+					if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
+				}
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
 						addToSyncBuffer(bit);
 						// Check if the sync buffer holds a valid sync word
 						if (syncValidCheck()==true)	{
 							syncState=2;
-							outLines[0]="Message Start";
+							theApp.setStatusLabel("Decoding Message");
+							startLine=theApp.getTimeStamp()+" Message Start";
 							long header=syncBufferAsLong();
-							outLines[1]="Sync 0x"+Long.toHexString(header);
+							syncLine="Sync 0x"+Long.toHexString(header);
 							buffer21=0;
 							buffer7=0;
 							keyCount=0;
@@ -133,20 +180,28 @@ public class CIS3650 extends FSK {
 							else key2[keyCount-10]=buffer7;
 							if (keyCount==19)	{
 								syncState=3;
-								outLines[0]="Session Key is ";
+								sessionLine="Session Key is ";
 								int a;
 								for (a=0;a<10;a++)	{
 									// Check the session key is made up of valid ITA3 numbers 
 									if (checkITA3Char(key1[a])==true)	{
 										int c=retITA3Val(key1[a]);
-										outLines[0]=outLines[0]+"0x"+Integer.toHexString(c)+" ";
+										sessionLine=sessionLine+"0x"+Integer.toHexString(c)+" ";
 									}
 									else	{
-										outLines[0]=outLines[0]+"<ERROR> ";
+										sessionLine=sessionLine+"<ERROR> ";
 									}
 								}
 								// Both keys should be the same
-								if (!Arrays.equals(key1,key2)) outLines[0]=outLines[0]+" (ERROR SESSION KEY MISMATCH)"; 
+								if (!Arrays.equals(key1,key2))	{
+									state=1;
+								}
+								else	{
+									outLines[0]=startLine;
+									outLines[1]=syncLine;
+									outLines[2]=sessionLine;
+									theApp.setStatusLabel("Incoming message");
+								}
 							}
 							else keyCount++;
 							startCount=0;
@@ -202,7 +257,7 @@ public class CIS3650 extends FSK {
 						double err=((double)totalErrorCount/(double)totalCharacterCount)*100.0;
 						outLines[0]="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message "+Double.toString(err)+"% of these contained errors)";
 						syncBufferCounter=0;
-						state=1;
+						state=2;
 					}
 				}
 				else	{
@@ -249,13 +304,24 @@ public class CIS3650 extends FSK {
 		return bit;
 	}
 	
+	private boolean getSymbolFreqBin (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		double v[]=do64FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
+		if (theApp.isInvertSignal()==false)	{
+			if (v[0]>v[1]) return false;
+			else return true;
+		}
+		else	{
+			if (v[0]>v[1]) return true;
+			else return false;
+		}
+	}
+	
 	// Add a bit to the 7 bit buffer
 	private void addToBuffer7(boolean bit)	{
 		buffer7<<=1;
 		buffer7=buffer7&0x7F;
 		if (bit==true) buffer7++;
 		}
-	
 	
 	// Add a bit to the 21 bit buffer
 	private void addToBuffer21(boolean bit)	{
@@ -299,7 +365,7 @@ public class CIS3650 extends FSK {
 	
 	// See if the buffer holds a 50 baud alternating sequence
 	private boolean detect50Sync(CircularDataBuffer circBuf,WaveData waveData)	{
-		int pos=0,b0,b1,b2,b3;
+		int pos=0,b0,b1;
 		int f0=getSymbolFreq(circBuf,waveData,pos);
 		b0=getFreqBin();
 		// Check this first tone isn't just noise the highest bin must make up 10% of the total
@@ -308,35 +374,23 @@ public class CIS3650 extends FSK {
 		int f1=getSymbolFreq(circBuf,waveData,pos);
 		b1=getFreqBin();
 		if (f0==f1) return false;
-		pos=(int)samplesPerSymbol50*2;
-		int f2=getSymbolFreq(circBuf,waveData,pos);
-		b2=getFreqBin();
-		if (f1==f2) return false;
-		pos=(int)samplesPerSymbol50*3;
-		int f3=getSymbolFreq(circBuf,waveData,pos);
-		b3=getFreqBin();
-		// Look for a 50 baud alternating sequence
-		if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
-			if (f0>f1)	{
-				highTone=f0;
-				lowTone=f1;
+		if (f0>f1)	{
+			highTone=f0;
+			highBin=b0;
+			lowTone=f1;
+			lowBin=b1;
 			}
 			else	{
-				highTone=f1;
-				lowTone=f0;
+			highTone=f1;
+			highBin=b1;
+			lowTone=f0;
+			lowBin=b0;
 			}
-			pos=(int)samplesPerSymbol50*4;
-			int f4=getSymbolFreq(circBuf,waveData,pos);
-			pos=(int)samplesPerSymbol50*5;
-			int f5=getSymbolFreq(circBuf,waveData,pos);
-			if ((f3!=f5)||(f2!=f4)) return false;	
-			centre=(highTone+lowTone)/2;
-			int shift=highTone-lowTone;
-			// Check for an incorrect shift
-			if ((shift>300)||(shift<150)) return false;
-			return true;
-		}
-	return false;
+		centre=(highTone+lowTone)/2;
+		int shift=highTone-lowTone;
+		// Check for an incorrect shift
+		if ((shift>275)||(shift<225)) return false;
+		return true;
 	}
 	
 	// Add a bit to the 44 bit sync buffer
@@ -435,6 +489,23 @@ public class CIS3650 extends FSK {
 			if (c==ITA3VALS[a]) return a;
 		}
 		return 0;
+	}
+	
+	private void addToEarlyLateBuffer (double in)	{
+		earlyLateBuffer[earlyLateCounter]=in;
+		earlyLateCounter++;
+		if (earlyLateCounter==EARLYLATEBUFFER) earlyLateCounter=0;
+	}
+	
+	private int averageEarlyLate ()	{
+		int a;
+		double t=0;
+		for (a=0;a<EARLYLATEBUFFER;a++)	{
+			t=t+earlyLateBuffer[a];
+		}
+		t=t/(double)EARLYLATEBUFFER;
+		a=(int)t/2;
+		return a;
 	}
 	
 	
