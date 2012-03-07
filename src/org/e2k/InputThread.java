@@ -42,7 +42,7 @@ public class InputThread extends Thread {
 	private int volumeBufferCounter=0;
 	private static int ISIZE=4096;
 	private byte buffer[]=new byte[ISIZE+1];
-	private final int MULTIPLY_FACTOR=10;
+	private final int MULTIPLY_FACTOR=25;
 	private Rivet theApp; 
 	
  
