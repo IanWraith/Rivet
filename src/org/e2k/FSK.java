@@ -192,24 +192,6 @@ public class FSK {
 		return freqBin;
 	}
 	
-	// Return an early/late gate difference value as a percentage of the total (for CIS36-50)
-	public double gateEarlyLate (CircularDataBuffer circBuf,int samplesPerSymbol)	{
-		int ss=samplesPerSymbol/2;
-		double earlyVal=integrateDump64(circBuf,0);
-		double lateVal=integrateDump64(circBuf,ss);
-		double total=earlyVal+lateVal;
-		double gateDif=earlyVal-lateVal;
-		gateDif=(gateDif/total)*100.0;
-		return gateDif;
-	}
-	
-	// An integrate and dump routine which uses spectral energy (for CIS36-50)
-	private double integrateDump64 (CircularDataBuffer circBuf,int start)	{
-		double datar[]=circBuf.extractDataDouble(start,FFT_64_SIZE);
-		fft64.realForward(datar);
-		getSpectrum(datar);
-		return totalEnergy;
-	}
 	
 	// Returns two bins from a 64 bin FFT covering half a symbol
 	public double[] do64FFTHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int samples,int bin0,int bin1)	{

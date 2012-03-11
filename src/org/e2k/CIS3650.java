@@ -21,7 +21,6 @@ public class CIS3650 extends FSK {
 	public StringBuffer lineBuffer=new StringBuffer();
 	private int highTone;
 	private int lowTone;
-	private int centre;
 	private int syncState;
 	private int buffer7=0;
 	private int buffer21=0;
@@ -40,14 +39,11 @@ public class CIS3650 extends FSK {
 	private int lowBin;
 	private int b7Count;
 	private int countSinceSync;
-	
-	private final int EARLYLATEBUFFER=5;
-	private int earlyLateCounter=0;
-	private double earlyLateBuffer[]=new double [EARLYLATEBUFFER];
-	
 	private String startLine;
 	private String syncLine;
 	private String sessionLine;
+	
+	private double tdouble;
 	
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -84,6 +80,9 @@ public class CIS3650 extends FSK {
 			characterCount=0;
 			syncBufferCounter=0;
 			theApp.setStatusLabel("Sync Hunt");
+			
+			theApp.debugDump("Sync Hunt");
+			
 			return null;
 		}
 		
@@ -113,10 +112,6 @@ public class CIS3650 extends FSK {
 		
 		if (state==2)	{
 			if (symbolCounter>=(long)samplesPerSymbol50)	{		
-				// Get the early/late gate difference value
-				double gateDif=gateEarlyLate(circBuf,(int)samplesPerSymbol50);	
-				addToEarlyLateBuffer(gateDif);
-				symbolCounter=averageEarlyLate();
 				// Demodulate a single bit
 				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
 				addToBuffer7(bit);
@@ -130,6 +125,9 @@ public class CIS3650 extends FSK {
 						b7Count=0;
 						countSinceSync=0;
 						theApp.setStatusLabel("50 Baud Sync Found");
+						
+						theApp.debugDump("50 Baud Sync Found");
+						
 					}
 					else state=0;
 				}
@@ -140,10 +138,6 @@ public class CIS3650 extends FSK {
 		if (state==3)	{
 			// Only demodulate a bit every samplesPerSymbol50 samples
 			if (symbolCounter>=(long)samplesPerSymbol50)	{		
-				// Get the early/late gate difference value
-				double gateDif=gateEarlyLate(circBuf,(int)samplesPerSymbol50);
-				addToEarlyLateBuffer(gateDif);
-				symbolCounter=averageEarlyLate();
 				// Demodulate a single bit
 				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
 				// Increment the count since sync
@@ -151,6 +145,7 @@ public class CIS3650 extends FSK {
 				// If no sync work has been found in 500 bits then go back to hunting
 				if ((syncState==1)&&(countSinceSync==500))	{
 					state=1;
+					theApp.debugDump("Sync Lost");
 					if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
 				}
 				if (theApp.isDebug()==false)	{
@@ -258,6 +253,7 @@ public class CIS3650 extends FSK {
 						outLines[0]="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message "+Double.toString(err)+"% of these contained errors)";
 						syncBufferCounter=0;
 						state=2;
+						theApp.debugDump("EOM");
 					}
 				}
 				else	{
@@ -293,28 +289,51 @@ public class CIS3650 extends FSK {
 
 	// Get the frequency at a certain symbol
 	private int getSymbolFreq (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		int fr=do64FFT(circBuf,waveData,start);
+		int fr=do80FFT(circBuf,waveData,start);
 		return fr;
 	}
 	
-	// Return the bit value for a certain symbol
-	private boolean getSymbolBit (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		int f=getSymbolFreq(circBuf,waveData,start);
-		boolean bit=freqDecision(f,centre,theApp.isInvertSignal());
+	private boolean getSymbolFreqBin (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		boolean bit;
+		double early[]=do80FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
+		start=start+((int)samplesPerSymbol50/2);
+		double late[]=do80FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
+		// Get the early/late gate difference value
+		symbolCounter=gateEarlyLateBEE(early,late,samplesPerSymbol50);
+		
+		double lowTotal=early[0]+late[0];
+		double highTotal=early[1]+late[1];
+		
+		if (theApp.isInvertSignal()==false)	{
+			if (lowTotal>highTotal) bit=true;
+			else bit=false;
+		}
+		else	{
+			if (lowTotal>highTotal) bit=true;
+			else bit=false;
+		}
+		
+		String line=Double.toString(lowTotal)+","+Double.toString(highTotal)+","+Double.toString(tdouble);
+		if (bit==true) line=line+",1";
+		else line=line+",0";
+		theApp.debugDump(line);
+		
 		return bit;
 	}
 	
-	private boolean getSymbolFreqBin (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		double v[]=do64FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
-		if (theApp.isInvertSignal()==false)	{
-			if (v[0]>v[1]) return false;
-			else return true;
+	// The CIS36-50 early late gate code
+	private int gateEarlyLateBEE(double earlyVal[],double lateVal[],double samplesPerSym)	{
+		double total=earlyVal[0]+lateVal[0]+earlyVal[1]+lateVal[1];
+		double gateDif=(earlyVal[0]+earlyVal[1])-(lateVal[0]+lateVal[1]);
+		gateDif=(gateDif/total)*100.0;
+		double per=(samplesPerSym/100.0)*gateDif;
+		
+		tdouble=per;
+		
+		//per=per/3;
+		per=0.0;
+		return (int)per;
 		}
-		else	{
-			if (v[0]>v[1]) return true;
-			else return false;
-		}
-	}
 	
 	// Add a bit to the 7 bit buffer
 	private void addToBuffer7(boolean bit)	{
@@ -354,7 +373,6 @@ public class CIS3650 extends FSK {
 				highTone=f1;
 				lowTone=f0;
 			}
-			centre=(highTone+lowTone)/2;
 			int shift=highTone-lowTone;
 			// Check for an incorrect shift
 			if ((shift>300)||(shift<150)) return false;
@@ -386,10 +404,9 @@ public class CIS3650 extends FSK {
 			lowTone=f0;
 			lowBin=b0;
 			}
-		centre=(highTone+lowTone)/2;
 		int shift=highTone-lowTone;
 		// Check for an incorrect shift
-		if ((shift>275)||(shift<225)) return false;
+		if ((shift>300)||(shift<100)) return false;
 		return true;
 	}
 	
@@ -491,22 +508,7 @@ public class CIS3650 extends FSK {
 		return 0;
 	}
 	
-	private void addToEarlyLateBuffer (double in)	{
-		earlyLateBuffer[earlyLateCounter]=in;
-		earlyLateCounter++;
-		if (earlyLateCounter==EARLYLATEBUFFER) earlyLateCounter=0;
-	}
 	
-	private int averageEarlyLate ()	{
-		int a;
-		double t=0;
-		for (a=0;a<EARLYLATEBUFFER;a++)	{
-			t=t+earlyLateBuffer[a];
-		}
-		t=t/(double)EARLYLATEBUFFER;
-		a=(int)t/2;
-		return a;
-	}
 	
 	
 	
