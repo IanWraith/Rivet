@@ -16,15 +16,19 @@ public class FSK200500 extends FSK {
 	private int highBin;
 	private int lowBin;
 	private boolean inChar[]=new boolean[7];
-	private final String BAUDOT_LETTERS[]={"N/A","E","<LF>","A"," ","S","I","U","<CR>","D","R","J","N","F","C","K","T","Z","L","W","H","Y","P","Q","O","B","G","<FIG>","M","X","V","<LET>"};
-	private final String BAUDOT_NUMBERS[]={"N/A","3","<LF>","-"," ","<BELL>","8","7","<CR>","$","4","'",",","!",":","(","5","\"",")","2","#","6","0","1","9","?","&","<FIG>",".","/","=","<LET>"};
-	private boolean lettersMode=true;
 	private final int MAXCHARLENGTH=80;
 	private int bcount;
 	
-	private final int EARLYLATEBUFFER=20;
 	private int earlyLateCounter=0;
-	private double earlyLateBuffer[]=new double [EARLYLATEBUFFER];
+	private int earlyLateBuffer[]=new int[6];
+	
+	// 02 - 1315
+	// 03 - 952
+	// 05 - 838
+	// 06 - 768 missing
+	// 07 - 825
+	// 10 - 790
+	// 20 - 796
 	
 	private int missingCharCounter=0;
 
@@ -66,7 +70,11 @@ public class FSK200500 extends FSK {
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
-			baudRate=50;
+			
+			
+			///baudRate=50;
+			
+			
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
 			// sampleCount must start negative to account for the buffer gradually filling
@@ -115,9 +123,9 @@ public class FSK200500 extends FSK {
 						// Display the character in the standard way
 						String ch=getBaudotChar();
 						// LF
-						if (ch.equals(BAUDOT_LETTERS[2])) characterCount=MAXCHARLENGTH;
+						if (ch.equals(getBAUDOT_LETTERS(2))) characterCount=MAXCHARLENGTH;
 						// CR
-						else if (ch.equals(BAUDOT_LETTERS[8])) characterCount=MAXCHARLENGTH;
+						else if (ch.equals(getBAUDOT_LETTERS(8))) characterCount=MAXCHARLENGTH;
 						else	{
 							lineBuffer.append(ch);
 							characterCount++;
@@ -196,8 +204,10 @@ public class FSK200500 extends FSK {
 		int sp=(int)samplesPerSymbol/2;
 		// First half
 		double ff1[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
+		double earlyE=getComponentDC();
 		// Last half
 		double ff2[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
+		double lateE=getComponentDC();
 		int high1,high2;
 		if (ff1[0]>ff1[1]) high1=0;
 		else high1=1;
@@ -205,7 +215,13 @@ public class FSK200500 extends FSK {
 		else high2=1;
 		// Both the same
 		if (high1==high2)	{
-			symbolCounter=gateEarlyLateFSK200500(ff1,ff2);
+			//symbolCounter=gateEarlyLateFSK200500(ff1,ff2);
+			// Get the early/late gate difference value
+			int scc=Comparator(earlyE,lateE);
+			addToEarlyLateBuffer(scc);
+			symbolCounter=testEarlyLateBuffer();
+			
+			//symbolCounter=Comparator(earlyE,lateE);
 			if (high1==0) return 1;
 			else return 0;
 		}
@@ -220,7 +236,7 @@ public class FSK200500 extends FSK {
 			}
 			else	{
 				// If there isn't a vaid baudot character in the buffer this can't be a half bit and must be a full bit
-				symbolCounter=gateEarlyLateFSK200500(ff1,ff2);
+				//symbolCounter=gateEarlyLateFSK200500(ff1,ff2);
 				if ((ff1[0]+ff2[0])>(ff1[1]+ff2[1])) return 1;
 				else return 0;
 			}
@@ -271,8 +287,11 @@ public class FSK200500 extends FSK {
 			lettersMode=true;
 			return "";
 		}
-		else if (lettersMode==true) return BAUDOT_LETTERS[a];
-		else return BAUDOT_NUMBERS[a];
+		
+		
+		
+		//else if (lettersMode==true) return BAUDOT_LETTERS[a];
+		else return getBAUDOT_NUMBERS(a);
 	}
 	
 	// Check if this a valid Baudot character this a start and a stop
@@ -281,75 +300,26 @@ public class FSK200500 extends FSK {
 		else return false;
 	}
 	
-	// The FSK200/500 early late gate code
-	private int gateEarlyLateFSK200500(double earlyVal[],double lateVal[])	{
-		double total=earlyVal[0]+lateVal[0]+earlyVal[1]+lateVal[1];
-		double gateDif=(earlyVal[0]+earlyVal[1])-(lateVal[0]+lateVal[1]);
-		gateDif=(gateDif/total)*100.0;
-		addToEarlyLateBuffer(gateDif);
-		int gd=averageEarlyLate();
-		return gd;
-		}
-	
-	private void addToEarlyLateBuffer (double in)	{
-		earlyLateBuffer[earlyLateCounter]=in;
-		earlyLateCounter++;
-		if (earlyLateCounter==EARLYLATEBUFFER) earlyLateCounter=0;
-	}
-	
-	private int averageEarlyLate ()	{
-		int a;
-		double t=0;
-		for (a=0;a<EARLYLATEBUFFER;a++)	{
-			t=t+earlyLateBuffer[a];
-		}
-		t=t/(double)EARLYLATEBUFFER;
-		// 50 baud errors with a buffer size of 20
-		// 4 = 104
-		// 5 = 78 
-		// 6 = 98
-		// 200 baud with a buffer size of 20
-		// 527 with no early late gate
-		// 5 = 927
-		// 10 = 584
-		// 20 = 544
-		// 30 = 529
-		// 40 = 527
-		// 50 = 527
-		
-		// 200 baud with a buffer size of 2
-		// 5 = 1630
-		// 20 = 591
-		// 30 = 543
-		// 40 = 536
-		// 50 = 546
-		
-		// 200 baud with a buffer size of 5
-		// 5 = 1334
-		// 20 = 543
-		// 30 = 
-		// 40 = 
-		// 50 = 527
-		
-		// 200 baud with a buffer size of 30
-		// 5 = 
-		// 20 = 544
-		// 30 = 
-		// 40 = 527
-		// 50 = 527
-		
-		a=(int)t/5;
-		
-		theApp.debugDump(Long.toString(sampleCount)+","+Double.toString(t)+","+Integer.toString(a)+","+Integer.toString(bcount));
-		
-		return a;
-	}
-	
 	public String getQuailty()	{
 		String line;
 		line="There were "+Integer.toString(missingCharCounter)+" missing characters";
 		return line;
 	}
+	
+	private void addToEarlyLateBuffer (int in)	{
+		earlyLateBuffer[earlyLateCounter]=in;
+		earlyLateCounter++;
+		if (earlyLateCounter==earlyLateBuffer.length) earlyLateCounter=0;
+	}
+	
+	private int testEarlyLateBuffer ()	{
+		int a;
+		for (a=1;a<earlyLateBuffer.length;a++)	{
+			if (earlyLateBuffer[0]!=earlyLateBuffer[a]) return 0;
+		}
+		return earlyLateBuffer[0];
+	}
+
 	
 	
 }

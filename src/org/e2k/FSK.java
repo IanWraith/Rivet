@@ -4,6 +4,9 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 public class FSK {
 	
+	private final String BAUDOT_LETTERS[]={"N/A","E","<LF>","A"," ","S","I","U","<CR>","D","R","J","N","F","C","K","T","Z","L","W","H","Y","P","Q","O","B","G","<FIG>","M","X","V","<LET>"};
+	private final String BAUDOT_NUMBERS[]={"N/A","3","<LF>","-"," ","<BELL>","8","7","<CR>","$","4","'",",","!",":","(","5","\"",")","2","#","6","0","1","9","?","&","<FIG>",".","/","=","<LET>"};
+	public boolean lettersMode=true;
 	private int highSpectrum;
 	private double totalEnergy;
 	private double highestValue;
@@ -226,6 +229,14 @@ public class FSK {
 		if (e==l) return 0;
 		else if (e>l) return -1;
 		else return 1;
+	}
+
+	public String getBAUDOT_LETTERS(int i) {
+		return BAUDOT_LETTERS[i];
+	}
+
+	public String getBAUDOT_NUMBERS(int i) {
+		return BAUDOT_NUMBERS[i];
 	}
 
 	
