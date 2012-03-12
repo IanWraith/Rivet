@@ -12,6 +12,7 @@ public class FSK {
 	private int freqBin;
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
 	private DoubleFFT_1D fft80=new DoubleFFT_1D(FFT_80_SIZE);
+	private double componentDC;
 
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -26,6 +27,7 @@ public class FSK {
 			// Clear the total energy sum
 			totalEnergy=0.0;
 			int a,count=0;
+			componentDC=data[0];
 			for (a=2;a<data.length;a=a+2)	{
 				spectrum[count]=Math.sqrt(Math.pow(data[a],2.0)+Math.pow(data[a+1],2.0));
 				if (spectrum[count]>highS) highS=spectrum[count];
@@ -211,5 +213,21 @@ public class FSK {
 		vals[1]=spec[bin1];
 		return vals;
 		}
+
+	// Returns the DC component of the signal
+	public double getComponentDC() {
+		return componentDC;
+	}
+	
+	// A basic comparator function
+	public int Comparator (double early,double late)	{
+		double e=Math.abs(early);
+		double l=Math.abs(late);
+		if (e==l) return 0;
+		else if (e>l) return -1;
+		else return 1;
+	}
+
+	
 	
 }
