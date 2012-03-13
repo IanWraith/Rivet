@@ -35,10 +35,11 @@ Build 15 detects the start and end of CIS36-50 messages.
 Build 16 displays CIS36-50 traffic in 7 bit blocks.
 Build 17 incorporates information received on the make up of CIS36-50 messages
 Build 18 adds an early/late gate to improve CIS36-50 symbol sync
+Build 19 further improves the CIS36-50 early/late gate and improves FSK200/500 decoding
 
 Reported Bugs
 -------------
 
 Still problems with CROWD36 decoding. Not a bug as such but more a lack of understanding of this mode.
 
-Ian Wraith (8th February 2012) 
+Ian Wraith (13th March 2012) 
