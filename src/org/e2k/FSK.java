@@ -223,7 +223,7 @@ public class FSK {
 	}
 	
 	// A comparator function
-	public int Comparator (double early,double late)	{
+	public int Comparator (double early,double late,double threshold)	{
 		double e=Math.abs(early);
 		double l=Math.abs(late);
 		// Calculate the percentage difference of the total
@@ -231,8 +231,8 @@ public class FSK {
 		if (e>l) dif=e-l;
 		else dif=l-e;
 		double per=(dif/(e+l))*100.0;
-		// If the percentage difference is less than 25% return a zero
-		if (per<25.0) return 0;
+		// If the percentage difference is less than the threshold return a zero
+		if (per<threshold) return 0;
 		else if (e>l) return -1;
 		else return 1;
 	}

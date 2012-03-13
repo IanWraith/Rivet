@@ -287,7 +287,7 @@ public class CIS3650 extends FSK {
 		double late[]=do80FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
 		double lateE=getComponentDC();
 		// Set the symbolCounter value from the early/late gate value
-		symbolCounter=Comparator(earlyE,lateE);
+		symbolCounter=Comparator(earlyE,lateE,25.0);
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
 		if (theApp.isInvertSignal()==false)	{
