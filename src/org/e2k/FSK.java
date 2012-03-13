@@ -100,9 +100,9 @@ public class FSK {
 	public int doFSK200500_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start,int ss)	{
 		// Get the data from the circular buffer
 	    double datao[]=circBuf.extractDataDouble(start,ss);
-	    double datar[]=new double[64];
+	    double datar[]=new double[FFT_64_SIZE];
 	    int a,c=0;
-	    for (a=0;a<64;a++)	{
+	    for (a=0;a<datar.length;a++)	{
 	    	if (c<ss) datar[a]=datao[c];
 	    	else datar[a]=0.0;
 	    	c++;
@@ -120,7 +120,7 @@ public class FSK {
 	    double datao[]=circBuf.extractDataDouble(start,ss);
 	    double datar[]=new double[FFT_64_SIZE];
 	    int a,c=0;
-	    for (a=0;a<FFT_64_SIZE;a++)	{
+	    for (a=0;a<datar.length;a++)	{
 	    	if (c<ss) datar[a]=datao[c];
 	    	else datar[a]=0.0;
 	    	c++;
@@ -206,7 +206,7 @@ public class FSK {
 		double datar[]=new double[FFT_64_SIZE];
 		// Get the data from the circular buffer
 		double samData[]=circBuf.extractDataDouble(start,samples);
-		for (a=0;a<FFT_64_SIZE;a++)	{
+		for (a=0;a<datar.length;a++)	{
 			if (a<hs) datar[a]=samData[a];
 			else datar[a]=0.0;
 		}
@@ -222,19 +222,27 @@ public class FSK {
 		return componentDC;
 	}
 	
-	// A basic comparator function
+	// A comparator function
 	public int Comparator (double early,double late)	{
 		double e=Math.abs(early);
 		double l=Math.abs(late);
-		if (e==l) return 0;
+		// Calculate the percentage difference of the total
+		double dif;
+		if (e>l) dif=e-l;
+		else dif=l-e;
+		double per=(dif/(e+l))*100.0;
+		// If the percentage difference is less than 25% return a zero
+		if (per<25.0) return 0;
 		else if (e>l) return -1;
 		else return 1;
 	}
 
+	// Get a Baudot letter
 	public String getBAUDOT_LETTERS(int i) {
 		return BAUDOT_LETTERS[i];
 	}
 
+	// Get a Baudot number
 	public String getBAUDOT_NUMBERS(int i) {
 		return BAUDOT_NUMBERS[i];
 	}
