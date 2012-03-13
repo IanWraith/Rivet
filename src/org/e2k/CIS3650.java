@@ -69,7 +69,6 @@ public class CIS3650 extends FSK {
 			symbolCounter=0;
 			samplesPerSymbol36=samplesPerSymbol(36.0,waveData.getSampleRate());
 			samplesPerSymbol50=samplesPerSymbol(50.0,waveData.getSampleRate());
-			
 			state=1;
 			lineBuffer.delete(0,lineBuffer.length());
 			syncState=0;
@@ -256,13 +255,9 @@ public class CIS3650 extends FSK {
 						characterCount=0;
 					}
 					else characterCount++;
-					
 				}
-				
-			}
-				
+			}	
 		}
-		
 		sampleCount++;
 		symbolCounter++;
 		return outLines;
@@ -283,23 +278,18 @@ public class CIS3650 extends FSK {
 		return fr;
 	}
 	
+	// Return the symbol frequency given the bins that hold the possible tones
 	private boolean getSymbolFreqBin (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		boolean bit;
 		double early[]=do80FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
-		
 		double earlyE=getComponentDC();
-		
 		start=start+((int)samplesPerSymbol50/2);
 		double late[]=do80FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
-		
 		double lateE=getComponentDC();
-		
-		// Get the early/late gate difference value
+		// Set the symbolCounter value from the early/late gate value
 		symbolCounter=Comparator(earlyE,lateE);
-		
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
-		
 		if (theApp.isInvertSignal()==false)	{
 			if (lowTotal>highTotal) bit=true;
 			else bit=false;
@@ -308,15 +298,6 @@ public class CIS3650 extends FSK {
 			if (lowTotal>highTotal) bit=true;
 			else bit=false;
 		}
-		
-		
-		
-		//String line=Double.toString(earlyE)+","+Double.toString(lateE);
-		
-		//if (bit==true) line=line+",1";
-		//else line=line+",0";
-		//theApp.debugDump(line);
-		
 		return bit;
 	}
 	
@@ -414,31 +395,20 @@ public class CIS3650 extends FSK {
 		for (a=0;a<syncBuffer.length;a++)	{
 			if (syncBuffer[a]==true) count++;
 		}
-		
-	
-		
-		//int mid=syncBufferMiddleAsInt();
-		//if ((mid!=0xeb)&&(mid!=14)) return false;
-		
-		
 		// If count is 23 and the first three bits are true this OK but we are inverted
 		if ((count==23)&&(syncBuffer[0]==true)&&(syncBuffer[1]==true)&&(syncBuffer[2]==true))	{
 			// Change the invert setting
 			theApp.changeInvertSetting();
 			// Invert the complete sync buffer to reflect the change
 			syncBufferInvert();
-		
 			int mid=syncBufferMiddleAsInt();
 			if (mid!=235) return false;
-			
 			return true;
 		}
 		// If the count is 21 and the first three bits are false then we are all OK
 		else if ((count==21)&&(syncBuffer[0]==false)&&(syncBuffer[1]==false)&&(syncBuffer[2]==false))	{
-			
 			int mid=syncBufferMiddleAsInt();
 			if (mid!=235) return false;
-			
 			return true;
 		}
 		// No match
