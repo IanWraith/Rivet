@@ -19,7 +19,16 @@ public class FSK200500 extends FSK {
 	private final int MAXCHARLENGTH=80;
 	private int bcount;
 	private int missingCharCounter=0;
+	
+	private int adjBuffer[]=new int[9];
+	private int adjCounter=0;
 
+	// 05 - 472
+	// 08 - 484
+	// 09 - 346
+	// 10 - 385
+	// 11 - 424
+	
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
@@ -97,6 +106,12 @@ public class FSK200500 extends FSK {
 				// If it is a half bit it signals the end of a character
 				if (ibit==2)	{
 					symbolCounter=(int)samplesPerSymbol/2;
+					
+					symbolCounter=symbolCounter+adjVote();
+					
+					//String line=Integer.toString(adjVote());
+					//theApp.debugDump(line);
+					
 					// If debugging display the character buffer in binary form + the number of bits since the last character and this baudot character
 					if (theApp.isDebug()==true)	{
 						lineBuffer.append(getCharBuffer()+" ("+Integer.toString(bcount)+")  "+getBaudotChar());
@@ -194,16 +209,22 @@ public class FSK200500 extends FSK {
 		double ff2[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
 		double lateE=getComponentDC();
 		// Early/Late Gate
-		symbolCounter=Comparator(earlyE,lateE,4.0);
+		int ad=Comparator(earlyE,lateE,10.0);
+		symbolCounter=0;
+		addToAdjBuffer(ad);
 		
-		// 01 - 490
-		// 03 - 482
-		// 04 - 455
-		// 05 - 497
-		// 10 - 520
-		// 20 - 572
-		// 25 - 559
-		// 30 - 572
+		// 01 - 396
+		// 03 - 
+		// 04 - 346
+		// 05 - 
+		// 09 - 348
+		// 10 - 333
+		// 11 - 332
+		// 12 - 365
+		// 15 - 371
+		// 20 - 
+		// 25 - 
+		// 30 - 
 		
 		
 		int high1,high2;
@@ -296,7 +317,24 @@ public class FSK200500 extends FSK {
 	}
 	
 	
-
+	private void addToAdjBuffer (int in)	{
+		adjBuffer[adjCounter]=in;
+		adjCounter++;
+		if (adjCounter==adjBuffer.length) adjCounter=0;
+	}
+	
+	private int adjVote ()	{
+		int a,low=0,high=0,mid=0;
+		for (a=0;a<adjBuffer.length;a++)	{
+			if (adjBuffer[a]==-1) low++;
+			else if (adjBuffer[a]==1) high++;
+			else if (adjBuffer[a]==0) mid++;
+		}
+		
+		if ((high>low)&&(high>mid)) return 1;
+		else if ((low>high)&&(low>mid)) return -1;
+		else return 0;
+	}
 	
 	
 }
