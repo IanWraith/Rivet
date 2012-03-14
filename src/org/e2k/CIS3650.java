@@ -93,7 +93,6 @@ public class CIS3650 extends FSK {
 			}
 			// Look for a 50 baud alternating sync sequence
 			if (detect50Sync(circBuf,waveData)==true)	{
-				// Jump the next stage to acquire symbol timing
 				state=2;
 				totalErrorCount=0;
 				totalCharacterCount=0;
@@ -110,17 +109,17 @@ public class CIS3650 extends FSK {
 				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
 				addToBuffer7(bit);
 				b7Count++;
-				if (b7Count==4)	{
-					buffer7=buffer7&0xF;
-					// Look for 0101 (5) or 1010 (10)
-					if ((buffer7==5)||(buffer7==10))	{
+				if (b7Count==3)	{
+					buffer7=buffer7&0x7;
+					// Look for 101 (5) or 010 (2)
+					if ((buffer7==5)||(buffer7==2))	{
 						state=3;
 						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
 						b7Count=0;
 						countSinceSync=0;
 						theApp.setStatusLabel("50 Baud Sync Found");
-					}
-					else state=0;
+					}	
+					else state=1;
 				}
 			}
 		}
@@ -371,8 +370,8 @@ public class CIS3650 extends FSK {
 			lowBin=b0;
 			}
 		int shift=highTone-lowTone;
-		// Check for an incorrect shift
-		if ((shift>300)||(shift<100)) return false;
+		// The shift for CIS36-50 should be should be 200 Hz
+		if ((shift>210)||(shift<190)) return false;
 		return true;
 	}
 	
