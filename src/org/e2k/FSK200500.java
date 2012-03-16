@@ -105,10 +105,7 @@ public class FSK200500 extends FSK {
 				// If this is a full bit add it to the character buffer
 				// If it is a half bit it signals the end of a character
 				if (ibit==2)	{
-					symbolCounter=(int)samplesPerSymbol/2;
-					
-					symbolCounter=symbolCounter+adjVote();
-					
+					symbolCounter=((int)samplesPerSymbol/2)+adjVote();
 					//String line=Integer.toString(adjVote());
 					//theApp.debugDump(line);
 					
