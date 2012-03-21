@@ -20,16 +20,12 @@ public class FSK200500 extends FSK {
 	private int bcount;
 	private int missingCharCounter=0;
 	
-	private int adjBuffer[]=new int[9];
+	private int adjBuffer[]=new int[3];
 	private int adjCounter=0;
 	
 	private StringBuffer diagBuffer=new StringBuffer();
 
-	// 05 - 472
-	// 08 - 484
-	// 09 - 346
-	// 10 - 385
-	// 11 - 424
+	// 03 - 270
 	
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -58,7 +54,7 @@ public class FSK200500 extends FSK {
 		// Just starting
 		if (state==0)	{
 			
-			diagBuffer.append("ff1[0],ff1[1],ff2[0],ff2[1],earlyE,lateE,Comparator,adj,bcount,high1,high2,bit,char,missing count");
+			diagBuffer.append("ff1[0],ff2[0],ff1[1],ff2[1],Comparator Comb,Comparator 0,Comparator 1,adj,bcount,high1,high2,bit,char,missing count");
 			theApp.debugDump(diagBuffer.toString());
 			
 			// Check the sample rate
@@ -102,8 +98,9 @@ public class FSK200500 extends FSK {
 		if (state==2)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
+				symbolCounter=0;
 				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
-				
+							
 				diagBuffer.append(",BIT "+Integer.toString(ibit));
 				
 				// TODO : Get the invert feature working with FSK200/500
@@ -217,36 +214,25 @@ public class FSK200500 extends FSK {
 		int sp=(int)samplesPerSymbol/2;
 		// First half
 		double ff1[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
-		double earlyE=getComponentDC();
 		// Last half
 		double ff2[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
-		double lateE=getComponentDC();
+		
+		double early=ff1[1];
+		double late=ff2[1];
+		
+		
 		// Early/Late Gate
-		int ad=Comparator(earlyE,lateE,10.0);
-		
-		symbolCounter=0;
+		int ad=Comparator(early,late,1.0);
 		addToAdjBuffer(ad);
-		
 		
 		diagBuffer.delete(0,diagBuffer.length());
 		
-		double comp=Math.abs(earlyE)-Math.abs(lateE);
 		
-		diagBuffer.append(Double.toString(ff1[0])+","+Double.toString(ff1[1])+","+Double.toString(ff2[0])+","+Double.toString(ff2[1])+","+Double.toString(earlyE)+","+Double.toString(lateE)+","+Double.toString(comp)+","+Integer.toString(ad)+","+Integer.toString(bcount));
+		double c0=ff1[0]-ff2[0];
+		double c1=ff1[1]-ff2[1];
+		double cc=(ff1[0]+ff2[0])-(ff1[1]+ff2[1]);
 		
-		
-		// 01 - 396
-		// 03 - 
-		// 04 - 346
-		// 05 - 
-		// 09 - 348
-		// 10 - 333
-		// 11 - 332
-		// 12 - 365
-		// 15 - 371
-		// 20 - 
-		// 25 - 
-		// 30 - 
+		diagBuffer.append(Double.toString(ff1[0])+","+Double.toString(ff2[0])+","+Double.toString(ff1[1])+","+Double.toString(ff2[1])+","+Double.toString(cc)+","+Double.toString(c0)+","+Double.toString(c1)+","+Integer.toString(ad)+","+Integer.toString(bcount));
 		
 		
 		int high1,high2;
@@ -355,8 +341,8 @@ public class FSK200500 extends FSK {
 			else if (adjBuffer[a]==0) mid++;
 		}
 		
-		if ((high>low)&&(high>mid)) return 1;
-		else if ((low>high)&&(low>mid)) return -1;
+		if ((high>low)&&(high>mid)&&(high>=adjBuffer.length-1)) return 1;
+		else if ((low>high)&&(low>mid)&&(low>=adjBuffer.length-1)) return -1;
 		else return 0;
 	}
 	

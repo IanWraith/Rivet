@@ -113,25 +113,6 @@ public class FSK {
 		return freq;
 	}
 	
-	// Does a 64 point FFT then returns the values of two specific bins
-	public double[] doFSK200500_8000FFTBinRequest (CircularDataBuffer circBuf,WaveData waveData,int start,int ss,int bin0,int bin1)	{
-		double vals[]=new double[2];
-		// Get the data from the circular buffer
-	    double datao[]=circBuf.extractDataDouble(start,ss);
-	    double datar[]=new double[FFT_64_SIZE];
-	    int a,c=0;
-	    for (a=0;a<datar.length;a++)	{
-	    	if (c<ss) datar[a]=datao[c];
-	    	else datar[a]=0.0;
-	    	c++;
-	    }
-		fft64.realForward(datar);
-		double spec[]=getSpectrum(datar);
-		vals[0]=spec[bin0];
-		vals[1]=spec[bin1];
-		return vals;
-		}
-	
 	// 64 point FFT 
 	public int do64FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
