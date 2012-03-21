@@ -22,6 +22,8 @@ public class FSK200500 extends FSK {
 	
 	private int adjBuffer[]=new int[9];
 	private int adjCounter=0;
+	
+	private StringBuffer diagBuffer=new StringBuffer();
 
 	// 05 - 472
 	// 08 - 484
@@ -55,6 +57,10 @@ public class FSK200500 extends FSK {
 		
 		// Just starting
 		if (state==0)	{
+			
+			diagBuffer.append("ff1[0],ff1[1],ff2[0],ff2[1],earlyE,lateE,Comparator,adj,bcount,high1,high2,bit,char,missing count");
+			theApp.debugDump(diagBuffer.toString());
+			
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
@@ -97,6 +103,9 @@ public class FSK200500 extends FSK {
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
 				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
+				
+				diagBuffer.append(",BIT "+Integer.toString(ibit));
+				
 				// TODO : Get the invert feature working with FSK200/500
 				if (theApp.isInvertSignal()==true)	{
 					if (ibit==0) ibit=1;
@@ -117,6 +126,9 @@ public class FSK200500 extends FSK {
 					else	{
 						// Display the character in the standard way
 						String ch=getBaudotChar();
+						
+						diagBuffer.append(","+ch);
+						
 						// LF
 						if (ch.equals(getBAUDOT_LETTERS(2))) characterCount=MAXCHARLENGTH;
 						// CR
@@ -128,7 +140,10 @@ public class FSK200500 extends FSK {
 							if (lineBuffer.lastIndexOf("162)")!=-1) characterCount=MAXCHARLENGTH;
 						}
 					}
-					if (bcount!=7)	missingCharCounter++;
+					if (bcount!=7)	{
+						missingCharCounter++;
+						diagBuffer.append(",MISS "+Integer.toString(missingCharCounter));
+					}
 					bcount=0;
 				}
 				else	{
@@ -140,6 +155,7 @@ public class FSK200500 extends FSK {
 					lineBuffer.delete(0,lineBuffer.length());
 					characterCount=0;
 				}
+			//theApp.debugDump(diagBuffer.toString());
 			}
 		}
 		sampleCount++;
@@ -207,8 +223,17 @@ public class FSK200500 extends FSK {
 		double lateE=getComponentDC();
 		// Early/Late Gate
 		int ad=Comparator(earlyE,lateE,10.0);
+		
 		symbolCounter=0;
 		addToAdjBuffer(ad);
+		
+		
+		diagBuffer.delete(0,diagBuffer.length());
+		
+		double comp=Math.abs(earlyE)-Math.abs(lateE);
+		
+		diagBuffer.append(Double.toString(ff1[0])+","+Double.toString(ff1[1])+","+Double.toString(ff2[0])+","+Double.toString(ff2[1])+","+Double.toString(earlyE)+","+Double.toString(lateE)+","+Double.toString(comp)+","+Integer.toString(ad)+","+Integer.toString(bcount));
+		
 		
 		// 01 - 396
 		// 03 - 
@@ -229,6 +254,8 @@ public class FSK200500 extends FSK {
 		else high1=1;
 		if (ff2[0]>ff2[1]) high2=0;
 		else high2=1;
+		
+		diagBuffer.append(",HIGH1 "+Integer.toString(high1)+", HIGH2 "+Integer.toString(high2));
 		
 		// Both the same
 		if (high1==high2)	{
@@ -322,7 +349,7 @@ public class FSK200500 extends FSK {
 	
 	private int adjVote ()	{
 		int a,low=0,high=0,mid=0;
-		for (a=0;a<adjBuffer.length;a++)	{
+			for (a=0;a<adjBuffer.length;a++)	{
 			if (adjBuffer[a]==-1) low++;
 			else if (adjBuffer[a]==1) high++;
 			else if (adjBuffer[a]==0) mid++;
