@@ -19,16 +19,10 @@ public class FSK200500 extends FSK {
 	private final int MAXCHARLENGTH=80;
 	private int bcount;
 	private int missingCharCounter=0;
-	
-	private int adjBuffer[]=new int[9];
+	private double adjBuffer[]=new double[7];
 	private int adjCounter=0;
+	private StringBuffer diagBuffer=new StringBuffer();
 
-	// 05 - 472
-	// 08 - 484
-	// 09 - 346
-	// 10 - 385
-	// 11 - 424
-	
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
@@ -55,6 +49,10 @@ public class FSK200500 extends FSK {
 		
 		// Just starting
 		if (state==0)	{
+			
+			diagBuffer.append("ff1[0],ff2[0],ff1[1],ff2[1],Comparator Comb,Comparator 0,Comparator 1,adj average,bcount,high1,high2,bit,char,missing count");
+			theApp.debugDump(diagBuffer.toString());
+			
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
@@ -96,7 +94,11 @@ public class FSK200500 extends FSK {
 		if (state==2)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
+				symbolCounter=0;
 				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
+							
+				diagBuffer.append(",BIT "+Integer.toString(ibit));
+				
 				// TODO : Get the invert feature working with FSK200/500
 				if (theApp.isInvertSignal()==true)	{
 					if (ibit==0) ibit=1;
@@ -105,7 +107,7 @@ public class FSK200500 extends FSK {
 				// If this is a full bit add it to the character buffer
 				// If it is a half bit it signals the end of a character
 				if (ibit==2)	{
-					symbolCounter=((int)samplesPerSymbol/2)+adjVote();
+					symbolCounter=((int)samplesPerSymbol/2)+adjAdjust();
 					//String line=Integer.toString(adjVote());
 					//theApp.debugDump(line);
 					
@@ -117,6 +119,9 @@ public class FSK200500 extends FSK {
 					else	{
 						// Display the character in the standard way
 						String ch=getBaudotChar();
+						
+						diagBuffer.append(","+ch);
+						
 						// LF
 						if (ch.equals(getBAUDOT_LETTERS(2))) characterCount=MAXCHARLENGTH;
 						// CR
@@ -128,7 +133,11 @@ public class FSK200500 extends FSK {
 							if (lineBuffer.lastIndexOf("162)")!=-1) characterCount=MAXCHARLENGTH;
 						}
 					}
-					if (bcount!=7)	missingCharCounter++;
+					if (bcount!=7)	{
+						missingCharCounter++;
+
+						diagBuffer.append(",MISS "+Integer.toString(missingCharCounter));
+					}
 					bcount=0;
 				}
 				else	{
@@ -140,6 +149,7 @@ public class FSK200500 extends FSK {
 					lineBuffer.delete(0,lineBuffer.length());
 					characterCount=0;
 				}
+			//theApp.debugDump(diagBuffer.toString());
 			}
 		}
 		sampleCount++;
@@ -201,27 +211,30 @@ public class FSK200500 extends FSK {
 		int sp=(int)samplesPerSymbol/2;
 		// First half
 		double ff1[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
-		double earlyE=getComponentDC();
 		// Last half
 		double ff2[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
-		double lateE=getComponentDC();
-		// Early/Late Gate
-		int ad=Comparator(earlyE,lateE,10.0);
-		symbolCounter=0;
-		addToAdjBuffer(ad);
 		
-		// 01 - 396
-		// 03 - 
-		// 04 - 346
-		// 05 - 
-		// 09 - 348
-		// 10 - 333
-		// 11 - 332
-		// 12 - 365
-		// 15 - 371
-		// 20 - 
-		// 25 - 
-		// 30 - 
+		double early=ff1[1];
+		double late=ff2[1];
+		
+		
+		// Early/Late Gate
+		int ad=Comparator(early,late,1.0);
+		ad=0;
+		//addToAdjBuffer(ad);
+		
+		diagBuffer.delete(0,diagBuffer.length());
+		
+		
+		double c0=ff1[0]-ff2[0];
+		double c1=ff1[1]-ff2[1];
+		double cc=(ff1[0]+ff2[0])-(ff1[1]+ff2[1]);
+		
+		addToAdjBuffer(c1);
+		
+		double av=adjAverage();
+		
+		diagBuffer.append(Double.toString(ff1[0])+","+Double.toString(ff2[0])+","+Double.toString(ff1[1])+","+Double.toString(ff2[1])+","+Double.toString(cc)+","+Double.toString(c0)+","+Double.toString(c1)+","+Double.toString(av)+","+Integer.toString(bcount));
 		
 		
 		int high1,high2;
@@ -229,6 +242,8 @@ public class FSK200500 extends FSK {
 		else high1=1;
 		if (ff2[0]>ff2[1]) high2=0;
 		else high2=1;
+		
+		diagBuffer.append(",HIGH1 "+Integer.toString(high1)+", HIGH2 "+Integer.toString(high2));
 		
 		// Both the same
 		if (high1==high2)	{
@@ -314,7 +329,7 @@ public class FSK200500 extends FSK {
 	}
 	
 	
-	private void addToAdjBuffer (int in)	{
+	private void addToAdjBuffer (double in)	{
 		adjBuffer[adjCounter]=in;
 		adjCounter++;
 		if (adjCounter==adjBuffer.length) adjCounter=0;
@@ -322,15 +337,31 @@ public class FSK200500 extends FSK {
 	
 	private int adjVote ()	{
 		int a,low=0,high=0,mid=0;
-		for (a=0;a<adjBuffer.length;a++)	{
+			for (a=0;a<adjBuffer.length;a++)	{
 			if (adjBuffer[a]==-1) low++;
 			else if (adjBuffer[a]==1) high++;
 			else if (adjBuffer[a]==0) mid++;
 		}
 		
-		if ((high>low)&&(high>mid)) return 1;
-		else if ((low>high)&&(low>mid)) return -1;
+		if ((high>low)&&(high>mid)&&(high>=adjBuffer.length-1)) return 1;
+		else if ((low>high)&&(low>mid)&&(low>=adjBuffer.length-1)) return -1;
 		else return 0;
+	}
+	
+	private double adjAverage()	{
+		int a;
+		double total=0.0;
+		for (a=0;a<adjBuffer.length;a++)	{
+			total=total+adjBuffer[a];
+		}
+		return (total/adjBuffer.length);
+	}
+	
+	private int adjAdjust()	{
+		double av=adjAverage();
+		if (Math.abs(av)<0.75) return 0;
+		else if (av<0.0) return 1;
+		else return -1;
 	}
 	
 	
