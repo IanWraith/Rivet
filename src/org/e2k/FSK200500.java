@@ -19,7 +19,7 @@ public class FSK200500 extends FSK {
 	private final int MAXCHARLENGTH=80;
 	private int bcount;
 	private int missingCharCounter=0;
-	private double adjBuffer[]=new double[25];
+	private double adjBuffer[]=new double[7];
 	private int adjCounter=0;
 	
 	// 10 - 362
@@ -227,25 +227,17 @@ public class FSK200500 extends FSK {
 		if (ff2[0]>ff2[1]) high2=0;
 		else high2=1;
 		
+		double early=ff1[1];
+		double late=ff2[1];
+		
+		addToAdjBuffer(early-late);
+		//addToAdjBuffer(eDC-lDC);
+		
+		//theApp.debugDump(Integer.toString(adjAdjust()));
+		
+		
 		// Both the same
 		if (high1==high2)	{
-			
-			// Early/Late gate code
-			double earlyVal,lateVal,dif;
-			if (high1==0)	{
-				earlyVal=ff1[0];
-				lateVal=ff2[0];
-			}
-			else	{
-				earlyVal=ff1[1];
-				lateVal=ff2[1];
-			}
-			dif=earlyVal-lateVal;
-			addToAdjBuffer(dif);
-			
-			theApp.debugDump(Double.toString(dif)+","+Double.toString(eDC-lDC));
-			
-			
 			if (high1==0) return 1;
 			else return 0;
 		}
@@ -347,10 +339,10 @@ public class FSK200500 extends FSK {
 		double av=adjAverage();
 		
 		/////////////////////////////////////////////////////////////
-		av=0.0;
+		//av=0.0;
 		/////////////////////////////////////////////////////////////
 		
-		if (Math.abs(av)<1) return 0;
+		if (Math.abs(av)<0.75) return 0;
 		else if (av<0.0) return 1;
 		else return -1;
 	}

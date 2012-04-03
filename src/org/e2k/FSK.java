@@ -182,14 +182,18 @@ public class FSK {
 	// Returns two bins from a 64 bin FFT covering half a symbol
 	public double[] do64FFTHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int samples,int bin0,int bin1)	{
 		double vals[]=new double[2];
-		int hs=samples/2;
 		int a;
 		double datar[]=new double[FFT_64_SIZE];
 		// Get the data from the circular buffer
 		double samData[]=circBuf.extractDataDouble(start,samples);
 		for (a=0;a<datar.length;a++)	{
-			if (a<hs) datar[a]=samData[a];
+			if ((a>=22)&&(a<42)) datar[a]=samData[a-22];
 			else datar[a]=0.0;
+			
+			datar[a]=windowBlackman (datar[a],a,datar.length);
+			// None 169
+			// Blackman 152
+			// Hamming 159
 		}
 		fft64.realForward(datar);
 		double spec[]=getSpectrum(datar);
