@@ -203,21 +203,6 @@ public class FSK {
 		return componentDC;
 	}
 	
-	// A comparator function
-	public int Comparator (double early,double late,double threshold)	{
-		double e=Math.abs(early);
-		double l=Math.abs(late);
-		// Calculate the percentage difference of the total
-		double dif;
-		if (e>l) dif=e-l;
-		else dif=l-e;
-		double per=(dif/(e+l))*100.0;
-		// If the percentage difference is less than the threshold return a zero
-		if (per<threshold) return 0;
-		else if (e>l) return -1;
-		else return 1;
-	}
-
 	// Get a Baudot letter
 	public String getBAUDOT_LETTERS(int i) {
 		return BAUDOT_LETTERS[i];

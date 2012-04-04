@@ -42,6 +42,8 @@ public class CIS3650 extends FSK {
 	private String startLine;
 	private String syncLine;
 	private String sessionLine;
+	private double adjBuffer[]=new double[7];
+	private int adjCounter=0;
 	
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -285,8 +287,13 @@ public class CIS3650 extends FSK {
 		start=start+((int)samplesPerSymbol50/2);
 		double late[]=do80FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
 		double lateE=getComponentDC();
+		
 		// Set the symbolCounter value from the early/late gate value
-		symbolCounter=Comparator(earlyE,lateE,25.0);
+		//symbolCounter=Comparator(earlyE,lateE,25.0);
+		
+		addToAdjBuffer(early[0]-late[0]);
+		symbolCounter=adjAdjust();
+		
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
 		if (theApp.isInvertSignal()==false)	{
@@ -463,7 +470,30 @@ public class CIS3650 extends FSK {
 	}
 	
 	
+	// Add a comparator output to a circular buffer of values
+	private void addToAdjBuffer (double in)	{
+		adjBuffer[adjCounter]=in;
+		adjCounter++;
+		if (adjCounter==adjBuffer.length) adjCounter=0;
+	}
 	
+	// Return the average of the circular buffer
+	private double adjAverage()	{
+		int a;
+		double total=0.0;
+		for (a=0;a<adjBuffer.length;a++)	{
+			total=total+adjBuffer[a];
+		}
+		return (total/adjBuffer.length);
+	}
+	
+	// Get the average value and return an adjustment value
+	private int adjAdjust()	{
+		double av=adjAverage();
+		if (Math.abs(av)<0.75) return 0;
+		else if (av<0.0) return 1;
+		else return -1;
+	}	
 	
 	
 }
