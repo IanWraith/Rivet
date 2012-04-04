@@ -101,11 +101,11 @@ public class FSK {
 		// Get the data from the circular buffer
 	    double datao[]=circBuf.extractDataDouble(start,ss);
 	    double datar[]=new double[FFT_64_SIZE];
-	    int a,c=0;
+	    int a;
 	    for (a=0;a<datar.length;a++)	{
-	    	if (c<ss) datar[a]=datao[c];
-	    	else datar[a]=0.0;
-	    	c++;
+	    	if ((a>=12)&&(a<52)) datar[a]=datao[a-12];
+			else datar[a]=0.0;
+			datar[a]=windowBlackman(datar[a],a,datar.length);
 	    }
 	    fft64.realForward(datar);
 	    double spec[]=getSpectrum(datar);
@@ -189,11 +189,7 @@ public class FSK {
 		for (a=0;a<datar.length;a++)	{
 			if ((a>=22)&&(a<42)) datar[a]=samData[a-22];
 			else datar[a]=0.0;
-			
-			datar[a]=windowBlackman (datar[a],a,datar.length);
-			// None 169
-			// Blackman 152
-			// Hamming 159
+			datar[a]=windowBlackman(datar[a],a,datar.length);
 		}
 		fft64.realForward(datar);
 		double spec[]=getSpectrum(datar);

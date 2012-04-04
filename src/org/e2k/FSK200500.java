@@ -22,13 +22,6 @@ public class FSK200500 extends FSK {
 	private double adjBuffer[]=new double[7];
 	private int adjCounter=0;
 	
-	// 10 - 362
-	// 20 - 252
-	// 30 - 248
-	// 40 - 274
-	// 90 - 378
-
-	
 	
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -99,8 +92,6 @@ public class FSK200500 extends FSK {
 			if (symbolCounter>=samplesPerSymbol)	{
 				symbolCounter=0;
 				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
-							
-				//diagBuffer.append(",BIT "+Integer.toString(ibit));
 				
 				// TODO : Get the invert feature working with FSK200/500
 				if (theApp.isInvertSignal()==true)	{
@@ -111,13 +102,6 @@ public class FSK200500 extends FSK {
 				// If it is a half bit it signals the end of a character
 				if (ibit==2)	{
 					symbolCounter=((int)samplesPerSymbol/2)+adjAdjust();
-					
-					
-					//symbolCounter=((int)samplesPerSymbol/2);
-					
-					//String line=Integer.toString(adjVote());
-					//theApp.debugDump(line);
-					
 					// If debugging display the character buffer in binary form + the number of bits since the last character and this baudot character
 					if (theApp.isDebug()==true)	{
 						lineBuffer.append(getCharBuffer()+" ("+Integer.toString(bcount)+")  "+getBaudotChar());
@@ -126,9 +110,6 @@ public class FSK200500 extends FSK {
 					else	{
 						// Display the character in the standard way
 						String ch=getBaudotChar();
-						
-						//diagBuffer.append(","+ch);
-						
 						// LF
 						if (ch.equals(getBAUDOT_LETTERS(2))) characterCount=MAXCHARLENGTH;
 						// CR
@@ -216,10 +197,8 @@ public class FSK200500 extends FSK {
 		int sp=(int)samplesPerSymbol/2;
 		// First half
 		double ff1[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
-		double eDC=Math.abs(getComponentDC());
 		// Last half
 		double ff2[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
-		double lDC=Math.abs(getComponentDC());
 		
 		int high1,high2;
 		if (ff1[0]>ff1[1]) high1=0;
@@ -229,12 +208,7 @@ public class FSK200500 extends FSK {
 		
 		double early=ff1[1];
 		double late=ff2[1];
-		
 		addToAdjBuffer(early-late);
-		//addToAdjBuffer(eDC-lDC);
-		
-		//theApp.debugDump(Integer.toString(adjAdjust()));
-		
 		
 		// Both the same
 		if (high1==high2)	{
@@ -313,19 +287,14 @@ public class FSK200500 extends FSK {
 		else return false;
 	}
 	
-	public String getQuailty()	{
-		String line;
-		line="There were "+Integer.toString(missingCharCounter)+" missing characters";
-		return line;
-	}
-	
-	
+	// Add a comparator output to a circular buffer of values
 	private void addToAdjBuffer (double in)	{
 		adjBuffer[adjCounter]=in;
 		adjCounter++;
 		if (adjCounter==adjBuffer.length) adjCounter=0;
 	}
 	
+	// Return the average of the circular buffer
 	private double adjAverage()	{
 		int a;
 		double total=0.0;
@@ -335,17 +304,21 @@ public class FSK200500 extends FSK {
 		return (total/adjBuffer.length);
 	}
 	
+	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		
-		/////////////////////////////////////////////////////////////
-		//av=0.0;
-		/////////////////////////////////////////////////////////////
-		
 		if (Math.abs(av)<0.75) return 0;
 		else if (av<0.0) return 1;
 		else return -1;
 	}
+
+	// Return a quality indicator
+	public String getQuailty()	{
+		String line;
+		line="There were "+Integer.toString(missingCharCounter)+" missing characters";
+		return line;
+	}
+
 	
 	
 }
