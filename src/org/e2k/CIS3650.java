@@ -26,11 +26,6 @@ public class CIS3650 extends FSK {
 	private int buffer21=0;
 	private int characterCount;
 	private int startCount;
-	private int keyCount;
-	private int key1[]=new int[10];
-	private int key2[]=new int[10];
-	private boolean syncBuffer[]=new boolean[44];
-	private int syncBufferCounter=0;
 	private final int ITA3VALS[]={26,25,76,28,56,19,97,82,112,35,11,98,97,84,70,74,13,100,42,69,50,73,37,22,21,49,67,88,14,38,104,7,52,41,44,81};
 	private final String ITA3LETS[]={"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","<cr>","<lf>","<let>","<fig>"," ","<unperf>","<Request>","<Idle a>","<Idle b>","<0x51>"}; 
 	private int totalCharacterCount=0;
@@ -39,11 +34,9 @@ public class CIS3650 extends FSK {
 	private int lowBin;
 	private int b7Count;
 	private int countSinceSync;
-	private String startLine;
-	private String syncLine;
-	private String sessionLine;
 	private double adjBuffer[]=new double[7];
 	private int adjCounter=0;
+	private boolean startBuffer[]=new boolean[184];
 	
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -77,7 +70,6 @@ public class CIS3650 extends FSK {
 			buffer7=0;
 			buffer21=0;
 			characterCount=0;
-			syncBufferCounter=0;
 			theApp.setStatusLabel("Sync Hunt");
 			return null;
 		}
@@ -119,6 +111,7 @@ public class CIS3650 extends FSK {
 						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
 						b7Count=0;
 						countSinceSync=0;
+						clearStartBuffer();
 						theApp.setStatusLabel("50 Baud Sync Found");
 					}	
 					else state=1;
@@ -141,60 +134,23 @@ public class CIS3650 extends FSK {
 				}
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
-						addToSyncBuffer(bit);
-						// Check if the sync buffer holds a valid sync word
-						if (syncValidCheck()==true)	{
+						addToStartBuffer(bit);
+						// Check if the start buffer is valid
+						if ((checkStartBuffer()==true)&&(countSinceSync>=183))	{
 							syncState=2;
 							theApp.setStatusLabel("Decoding Message");
-							startLine=theApp.getTimeStamp()+" Message Start";
-							long header=syncBufferAsLong();
-							syncLine="Sync 0x"+Long.toHexString(header);
+							outLines[0]=theApp.getTimeStamp()+" Message Start";
+							long header=extractSyncAsLong();
+							outLines[1]="Sync 0x"+Long.toHexString(header);
+							outLines[2]=extractSessionKey();
 							buffer21=0;
 							buffer7=0;
-							keyCount=0;
 							startCount=0;			
 							totalCharacterCount=0;
 						}	
 					}
-					
-					// Once we have the 44 bit sync sequence get the two 70 bit keys
-					else if (syncState==2)	{
-						addToBuffer7(bit);
-						startCount++;
-						if (startCount==7)	{
-							if (keyCount<10) key1[keyCount]=buffer7;
-							else key2[keyCount-10]=buffer7;
-							if (keyCount==19)	{
-								syncState=3;
-								sessionLine="Session Key is ";
-								int a;
-								for (a=0;a<10;a++)	{
-									// Check the session key is made up of valid ITA3 numbers 
-									if (checkITA3Char(key1[a])==true)	{
-										int c=retITA3Val(key1[a]);
-										sessionLine=sessionLine+"0x"+Integer.toHexString(c)+" ";
-									}
-									else	{
-										sessionLine=sessionLine+"<ERROR> ";
-									}
-								}
-								// Both keys should be the same
-								if (!Arrays.equals(key1,key2))	{
-									state=1;
-								}
-								else	{
-									outLines[0]=startLine;
-									outLines[1]=syncLine;
-									outLines[2]=sessionLine;
-									theApp.setStatusLabel("Incoming message");
-								}
-							}
-							else keyCount++;
-							startCount=0;
-						}
-					}
 					// Read in and display the main body of the message
-					else if (syncState==3)	{
+					else if (syncState==2)	{
 						addToBuffer7(bit);
 						addToBuffer21(bit);
 						startCount++;
@@ -242,8 +198,10 @@ public class CIS3650 extends FSK {
 					else if (syncState==4)	{
 						double err=((double)totalErrorCount/(double)totalCharacterCount)*100.0;
 						outLines[0]="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message "+Double.toString(err)+"% of these contained errors)";
-						syncBufferCounter=0;
-						state=2;
+						countSinceSync=0;
+						syncState=1;
+						clearStartBuffer();
+						state=3;
 					}
 				}
 				else	{
@@ -283,13 +241,8 @@ public class CIS3650 extends FSK {
 	private boolean getSymbolFreqBin (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		boolean bit;
 		double early[]=do80FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
-		double earlyE=getComponentDC();
 		start=start+((int)samplesPerSymbol50/2);
 		double late[]=do80FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
-		double lateE=getComponentDC();
-		
-		// Set the symbolCounter value from the early/late gate value
-		//symbolCounter=Comparator(earlyE,lateE,25.0);
 		
 		addToAdjBuffer(early[0]-late[0]);
 		symbolCounter=adjAdjust();
@@ -382,75 +335,6 @@ public class CIS3650 extends FSK {
 		return true;
 	}
 	
-	// Add a bit to the 44 bit sync buffer
-	private void addToSyncBuffer (boolean bit)	{
-		int a;
-		// Move all bits one bit to the left
-		for (a=1;a<syncBuffer.length;a++)	{
-			syncBuffer[a-1]=syncBuffer[a];
-		}
-		int last=syncBuffer.length-1;
-		syncBuffer[last]=bit;
-		syncBufferCounter++;
-	}
-	
-	// Return true if this appears to be a valid sync word
-	private boolean syncValidCheck ()	{
-		int a,count=0;
-		if (syncBufferCounter<(syncBuffer.length-1)) return false;
-		for (a=0;a<syncBuffer.length;a++)	{
-			if (syncBuffer[a]==true) count++;
-		}
-		// If count is 23 and the first three bits are true this OK but we are inverted
-		if ((count==23)&&(syncBuffer[0]==true)&&(syncBuffer[1]==true)&&(syncBuffer[2]==true))	{
-			// Change the invert setting
-			theApp.changeInvertSetting();
-			// Invert the complete sync buffer to reflect the change
-			syncBufferInvert();
-			int mid=syncBufferMiddleAsInt();
-			if (mid!=235) return false;
-			return true;
-		}
-		// If the count is 21 and the first three bits are false then we are all OK
-		else if ((count==21)&&(syncBuffer[0]==false)&&(syncBuffer[1]==false)&&(syncBuffer[2]==false))	{
-			int mid=syncBufferMiddleAsInt();
-			if (mid!=235) return false;
-			return true;
-		}
-		// No match
-		else return false;
-	}
-	
-	// Return the sync buffer a long
-	private long syncBufferAsLong ()	{
-		int a,bc=0;
-		long r=0;
-		for (a=(syncBuffer.length-1);a>=0;a--)	{
-			if (syncBuffer[a]==true) r=r+(long)Math.pow(2.0,bc);
-			bc++;
-		}
-		return r;
-	}
-	
-	// Invert the sync buffer
-	private void syncBufferInvert ()	{
-		int a;
-		for (a=0;a<syncBuffer.length;a++)	{
-			if (syncBuffer[a]==true) syncBuffer[a]=false;
-			else syncBuffer[a]=true;
-		}
-	}
-	
-	
-	private int syncBufferMiddleAsInt ()	{
-		int a,bc=7,r=0;
-		for (a=20;a<28;a++)	{
-			if (syncBuffer[a]==true) r=r+(int)Math.pow(2.0,bc);
-			bc--;
-		}
-		return r;
-	}
-	
 	// Check if a number if a valid ITA-3 character
 	private boolean checkITA3Char (int c)	{
 		int a;
@@ -494,6 +378,104 @@ public class CIS3650 extends FSK {
 		else if (av<0.0) return 1;
 		else return -1;
 	}	
+	
+	// Add a bit to the start buffer
+	private void addToStartBuffer (boolean in)	{
+		int a;
+		// Move all bits one bit to the left
+		for (a=1;a<startBuffer.length;a++)	{
+			startBuffer[a-1]=startBuffer[a];
+			}
+		startBuffer[183]=in;
+	}
+	
+	// Check if the start buffer contains a valid 44 bit sync word and two almost identical 70 bit session keys
+	private boolean checkStartBuffer()	{
+		int a,count=0,kcount=0,o;
+		// Check for 21 true bits in the first 44 bits
+		for (a=0;a<44;a++)	{
+			if (startBuffer[a]==true) count++;
+		}
+		if ((count!=21)&&(count!=23)) return false;
+		// Check the 70 bit session keys are almost the same
+		for (a=0;a<70;a++)	{
+			if (startBuffer[a+44]==startBuffer[a+44+70]) kcount++;
+		}
+		if (kcount<68) return false;
+		// If count is 23 then we need to change the invert setting
+		if (count==23)	{
+			invertStartBuffer();
+			if (theApp.isInvertSignal()==false) theApp.setInvertSignal(true);
+			else theApp.setInvertSignal(false);
+		}		
+		// Check the session key contains at least 8 valid ITA3 characters
+		count=0;
+		for (a=44;a<(44+70);a=a+7)	{
+			o=extractIntFromStart(a);
+			if (checkITA3Char(o)==true)	count++;
+		}
+		if (count>8) return true;
+		else return false;
+	}
+	
+	// Invert the entire start buffer
+	private void invertStartBuffer ()	{
+		int a;
+		for (a=0;a<startBuffer.length;a++)	{
+			if (startBuffer[a]==false) startBuffer[a]=true;
+			else startBuffer[a]=false;
+		}
+	}
+	
+	// Extract the first 44 bits of the start buffer as a long
+	private long extractSyncAsLong ()	{
+		int a,bc=0;
+		long r=0;
+		for (a=43;a>=0;a--)	{
+			if (startBuffer[a]==true) r=r+(long)Math.pow(2.0,bc);
+			bc++;
+		}
+		return r;
+	}
+	
+	// Clear the start buffer
+	private void clearStartBuffer ()	{
+		int a;
+		for (a=0;a<startBuffer.length;a++)	{
+			startBuffer[a]=false;
+		}
+	}
+	
+	// Extract a session key from the start buffer
+	private String extractSessionKey()	{
+		StringBuffer sb=new StringBuffer();
+		int a,o;
+		sb.append("Session Key is ");
+		for (a=44;a<(44+70);a=a+7)	{
+			o=extractIntFromStart(a);
+			if (checkITA3Char(o)==true)	{
+				int c=retITA3Val(o);
+				sb.append("0x"+Integer.toHexString(c)+" ");
+			}
+			else	{
+				sb.append("<ERROR> ");
+			}
+		}
+		return sb.toString();
+	}
+	
+	// Extract an integer from the start buffer
+	private int extractIntFromStart (int pos)	{
+		int v=0;
+		if (startBuffer[pos]==true) v=64;
+		if (startBuffer[pos+1]==true) v=v+32;
+		if (startBuffer[pos+2]==true) v=v+16;
+		if (startBuffer[pos+3]==true) v=v+8;
+		if (startBuffer[pos+4]==true) v=v+4;
+		if (startBuffer[pos+5]==true) v=v+2;
+		if (startBuffer[pos+6]==true) v++;
+		return v;
+	}
 	
 	
 }

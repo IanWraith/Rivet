@@ -140,6 +140,11 @@ public class FSK {
 		double vals[]=new double[2];
 		// Get the data from the circular buffer
 		double datar[]=circBuf.extractDataDouble(start,FFT_80_SIZE);
+		// Run the data through a Blackman window
+		int a;
+		for (a=0;a<datar.length;a++)	{
+			datar[a]=windowBlackman(datar[a],a,datar.length);
+			}
 		fft80.realForward(datar);
 		double spec[]=getSpectrum(datar);
 		vals[0]=spec[bin0];
