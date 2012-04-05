@@ -1,6 +1,5 @@
 package org.e2k;
 
-import java.util.Arrays;
 import javax.swing.JOptionPane;
 
 // From info received (which I'm very grateful for) it appears CIS36-50 (BEE) messages have the following format
@@ -34,7 +33,7 @@ public class CIS3650 extends FSK {
 	private int lowBin;
 	private int b7Count;
 	private int countSinceSync;
-	private double adjBuffer[]=new double[7];
+	private double adjBuffer[]=new double[5];
 	private int adjCounter=0;
 	private boolean startBuffer[]=new boolean[184];
 	
@@ -196,8 +195,7 @@ public class CIS3650 extends FSK {
 					}
 					// The message must have ended
 					else if (syncState==4)	{
-						double err=((double)totalErrorCount/(double)totalCharacterCount)*100.0;
-						outLines[0]="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message "+Double.toString(err)+"% of these contained errors)";
+						outLines[0]="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message "+Integer.toString(totalErrorCount)+" of these contained errors)";
 						countSinceSync=0;
 						syncState=1;
 						clearStartBuffer();
@@ -246,7 +244,7 @@ public class CIS3650 extends FSK {
 		
 		addToAdjBuffer(early[0]-late[0]);
 		symbolCounter=adjAdjust();
-		
+
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
 		if (theApp.isInvertSignal()==false)	{
@@ -374,7 +372,7 @@ public class CIS3650 extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		if (Math.abs(av)<0.75) return 0;
+		if (Math.abs(av)<100) return 0;
 		else if (av<0.0) return 1;
 		else return -1;
 	}	
@@ -389,25 +387,18 @@ public class CIS3650 extends FSK {
 		startBuffer[183]=in;
 	}
 	
-	// Check if the start buffer contains a valid 44 bit sync word and two almost identical 70 bit session keys
+	// Check if the start buffer contains a valid 44 bit sync word and two identical 70 bit session keys
 	private boolean checkStartBuffer()	{
-		int a,count=0,kcount=0,o;
+		int a,count=0,o;
 		// Check for 21 true bits in the first 44 bits
 		for (a=0;a<44;a++)	{
 			if (startBuffer[a]==true) count++;
 		}
-		if ((count!=21)&&(count!=23)) return false;
+		if (count!=21) return false;
 		// Check the 70 bit session keys are almost the same
 		for (a=0;a<70;a++)	{
-			if (startBuffer[a+44]==startBuffer[a+44+70]) kcount++;
-		}
-		if (kcount<68) return false;
-		// If count is 23 then we need to change the invert setting
-		if (count==23)	{
-			invertStartBuffer();
-			if (theApp.isInvertSignal()==false) theApp.setInvertSignal(true);
-			else theApp.setInvertSignal(false);
-		}		
+			if (startBuffer[a+44]!=startBuffer[a+44+70]) return false;
+		}	
 		// Check the session key contains at least 8 valid ITA3 characters
 		count=0;
 		for (a=44;a<(44+70);a=a+7)	{
@@ -418,14 +409,6 @@ public class CIS3650 extends FSK {
 		else return false;
 	}
 	
-	// Invert the entire start buffer
-	private void invertStartBuffer ()	{
-		int a;
-		for (a=0;a<startBuffer.length;a++)	{
-			if (startBuffer[a]==false) startBuffer[a]=true;
-			else startBuffer[a]=false;
-		}
-	}
 	
 	// Extract the first 44 bits of the start buffer as a long
 	private long extractSyncAsLong ()	{
