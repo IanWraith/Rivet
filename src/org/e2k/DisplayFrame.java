@@ -29,7 +29,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item;
-	private JMenuItem CROWD36_sync_item,invert_item,save_settings_item,sample_item;
+	private JMenuItem CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item;
 	
  
 	// Constructor
@@ -88,6 +88,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		JMenu helpMenu=new JMenu("Help");
 		helpMenu.add(about_item=new JMenuItem("About"));		
 		about_item.addActionListener(this);
+		helpMenu.add(e2k_item=new JMenuItem("Enigma2000"));
+		e2k_item.addActionListener(this);
 		helpMenu.add(help_item=new JMenuItem("Help"));		
 		help_item.addActionListener(this);
 		helpMenu.add(sample_item=new JMenuItem("Sound Sample Files"));		
@@ -141,6 +143,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="About")	{
 			String line=theApp.program_version+"\r\n"+"ianwraith@gmail.com\r\nfor the Enigma2000 group.\r\nFor the latest news follow me on Twitter at ..\r\nhttps://twitter.com/#!/IanWraith";
 			JOptionPane.showMessageDialog(null,line,"Rivet", JOptionPane.INFORMATION_MESSAGE);
+		}
+		// Enigma2000
+		if (event_name=="Enigma2000")	{
+			BareBonesBrowserLaunch.openURL("http://www.enigma2000.org.uk/");
 		}
 		// Help
 		if (event_name=="Help") {
