@@ -4,8 +4,7 @@ of the Enigma 2000 group.
 http://groups.yahoo.com/group/enigma2000/
 
 Currently the program decodes the modes XPA , XPA2 , CROWD36 (partially) and CIS36-50 (BEE) but more modes will be added soon.
-The program can decode directly from your PCs soundcard or from a WAV file (mono and using a sample rate of
-11.025 KHz or 8 KHz).
+The program can decode directly from your PCs soundcard or from a WAV file.
 
 The program is written in Java so it should run on any PC which has Java installed.
 If you haven't got Java then you can download it for free from ..
@@ -36,10 +35,14 @@ Build 16 displays CIS36-50 traffic in 7 bit blocks.
 Build 17 incorporates information received on the make up of CIS36-50 messages
 Build 18 adds an early/late gate to improve CIS36-50 symbol sync
 Build 19 further improves the CIS36-50 early/late gate and improves FSK200/500 decoding
+Build 20 much better decoding of CIS36-50 and FSK200/500.
 
 Reported Bugs
 -------------
 
 Still problems with CROWD36 decoding. Not a bug as such but more a lack of understanding of this mode.
 
-Ian Wraith (13th March 2012) 
+Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
+has problems with messages from stations which idle constantly.
+
+Ian Wraith (6th April 2012) 
