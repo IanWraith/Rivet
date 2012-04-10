@@ -15,6 +15,13 @@ This program uses the excellent JTransforms library ..
 
 http://sites.google.com/site/piotrwendykier/software/jtransforms
 
+The main problem users have reported when trying to run Rivet under MS Windows is that a program other than Java has taken
+ownership of the .JAR extension. If you have this problem try running this program ..
+
+http://johann.loefflmann.net/en/software/jarfix/index.html
+
+(Thanks to Mario for that)
+
 Change Log
 ----------
 
