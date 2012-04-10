@@ -12,9 +12,11 @@ public class FSK {
 	private double highestValue;
 	public final int FFT_64_SIZE=64;
 	public final int FFT_80_SIZE=80;
+	public final int FFT_160_SIZE=160;
 	private int freqBin;
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
 	private DoubleFFT_1D fft80=new DoubleFFT_1D(FFT_80_SIZE);
+	private DoubleFFT_1D fft160=new DoubleFFT_1D(FFT_160_SIZE);
 	private double componentDC;
 
 	// Return the number of samples per baud
@@ -160,7 +162,44 @@ public class FSK {
 		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 		}
-
+	
+	
+	public int doCCIR493_160FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+		double samData[]=circBuf.extractDataDouble(start,80);
+		int a;
+		double datar[]=new double[FFT_160_SIZE];
+		for (a=0;a<datar.length;a++)	{
+			if ((a>=60)&&(a<120)) datar[a]=samData[a-60];
+			else datar[a]=0.0;
+			//datar[a]=windowBlackman(datar[a],a,datar.length);
+		}
+		fft160.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
+		}	
+	
+	
+	// Returns two bins from a 160 bin FFT covering half a symbol
+	public double[] do160FFTHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
+		double vals[]=new double[2];
+		int a;
+		double datar[]=new double[FFT_160_SIZE];
+		// Get the data from the circular buffer
+		double samData[]=circBuf.extractDataDouble(start,40);
+		for (a=0;a<datar.length;a++)	{
+			if ((a>=60)&&(a<100)) datar[a]=samData[a-60];
+			else datar[a]=0.0;
+			//datar[a]=windowBlackman(datar[a],a,datar.length);
+		}
+		fft160.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		vals[0]=spec[bin0];
+		vals[1]=spec[bin1];
+		return vals;
+		}	
+	
 	// Test for a specific tone
 	public boolean toneTest (int freq,int tone,int errorAllow)	{
 		if ((freq>(tone-errorAllow))&&(freq<(tone+errorAllow))) return true;
