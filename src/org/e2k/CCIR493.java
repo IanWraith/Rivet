@@ -22,8 +22,10 @@ public class CCIR493 extends FSK {
 	private double adjBuffer[]=new double[5];
 	private int adjCounter=0;
 	private int buffer10=0;
+	private int buffer20=0;
 	private int dx;
 	private int rx;
+	private int formatSpecifier;
 	
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
@@ -71,6 +73,7 @@ public class CCIR493 extends FSK {
 				rx=0;
 				dx=0;
 				buffer10=0;
+				buffer20=0;
 				return outLines;
 			}
 		}		
@@ -197,6 +200,7 @@ public class CCIR493 extends FSK {
 	private String[] handleTraffic (boolean b)	{
 		String outLines[]=new String[3];
 		addTo10BitBuffer(b);
+		addTo20BitBuffer(b);
 		// Hunt for dx and rx characters which make up the phasing sequence
 		if (messageState==0)	{
 			int c=ret10BitCode(buffer10);
@@ -205,18 +209,19 @@ public class CCIR493 extends FSK {
 			// Is phasing complete ?
 			if (((dx==2)&&(rx==1))||((dx==1)&&(rx==2))) messageState=1;
 		}
-		// Phasing complete
+		// Phasing complete now look for the format specifier
 		else if (messageState==1)	{
-			
-			
-			if (b==true) lineBuffer.append("1");
-			else lineBuffer.append("0");
-			characterCount++;
-			if (characterCount==MAXCHARLENGTH)	{
-				outLines[0]=lineBuffer.toString();
-				characterCount=0;
-				lineBuffer.delete(0,lineBuffer.length());
+			formatSpecifier=formatSpecifierHunt(buffer20);
+			if (formatSpecifier!=-1)	{
+				messageState=2;
+				if (formatSpecifier==112) outLines[0]=theApp.getTimeStamp()+" Distress Alert";
+				else if (formatSpecifier==116) outLines[0]=theApp.getTimeStamp()+" All Stations";
+				else if (formatSpecifier==114) outLines[0]=theApp.getTimeStamp()+" Group Selective Call";
+				else if (formatSpecifier==120) outLines[0]=theApp.getTimeStamp()+" Individual Selective Call";
+				else if (formatSpecifier==102) outLines[0]=theApp.getTimeStamp()+" Geographic Selective Call";
+				else if (formatSpecifier==123) outLines[0]=theApp.getTimeStamp()+" Individual Selective Call Using Semi/Automatic Service";
 			}
+			
 			
 			
 		}
@@ -232,6 +237,13 @@ public class CCIR493 extends FSK {
 		if (b==true) buffer10++;
 	}
 	
+	// Add a bit to the 20 bit buffer
+	private void addTo20BitBuffer (boolean b)	{
+		buffer20=buffer20<<1;
+		buffer20=buffer20&0xFFFFF;
+		if (b==true) buffer20++;
+		}
+	
 	
 	private int ret10BitCode (int in)	{
 		int o=0;
@@ -244,6 +256,20 @@ public class CCIR493 extends FSK {
 		if ((in&8)>0) o=o+64;
 		// Bits 4,2 and 1 are check bits
 		return o;
+	}
+	
+	private int formatSpecifierHunt (int in)	{
+		int c1,c2;
+		c2=ret10BitCode(in&1023);
+		c1=ret10BitCode((in&0xFFC00)>>10);
+		if (c1!=c2) return -1;
+		else if (c1==112) return c1;
+		else if (c1==116) return c1;
+		else if (c1==114) return c1;
+		else if (c1==120) return c1;
+		else if (c1==102) return c1;
+		else if (c1==123) return c1;
+		else return -1;
 	}
 
 }
