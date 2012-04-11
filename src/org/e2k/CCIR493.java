@@ -130,7 +130,7 @@ public class CCIR493 extends FSK {
 			}
 		int shift=highTone-lowTone;
 		// The shift for CCIR493-4 should be should be 170 Hz
-		if ((shift>160)&&(shift<180)) return true;
+		if ((shift>=150)&&(shift<180)) return true;
 		else return false;
 	}	
 	
