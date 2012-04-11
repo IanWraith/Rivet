@@ -26,6 +26,9 @@ public class CCIR493 extends FSK {
 	private int dx;
 	private int rx;
 	private int formatSpecifier;
+	private int bitCount=0;
+	private int messageCategory;
+	private int calledPartyAddress[]=new int[5];
 	
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
@@ -74,6 +77,7 @@ public class CCIR493 extends FSK {
 				dx=0;
 				buffer10=0;
 				buffer20=0;
+				bitCount=0;
 				return outLines;
 			}
 		}		
@@ -201,30 +205,56 @@ public class CCIR493 extends FSK {
 		String outLines[]=new String[3];
 		addTo10BitBuffer(b);
 		addTo20BitBuffer(b);
+		bitCount++;
 		// Hunt for dx and rx characters which make up the phasing sequence
 		if (messageState==0)	{
 			int c=ret10BitCode(buffer10);
 			if (c==125) dx++;
 			else if ((c<=111)&&(c>=104)) rx++;
 			// Is phasing complete ?
-			if (((dx==2)&&(rx==1))||((dx==1)&&(rx==2))) messageState=1;
+			if (((dx==2)&&(rx==1))||((dx==1)&&(rx==2)))	{
+				bitCount=0;
+				messageState=1;
+				bitCount=0;
+			}
+			if (bitCount>300) state=1;
 		}
 		// Phasing complete now look for the format specifier
 		else if (messageState==1)	{
-			formatSpecifier=formatSpecifierHunt(buffer20);
+			if (bitCount>=20) formatSpecifier=formatSpecifierHunt(buffer20);
+			else if (bitCount>300) state=1;
+			else return null;
 			if (formatSpecifier!=-1)	{
 				messageState=2;
+				bitCount=0;
 				if (formatSpecifier==112) outLines[0]=theApp.getTimeStamp()+" Distress Alert";
 				else if (formatSpecifier==116) outLines[0]=theApp.getTimeStamp()+" All Stations";
 				else if (formatSpecifier==114) outLines[0]=theApp.getTimeStamp()+" Group Selective Call";
 				else if (formatSpecifier==120) outLines[0]=theApp.getTimeStamp()+" Individual Selective Call";
 				else if (formatSpecifier==102) outLines[0]=theApp.getTimeStamp()+" Geographic Selective Call";
 				else if (formatSpecifier==123) outLines[0]=theApp.getTimeStamp()+" Individual Selective Call Using Semi/Automatic Service";
+				else state=1;
 			}
-			
-			
-			
 		}
+		// Called party address
+		else if (messageState==2)	{
+			if (bitCount%10==0)	{
+			int i=bitCount/10;
+			calledPartyAddress[i-1]=ret10BitCode(buffer10);
+			if (calledPartyAddress[i-1]==-1) state=1;
+			if (bitCount==50)	{
+				bitCount=0;
+				messageState=3;			
+				}
+			}	
+		}
+		// Category
+		else if (messageState==3)	{
+			if (bitCount==10)	{
+				messageCategory=ret10BitCode(buffer10);
+				bitCount=0;
+				}
+			}
 		
 		
 		return outLines;
