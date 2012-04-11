@@ -12,7 +12,7 @@ public class CCIR493 extends FSK {
 	public StringBuffer lineBuffer=new StringBuffer();
 	private int highTone;
 	private int lowTone;
-	private int syncState;
+	private int messageState;
 	private int totalErrorCount=0;
 	private int characterCount=0;
 	private int totalCharacterCount=0;
@@ -21,7 +21,10 @@ public class CCIR493 extends FSK {
 	private int lowBin;
 	private double adjBuffer[]=new double[5];
 	private int adjCounter=0;
-
+	private int buffer10=0;
+	private int dx;
+	private int rx;
+	
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
 	}
@@ -49,7 +52,7 @@ public class CCIR493 extends FSK {
 			samplesPerSymbol=samplesPerSymbol(100.0,waveData.getSampleRate());
 			state=1;
 			lineBuffer.delete(0,lineBuffer.length());
-			syncState=0;
+			messageState=0;
 			theApp.setStatusLabel("Sync Hunt");
 			return null;
 		}
@@ -65,7 +68,9 @@ public class CCIR493 extends FSK {
 				totalErrorCount=0;
 				totalCharacterCount=0;
 				characterCount=0;
-				syncState=1;
+				rx=0;
+				dx=0;
+				buffer10=0;
 				return outLines;
 			}
 		}		
@@ -190,8 +195,55 @@ public class CCIR493 extends FSK {
 	
 	// The main function for handling incoming bits
 	private String[] handleTraffic (boolean b)	{
+		String outLines[]=new String[3];
+		addTo10BitBuffer(b);
+		// Hunt for dx and rx characters which make up the phasing sequence
+		if (messageState==0)	{
+			int c=ret10BitCode(buffer10);
+			if (c==125) dx++;
+			else if ((c<=111)&&(c>=104)) rx++;
+			// Is phasing complete ?
+			if (((dx==2)&&(rx==1))||((dx==1)&&(rx==2))) messageState=1;
+		}
+		// Phasing complete
+		else if (messageState==1)	{
+			
+			
+			if (b==true) lineBuffer.append("1");
+			else lineBuffer.append("0");
+			characterCount++;
+			if (characterCount==MAXCHARLENGTH)	{
+				outLines[0]=lineBuffer.toString();
+				characterCount=0;
+				lineBuffer.delete(0,lineBuffer.length());
+			}
+			
+			
+		}
 		
-		return null;
+		
+		return outLines;
+	}
+	
+	// Add a bit to the 10 bit buffer
+	private void addTo10BitBuffer (boolean b)	{
+		buffer10=buffer10<<1;
+		buffer10=buffer10&0x3FF;
+		if (b==true) buffer10++;
+	}
+	
+	
+	private int ret10BitCode (int in)	{
+		int o=0;
+		if ((in&512)>0) o=1;
+		if ((in&256)>0) o=o+2;
+		if ((in&128)>0) o=o+4;
+		if ((in&64)>0) o=o+8;
+		if ((in&32)>0) o=o+16;
+		if ((in&16)>0) o=o+32;
+		if ((in&8)>0) o=o+64;
+		// Bits 4,2 and 1 are check bits
+		return o;
 	}
 
 }
