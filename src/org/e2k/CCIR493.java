@@ -195,7 +195,7 @@ public class CCIR493 extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		if (Math.abs(av)<100) return 0;
+		if (Math.abs(av)<50) return 0;
 		else if (av<0.0) return 1;
 		else return -1;
 	}		
@@ -214,7 +214,8 @@ public class CCIR493 extends FSK {
 			// Is phasing complete ?
 			if (((dx==2)&&(rx==1))||((dx==1)&&(rx==2)))	{
 				bitCount=0;
-				messageState=1;
+				// below was 1 
+				messageState=3;
 				bitCount=0;
 			}
 			if (bitCount>300) state=1;
@@ -225,15 +226,14 @@ public class CCIR493 extends FSK {
 			else if (bitCount>300) state=1;
 			else return null;
 			if (formatSpecifier!=-1)	{
-				messageState=2;
 				bitCount=0;
+				messageState=2;
 				if (formatSpecifier==112) outLines[0]=theApp.getTimeStamp()+" Distress Alert";
 				else if (formatSpecifier==116) outLines[0]=theApp.getTimeStamp()+" All Stations";
 				else if (formatSpecifier==114) outLines[0]=theApp.getTimeStamp()+" Group Selective Call";
 				else if (formatSpecifier==120) outLines[0]=theApp.getTimeStamp()+" Individual Selective Call";
 				else if (formatSpecifier==102) outLines[0]=theApp.getTimeStamp()+" Geographic Selective Call";
 				else if (formatSpecifier==123) outLines[0]=theApp.getTimeStamp()+" Individual Selective Call Using Semi/Automatic Service";
-				else state=1;
 			}
 		}
 		// Called party address
@@ -251,7 +251,12 @@ public class CCIR493 extends FSK {
 		// Category
 		else if (messageState==3)	{
 			if (bitCount==10)	{
+				
 				messageCategory=ret10BitCode(buffer10);
+				
+				if (messageCategory==-1) outLines[0]="ERROR"; 
+				else outLines[0]=Integer.toString(messageCategory);
+				
 				bitCount=0;
 				}
 			}
@@ -274,18 +279,28 @@ public class CCIR493 extends FSK {
 		if (b==true) buffer20++;
 		}
 	
-	
+	// Returns a 7 bit value from a 10 bit block
+	// the last 3 bits give the number of B (0) bits in the first 7 bits
+	// if there is an error then -1 is returned
 	private int ret10BitCode (int in)	{
-		int o=0;
+		int o=0,b=0;
 		if ((in&512)>0) o=1;
+		else b++;
 		if ((in&256)>0) o=o+2;
+		else b++;
 		if ((in&128)>0) o=o+4;
+		else b++;
 		if ((in&64)>0) o=o+8;
+		else b++;
 		if ((in&32)>0) o=o+16;
+		else b++;
 		if ((in&16)>0) o=o+32;
+		else b++;
 		if ((in&8)>0) o=o+64;
+		else b++;
 		// Bits 4,2 and 1 are check bits
-		return o;
+		if (b==(in&7)) return o;
+		else return -1;
 	}
 	
 	private int formatSpecifierHunt (int in)	{
@@ -301,5 +316,7 @@ public class CCIR493 extends FSK {
 		else if (c1==123) return c1;
 		else return -1;
 	}
+	
+
 
 }
