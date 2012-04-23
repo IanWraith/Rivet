@@ -28,7 +28,7 @@ public class CCIR493 extends FSK {
 	private int formatSpecifier;
 	private int bitCount=0;
 	private int messageCategory;
-	private int calledPartyAddress[]=new int[5];
+	private int messageBuffer[]=new int[20];
 	
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
@@ -142,7 +142,7 @@ public class CCIR493 extends FSK {
 			}
 		int shift=highTone-lowTone;
 		// The shift for CCIR493-4 should be should be 170 Hz
-		if ((shift>=150)&&(shift<180)) return true;
+		if ((shift>=150)&&(shift<190)) return true;
 		else return false;
 	}	
 	
@@ -214,8 +214,7 @@ public class CCIR493 extends FSK {
 			// Is phasing complete ?
 			if (((dx==2)&&(rx==1))||((dx==1)&&(rx==2)))	{
 				bitCount=0;
-				// below was 1 
-				messageState=3;
+				messageState=1;
 				bitCount=0;
 			}
 			if (bitCount>300) state=1;
@@ -236,31 +235,28 @@ public class CCIR493 extends FSK {
 				else if (formatSpecifier==123) outLines[0]=theApp.getTimeStamp()+" Individual Selective Call Using Semi/Automatic Service";
 			}
 		}
-		// Called party address
+		// Load the body of the message into the messageBuffer array
 		else if (messageState==2)	{
 			if (bitCount%10==0)	{
-			int i=bitCount/10;
-			calledPartyAddress[i-1]=ret10BitCode(buffer10);
-			if (calledPartyAddress[i-1]==-1) state=1;
-			if (bitCount==50)	{
-				bitCount=0;
-				messageState=3;			
-				}
+				int i=bitCount/10;
+				if (i>messageBuffer.length) messageState=4;
+				else messageBuffer[i-1]=ret10BitCode(buffer10);
 			}	
+			// Check for an ARQ ARQ end sequence
+			if (buffer20==0xaeaba)	messageState=3;
 		}
-		// Category
+		// The message has been decoded so display it
 		else if (messageState==3)	{
-			if (bitCount==10)	{
-				
-				messageCategory=ret10BitCode(buffer10);
-				
-				if (messageCategory==-1) outLines[0]="ERROR"; 
-				else outLines[0]=Integer.toString(messageCategory);
-				
-				bitCount=0;
-				}
+			outLines=decodeMessageBody();
+			messageState=0;
+			state=1;
 			}
-		
+		// No end to the message has been found so there must be a problem here
+		else if (messageState==4)	{
+			outLines[0]="Error : Message over run !";
+			messageState=0;
+			state=1;
+		}
 		
 		return outLines;
 	}
@@ -317,6 +313,18 @@ public class CCIR493 extends FSK {
 		else return -1;
 	}
 	
-
+	private String[] decodeMessageBody()	{
+		String ol[]=new String[3];
+		ol[0]="";
+		ol[1]="";
+		int a;
+		for (a=0;a<10;a++)	{
+			ol[0]=ol[0]+Integer.toString(messageBuffer[a])+",";
+		}
+		for (a=10;a<messageBuffer.length;a++)	{
+			ol[1]=ol[1]+Integer.toString(messageBuffer[a])+",";
+		}
+		return ol;
+	}
 
 }
