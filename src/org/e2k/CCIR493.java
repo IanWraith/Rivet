@@ -27,7 +27,6 @@ public class CCIR493 extends FSK {
 	private int rx;
 	private int formatSpecifier;
 	private int bitCount=0;
-	private int messageCategory;
 	private int messageBuffer[]=new int[20];
 	
 	public CCIR493 (Rivet tapp)	{
@@ -214,7 +213,10 @@ public class CCIR493 extends FSK {
 			// Is phasing complete ?
 			if (((dx==2)&&(rx==1))||((dx==1)&&(rx==2)))	{
 				bitCount=0;
-				messageState=1;
+				
+				// below was 1
+				
+				messageState=2;
 				bitCount=0;
 			}
 			if (bitCount>300) state=1;
@@ -253,7 +255,8 @@ public class CCIR493 extends FSK {
 			}
 		// No end to the message has been found so there must be a problem here
 		else if (messageState==4)	{
-			outLines[0]="Error : Message over run !";
+			outLines=decodeMessageBody();
+			outLines[2]="Error : Message over run !";
 			messageState=0;
 			state=1;
 		}
