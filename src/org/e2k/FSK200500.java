@@ -119,6 +119,9 @@ public class FSK200500 extends FSK {
 							characterCount++;
 							// Does the line buffer end with "162)" if so start a new line
 							if (lineBuffer.lastIndexOf("162)")!=-1) characterCount=MAXCHARLENGTH;
+							// Improve the formatting of messages which contain traffic
+							if ((lineBuffer.length()>20)&&(lineBuffer.charAt(lineBuffer.length()-6)=='=')) characterCount=MAXCHARLENGTH;
+							if ((lineBuffer.length()>20)&&(lineBuffer.charAt(lineBuffer.length()-6)==')')&&(lineBuffer.charAt(lineBuffer.length()-7)==' ')) characterCount=MAXCHARLENGTH;
 						}
 					}
 					if (bcount!=7)	{
