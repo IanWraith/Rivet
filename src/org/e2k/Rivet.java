@@ -56,6 +56,7 @@ public class Rivet {
     public XPA2 xpa2Handler=new XPA2(this);	
     public CROWD36 crowd36Handler=new CROWD36(this,40);	
     public FSK200500 fsk200500Handler=new FSK200500(this,200);
+    public FSK2001000 fsk2001000Handler=new FSK2001000(this,200);
     public CIS3650 cis3650Handler=new CIS3650(this);
     public CCIR493 ccir493Handler=new CCIR493(this);
     public InputThread inputThread=new InputThread(this);
@@ -70,7 +71,7 @@ public class Rivet {
 	private boolean wavFileLoadOngoing=false;
 	private boolean invertSignal=false;
 	
-	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4"};
+	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000"};
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
@@ -184,6 +185,11 @@ public class Rivet {
 		else return false;
 		}
 	
+	public boolean isFSK2001000()	{
+		if (system==8) return true;
+		else return false;
+		}	
+	
 	// Tell the input thread to start to load a .WAV file
 	public void loadWAVfile(String fileName)	{
 		String disp;
@@ -207,6 +213,8 @@ public class Rivet {
 		else if (system==6) fsk200500Handler.setState(0);
 		// CCIR493-4
 		else if (system==7) ccir493Handler.setState(0);
+		// FSK200/1000
+		else if (system==8) fsk2001000Handler.setState(0);		
 		// Ensure the program knows we have a WAV file load ongoing
 		wavFileLoadOngoing=true;
 	}
@@ -289,6 +297,8 @@ public class Rivet {
 			else if (system==6)	outLines=fsk200500Handler.decode(circBuffer,waveData);
 			// CCIR493-4
 			else if (system==7)	outLines=ccir493Handler.decode(circBuffer,waveData);
+			// FSK200/1000
+			else if (system==8)	outLines=fsk2001000Handler.decode(circBuffer,waveData);
 			// Return if nothing at all has been returned
 			if (outLines==null) return;
 			// Display the decode objects output
@@ -427,8 +437,8 @@ public class Rivet {
 				waveData=waveSetting;
 				this.soundCardInput=true;	
 			}	
-			// FSK200/500
-			else if (system==6)	{
+			// FSK200/500 + FSK200/1000
+			else if ((system==6)||(system==8))	{
 				WaveData waveSetting=new WaveData();
 				waveSetting.setChannels(1);
 				waveSetting.setEndian(true);
@@ -475,6 +485,8 @@ public class Rivet {
 		else if (system==6)	fsk200500Handler.setState(0);
 		// CCIR493-4
 		else if (system==7)	ccir493Handler.setState(0);
+		// FSK200/1000
+		else if (system==8)	fsk2001000Handler.setState(0);
 	}
 	
 	// Gets all the text on the screen and returns it as a string
