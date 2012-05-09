@@ -168,8 +168,9 @@ public class CCIR493 extends FSK {
 			else bit=false;
 		}
 		else	{
-			if (lowTotal>highTotal) bit=true;
-			else bit=false;
+			// If inverted is set invert the bit returned
+			if (lowTotal>highTotal) bit=false;
+			else bit=true;
 		}
 		return bit;
 	}
@@ -213,11 +214,7 @@ public class CCIR493 extends FSK {
 			// Is phasing complete ?
 			if (((dx==2)&&(rx==1))||((dx==1)&&(rx==2)))	{
 				bitCount=0;
-				
-				// below was 1
-				
-				messageState=2;
-				bitCount=0;
+				messageState=1;
 			}
 			if (bitCount>300) state=1;
 		}
@@ -319,13 +316,9 @@ public class CCIR493 extends FSK {
 	private String[] decodeMessageBody()	{
 		String ol[]=new String[3];
 		ol[0]="";
-		ol[1]="";
 		int a;
-		for (a=0;a<10;a++)	{
+		for (a=0;a<messageBuffer.length;a++)	{
 			ol[0]=ol[0]+Integer.toString(messageBuffer[a])+",";
-		}
-		for (a=10;a<messageBuffer.length;a++)	{
-			ol[1]=ol[1]+Integer.toString(messageBuffer[a])+",";
 		}
 		return ol;
 	}
