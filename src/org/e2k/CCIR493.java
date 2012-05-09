@@ -13,9 +13,7 @@ public class CCIR493 extends FSK {
 	private int highTone;
 	private int lowTone;
 	private int messageState;
-	private int totalErrorCount=0;
 	private int characterCount=0;
-	private int totalCharacterCount=0;
 	private final int MAXCHARLENGTH=80;
 	private int highBin;
 	private int lowBin;
@@ -69,8 +67,6 @@ public class CCIR493 extends FSK {
 			// Look for a 100 baud alternating sync sequence
 			if (detectSync(circBuf,waveData)==true)	{
 				state=2;
-				totalErrorCount=0;
-				totalCharacterCount=0;
 				characterCount=0;
 				rx=0;
 				dx=0;
@@ -85,7 +81,7 @@ public class CCIR493 extends FSK {
 			if (symbolCounter>=(long)samplesPerSymbol)	{		
 				// Demodulate a single bit
 				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
-				
+				// If debugging display only the raw bits
 				if (theApp.isDebug()==true)	{
 					if (bit==true) lineBuffer.append("1");
 					else lineBuffer.append("0");
@@ -96,6 +92,7 @@ public class CCIR493 extends FSK {
 						lineBuffer.delete(0,lineBuffer.length());
 					}
 				}
+				// If not debugging handle the traffic properly
 				else outLines=handleTraffic(bit);
 			}
 		}
@@ -154,13 +151,15 @@ public class CCIR493 extends FSK {
 	// Return the symbol frequency given the bins that hold the possible tones
 	private boolean getSymbolFreqBin (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		boolean bit;
+		// Run FFTs on the early and late parts of the symbol
 		double early[]=do160FFTHalfSymbolBinRequest(circBuf,start,lowBin,highBin);
 		start=start+((int)samplesPerSymbol/2);
 		double late[]=do160FFTHalfSymbolBinRequest(circBuf,start,lowBin,highBin);
-		
+		// Feed the early late difference into a buffer
 		addToAdjBuffer(early[0]-late[0]);
+		// Calculate the symbol timing correction
 		symbolCounter=adjAdjust();
-
+		// Now work out the binary state represented by this symbol
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
 		if (theApp.isInvertSignal()==false)	{
@@ -240,9 +239,11 @@ public class CCIR493 extends FSK {
 				int i=bitCount/10;
 				if (i>=messageBuffer.length) messageState=4;
 				else messageBuffer[i-1]=ret10BitCode(buffer10);
+				// Check for an ARQ ARQ end sequence
+				if (i>3)	{
+					if ((messageBuffer[i-1]==117)&&(messageBuffer[i-2]==117)) messageState=3;
+				}
 			}	
-			// Check for an ARQ ARQ end sequence
-			if (buffer20==0xaeaba)	messageState=3;
 		}
 		// The message has been decoded so display it
 		else if (messageState==3)	{
