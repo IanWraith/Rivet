@@ -195,7 +195,7 @@ public class CCIR493 extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		if (Math.abs(av)<50) return 0;
+		if (Math.abs(av)<5) return 0;
 		else if (av<0.0) return 1;
 		else return -1;
 	}		
@@ -238,7 +238,7 @@ public class CCIR493 extends FSK {
 		else if (messageState==2)	{
 			if (bitCount%10==0)	{
 				int i=bitCount/10;
-				if (i>messageBuffer.length) messageState=4;
+				if (i>=messageBuffer.length) messageState=4;
 				else messageBuffer[i-1]=ret10BitCode(buffer10);
 			}	
 			// Check for an ARQ ARQ end sequence
