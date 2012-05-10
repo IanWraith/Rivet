@@ -246,7 +246,9 @@ public class CCIR493 extends FSK {
 		else if (messageState==2)	{
 			if (bitCount%10==0)	{
 				int i=bitCount/10;
-				if (i>=messageBuffer.length) messageState=4;
+				// Check if the message length is over running the messageBuffer
+				// If it isn't add the error checked and decoded 10 bit character to it
+				if (i>=messageBuffer.length) messageState=3;
 				else messageBuffer[i-1]=ret10BitCode(buffer10);
 				// Check for an ARQ ARQ end sequence
 				if (i>3)	{
@@ -260,14 +262,6 @@ public class CCIR493 extends FSK {
 			messageState=0;
 			state=1;
 			}
-		// No end to the message has been found so there must be a problem here
-		else if (messageState==4)	{
-			outLines=decodeMessageBody();
-			outLines[2]="Error : Message over run !";
-			messageState=0;
-			state=1;
-		}
-		
 		return outLines;
 	}
 	
