@@ -523,6 +523,7 @@ public class Rivet {
 
 	public void setInvertSignal(boolean invertSignal) {
 		this.invertSignal = invertSignal;
+		window.menuItemUpdate();
 	}
 	
 	// Save the programs settings in the rivet_settings.xml file

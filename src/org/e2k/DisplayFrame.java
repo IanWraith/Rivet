@@ -229,7 +229,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		statusBarUpdate();
 	}
 	
-	private void menuItemUpdate()	{
+	public void menuItemUpdate()	{
 		save_to_file.setSelected(theApp.getLogging());
 		CROWD36_item.setSelected(theApp.isCROWD36());
 		XPA_10_item.setSelected(theApp.isXPA_10());
