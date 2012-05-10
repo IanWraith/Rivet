@@ -74,6 +74,7 @@ public class CCIR493 extends FSK {
 				buffer20=0;
 				bitCount=0;
 				invertedPDXCounter=0;
+				clearMessageBuffer();
 				return outLines;
 			}
 		}		
@@ -387,6 +388,14 @@ public class CCIR493 extends FSK {
 		else if (c==110) return " (Urgency)";
 		else if (c==112) return " (Distress)";
 		else return "(Unknown)";
+	}
+	
+	// Clear the messageBuffer
+	private void clearMessageBuffer ()	{
+		int a;
+		for (a=0;a<messageBuffer.length;a++){
+			messageBuffer[a]=-1;
+		}
 	}
 
 }
