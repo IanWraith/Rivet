@@ -59,8 +59,6 @@ public class CCIR493 extends FSK {
 			theApp.setStatusLabel("Sync Hunt");
 			return null;
 		}
-		
-		
 		// Look for a 100 baud alternating sequence
 		if (state==1)	{
 			sampleCount++;
@@ -68,6 +66,7 @@ public class CCIR493 extends FSK {
 			// Look for a 100 baud alternating sync sequence
 			if (detectSync(circBuf,waveData)==true)	{
 				state=2;
+				lineBuffer.delete(0,lineBuffer.length());
 				characterCount=0;
 				rx=0;
 				dx=0;
@@ -78,7 +77,7 @@ public class CCIR493 extends FSK {
 				return outLines;
 			}
 		}		
-		
+		// Receive and decode the message
 		if (state==2)	{
 			if (symbolCounter>=(long)samplesPerSymbol)	{		
 				// Demodulate a single bit
@@ -98,8 +97,6 @@ public class CCIR493 extends FSK {
 				else outLines=handleTraffic(bit);
 			}
 		}
-		
-		
 		sampleCount++;
 		symbolCounter++;
 		return outLines;
@@ -236,12 +233,13 @@ public class CCIR493 extends FSK {
 			if (formatSpecifier!=-1)	{
 				bitCount=0;
 				messageState=2;
-				if (formatSpecifier==112) outLines[0]=theApp.getTimeStamp()+" Distress Alert";
-				else if (formatSpecifier==116) outLines[0]=theApp.getTimeStamp()+" All Stations";
-				else if (formatSpecifier==114) outLines[0]=theApp.getTimeStamp()+" Group Selective Call";
-				else if (formatSpecifier==120) outLines[0]=theApp.getTimeStamp()+" Individual Selective Call";
-				else if (formatSpecifier==102) outLines[0]=theApp.getTimeStamp()+" Geographic Selective Call";
-				else if (formatSpecifier==123) outLines[0]=theApp.getTimeStamp()+" Individual Selective Call Using Semi/Automatic Service";
+				if (formatSpecifier==112) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Distress Alert ");
+				else if (formatSpecifier==116) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 All Stations ");
+				else if (formatSpecifier==114) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Group Selective Call ");
+				else if (formatSpecifier==120) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Individual Selective Call ");
+				else if (formatSpecifier==102) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Geographic Selective Call ");
+				else if (formatSpecifier==123) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Individual Selective Call Using Semi/Automatic Service ");
+				else lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Unknown Call ");
 			}
 		}
 		// Load the body of the message into the messageBuffer array
@@ -311,6 +309,7 @@ public class CCIR493 extends FSK {
 		else return -1;
 	}
 	
+	// Hunt for the call format specifier
 	private int formatSpecifierHunt (int in)	{
 		int c1,c2;
 		c2=ret10BitCode(in&1023);
@@ -325,14 +324,75 @@ public class CCIR493 extends FSK {
 		else return -1;
 	}
 	
+	// Convert the data into English
 	private String[] decodeMessageBody()	{
 		String ol[]=new String[3];
-		ol[0]="";
-		int a;
-		for (a=0;a<messageBuffer.length;a++)	{
-			ol[0]=ol[0]+Integer.toString(messageBuffer[a])+",";
-		}
+		ol[0]=lineBuffer.toString()+"Station "+getAStationIdentity()+" Calling "+getBStationIdentity()+getCategory();
 		return ol;
+	}
+	
+	// Gets the identity of the B station and returns it as a String
+	private String getBStationIdentity()	{
+		int b1,b2;
+		// B1
+		int b11=messageBuffer[0];
+		int b12=messageBuffer[5];
+		if ((b11==-1)&&(b12!=-1)) b1=b12;
+		else if ((b12==-1)&&(b11!=-1)) b1=b11;
+		else if ((b11==-1)&&(b12==-1)) return "ERROR";
+		else if (b11==b12) b1=b11;
+		else b1=b11;
+		// B2
+		int b21=messageBuffer[2];
+		int b22=messageBuffer[7];	
+		if ((b21==-1)&&(b22!=-1)) b2=b22;
+		else if ((b22==-1)&&(b21!=-1)) b2=b21;
+		else if ((b21==-1)&&(b22==-1)) return "ERROR";
+		else if (b21==b22) b2=b21;
+		else b2=b21;
+		// Make up the identity B1 + B2
+		String r=Integer.toString(b1)+Integer.toString(b2);
+		return r;
+	}
+	
+	// Gets the identity of the A station and returns it as a String
+	private String getAStationIdentity()	{
+		int a1,a2;
+		// A1
+		int a11=messageBuffer[6];
+		int a12=messageBuffer[11];
+		if ((a11==-1)&&(a12!=-1)) a1=a12;
+		else if ((a12==-1)&&(a11!=-1)) a1=a11;
+		else if ((a11==-1)&&(a12==-1)) return "ERROR";
+		else a1=a11;
+		// A2
+		int a21=messageBuffer[8];
+		int a22=messageBuffer[13];	
+		if ((a21==-1)&&(a22!=-1)) a2=a22;
+		else if ((a22==-1)&&(a21!=-1)) a2=a21;
+		else if ((a21==-1)&&(a22==-1)) return "ERROR";
+		else a2=a21;
+		// Make up the identity A1 + A2
+		String r=Integer.toString(a1)+Integer.toString(a2);
+		return r;
+	}
+	
+	// Gets the calls category and return it as a String
+	private String getCategory()	{
+		int c,c1,c2;
+		c1=messageBuffer[4];
+		c2=messageBuffer[9];
+		if ((c1==-1)&&(c2!=-1)) c=c2;
+		else if ((c2==-1)&&(c1!=-1)) c=c1;
+		else if ((c2==-1)&&(c1==-1)) return " (ERROR)";
+		else c=c1;
+		// Categories
+		if (c==100) return " (Routine)";
+		else if (c==106) return " (Ship's Business)";
+		else if (c==108) return " (Safety)";
+		else if (c==110) return " (Urgency)";
+		else if (c==112) return " (Distress)";
+		else return "(Unknown)";
 	}
 
 }
