@@ -26,6 +26,7 @@ public class CCIR493 extends FSK {
 	private int formatSpecifier;
 	private int bitCount=0;
 	private int messageBuffer[]=new int[20];
+	private int invertedPDXCounter;
 	
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
@@ -73,6 +74,7 @@ public class CCIR493 extends FSK {
 				buffer10=0;
 				buffer20=0;
 				bitCount=0;
+				invertedPDXCounter=0;
 				return outLines;
 			}
 		}		
@@ -207,7 +209,16 @@ public class CCIR493 extends FSK {
 		bitCount++;
 		// Hunt for dx and rx characters which make up the phasing sequence
 		if (messageState==0)	{
+			// Look for and count inverted PDX characters
+			if (buffer10==262) invertedPDXCounter++;
+			// If more than 2 inverted PDXs have been received change the invert setting
+			if (invertedPDXCounter==2)	{
+				invertedPDXCounter=0;
+				if (theApp.isInvertSignal()==true) theApp.setInvertSignal(false);
+				else theApp.setInvertSignal(true);
+			}
 			int c=ret10BitCode(buffer10);
+			// Detect and count phasing characters
 			if (c==125) dx++;
 			else if ((c<=111)&&(c>=104)) rx++;
 			// Is phasing complete ?
