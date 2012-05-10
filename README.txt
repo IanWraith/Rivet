@@ -43,6 +43,9 @@ Build 17 incorporates information received on the make up of CIS36-50 messages
 Build 18 adds an early/late gate to improve CIS36-50 symbol sync
 Build 19 further improves the CIS36-50 early/late gate and improves FSK200/500 decoding
 Build 20 much better decoding of CIS36-50 and FSK200/500.
+Build 21 added experimental CCIR493-4 decoding
+Build 22 yet more experimental CCIR493-4 decoding features
+Build 23 adds CCIR493-4 decoding
 
 Reported Bugs
 -------------
@@ -52,4 +55,4 @@ Still problems with CROWD36 decoding. Not a bug as such but more a lack of under
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (6th April 2012) 
+Ian Wraith (10th May 2012) 
