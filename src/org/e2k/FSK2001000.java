@@ -15,10 +15,7 @@ public class FSK2001000 extends FSK {
 	private int characterCount=0;
 	private int highBin;
 	private int lowBin;
-	private boolean inChar[]=new boolean[7];
 	private final int MAXCHARLENGTH=80;
-	private int bcount;
-	private int missingCharCounter=0;
 	private double adjBuffer[]=new double[7];
 	private int adjCounter=0;
 	
@@ -81,7 +78,6 @@ public class FSK2001000 extends FSK {
 			if (outLines[0]!=null)	{
 				state=2;
 				energyBuffer.setBufferCounter(0);
-				bcount=0;
 			}
 		}
 		
@@ -90,8 +86,10 @@ public class FSK2001000 extends FSK {
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
 				symbolCounter=0;
-				int ibit=fsk2001000FreqHalf(circBuf,waveData,0);
-				lineBuffer.append(Integer.toString(ibit));
+				boolean ibit=fsk2001000FreqHalf(circBuf,waveData,0);
+				if (ibit==true) lineBuffer.append("1");
+				else lineBuffer.append("0");
+				
 				if (characterCount==60)	{
 					outLines[0]=lineBuffer.toString();
 					lineBuffer.delete(0,lineBuffer.length());
@@ -157,33 +155,29 @@ public class FSK2001000 extends FSK {
 	// The "normal" way of determining the frequency of a FSK200/1000 symbol
 	// is to do two FFTs of the first and last halves of the symbol
 	// that allows us to use the data for the early/late gate and to detect a half bit (which is used as a stop bit)
-	private int fsk2001000FreqHalf (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
+	private boolean fsk2001000FreqHalf (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 		int sp=(int)samplesPerSymbol/2;
 		// First half
-		double ff1[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
+		double early[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
 		// Last half
-		double ff2[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
-		
-		int high1,high2;
-		if (ff1[0]>ff1[1]) high1=0;
-		else high1=1;
-		if (ff2[0]>ff2[1]) high2=0;
-		else high2=1;
-		
-		double early=ff1[1];
-		double late=ff2[1];
-		addToAdjBuffer(early-late);
-		
-		// Both the same
-		if (high1==high2)	{
-			if (high1==0) return 1;
-			else return 0;
+		double late[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
+		// Feed the early late difference into a buffer
+		addToAdjBuffer(early[0]-late[0]);
+		// Calculate the symbol timing correction
+		symbolCounter=adjAdjust();
+		// Now work out the binary state represented by this symbol
+		double lowTotal=early[0]+late[0];
+		double highTotal=early[1]+late[1];
+		if (theApp.isInvertSignal()==false)	{
+			if (lowTotal>highTotal) return true;
+			else return false;
 		}
 		else	{
-				// Is this a stop bit
-				if (high2>high1) return 2;
-				else return 3;
+			// If inverted is set invert the bit returned
+			if (lowTotal>highTotal) return false;
+			else return true;
 		}
+		
 	}
 	
 	// Add a comparator output to a circular buffer of values
