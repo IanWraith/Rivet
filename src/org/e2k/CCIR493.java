@@ -345,8 +345,8 @@ public class CCIR493 extends FSK {
 		else if ((b21==-1)&&(b22==-1)) return "ERROR";
 		else if (b21==b22) b2=b21;
 		else b2=b21;
-		// Make up the identity B1 + B2
-		String r=Integer.toString(b1)+Integer.toString(b2);
+		// Make up the identity B1 + B2 (adding a leading zero to both parts if needed)
+		String r=String.format("%02d",b1)+String.format("%02d",b2);
 		return r;
 	}
 	
@@ -367,8 +367,8 @@ public class CCIR493 extends FSK {
 		else if ((a22==-1)&&(a21!=-1)) a2=a21;
 		else if ((a21==-1)&&(a22==-1)) return "ERROR";
 		else a2=a21;
-		// Make up the identity A1 + A2
-		String r=Integer.toString(a1)+Integer.toString(a2);
+		// Make up the identity A1 + A2 (adding a leading zero to both parts if needed)
+		String r=String.format("%02d",a1)+String.format("%02d",a2);
 		return r;
 	}
 	

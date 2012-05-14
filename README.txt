@@ -46,6 +46,7 @@ Build 20 much better decoding of CIS36-50 and FSK200/500.
 Build 21 added experimental CCIR493-4 decoding
 Build 22 yet more experimental CCIR493-4 decoding features
 Build 23 adds CCIR493-4 decoding
+Build 24 fixes a bug in CCIR493-4 decoding putting leading zeros in front of station identity sections
 
 Reported Bugs
 -------------
