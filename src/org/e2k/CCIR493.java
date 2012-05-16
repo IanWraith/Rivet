@@ -300,8 +300,21 @@ public class CCIR493 extends FSK {
 		if ((in&8)>0) o=o+64;
 		else b++;
 		// Bits 4,2 and 1 are check bits
-		if (b==(in&7)) return o;
-		else return -1;
+		if (b==(in&7))	{
+			return o;
+		}
+		else	{
+			int dif=(in&7)-b;
+			// Check for a 1 bit error
+			if ((dif==-1)||(dif==1)) return fixSingleBitError(in);
+			else return -1;
+		}
+	}
+	
+	// Try to fix a 10 bit character with a single bit error
+	private int fixSingleBitError (int in)	{
+		
+		return -1;
 	}
 	
 	// Hunt for the call format specifier
