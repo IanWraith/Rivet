@@ -27,6 +27,14 @@ public class CCIR493 extends FSK {
 	private int bitCount=0;
 	private int messageBuffer[]=new int[20];
 	private int invertedPDXCounter;
+	private final int VALIDWORDS[]={7,518,262,773,134,645,389,900,70,581,325,836,197,708,452,963,38,549,293,804,
+			165,676,420,931,101,612,356,867,228,739,483,994,22,533,277,788,149,660,404,
+			915,85,596,340,851,212,723,467,978,53,564,308,819,180,691,435,946,116,627,
+			371,882,243,754,498,1009,14,525,269,780,141,652,396,907,77,588,332,843,204,
+			715,459,970,45,556,300,811,172,683,427,938,108,619,363,874,235,746,490,1001,
+			29,540,284,795,156,667,411,922,92,603,347,858,219,730,474,985,60,571,315,826,
+			187,698,442,953,123,634,378,889,250,761,505,1016};
+	private final int BITVALUES[]={1,2,4,8,16,32,64,128,256,512};
 	
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
@@ -214,8 +222,10 @@ public class CCIR493 extends FSK {
 				invertedPDXCounter=0;
 				if (theApp.isInvertSignal()==true) theApp.setInvertSignal(false);
 				else theApp.setInvertSignal(true);
+				// Invert the contents of buffer10
+				invertBuffer10();
 			}
-			int c=ret10BitCode(buffer10);
+			int c=ret10BitCode(buffer10,false);
 			// Detect and count phasing characters
 			if (c==125) dx++;
 			else if ((c<=111)&&(c>=104)) rx++;
@@ -250,7 +260,7 @@ public class CCIR493 extends FSK {
 				// Check if the message length is over running the messageBuffer
 				// If it isn't add the error checked and decoded 10 bit character to it
 				if (i>=messageBuffer.length) messageState=3;
-				else messageBuffer[i-1]=ret10BitCode(buffer10);
+				else messageBuffer[i-1]=ret10BitCode(buffer10,true);
 				// Check for an ARQ ARQ end sequence
 				if (i>3)	{
 					if ((messageBuffer[i-1]==117)&&(messageBuffer[i-2]==117)) messageState=3;
@@ -283,45 +293,28 @@ public class CCIR493 extends FSK {
 	// Returns a 7 bit value from a 10 bit block
 	// the last 3 bits give the number of B (0) bits in the first 7 bits
 	// if there is an error then -1 is returned
-	private int ret10BitCode (int in)	{
-		int o=0,b=0;
-		if ((in&512)>0) o=1;
-		else b++;
-		if ((in&256)>0) o=o+2;
-		else b++;
-		if ((in&128)>0) o=o+4;
-		else b++;
-		if ((in&64)>0) o=o+8;
-		else b++;
-		if ((in&32)>0) o=o+16;
-		else b++;
-		if ((in&16)>0) o=o+32;
-		else b++;
-		if ((in&8)>0) o=o+64;
-		else b++;
-		// Bits 4,2 and 1 are check bits
-		if (b==(in&7))	{
-			return o;
+	// the routine will fix words with up to errorMax bits incorrect
+	// if errorBitsAllowed is false then no errors will be fixed
+	private int ret10BitCode (int in,boolean errorBitsAllowed)	{
+		int a,b,dif,errorMax,best=-1;
+		if (errorBitsAllowed==true) errorMax=2;
+		else errorMax=0;
+		for (a=0;a<VALIDWORDS.length;a++){
+			dif=0;
+			for (b=0;b<BITVALUES.length;b++)	{
+				if ((in&BITVALUES[b])!=(VALIDWORDS[a]&BITVALUES[b])) dif++;
+			}
+			if (dif==0) return a;
+			else if (dif<=errorMax) best=a;
 		}
-		else	{
-			int dif=(in&7)-b;
-			// Check for a 1 bit error
-			if ((dif==-1)||(dif==1)) return fixSingleBitError(in);
-			else return -1;
-		}
-	}
-	
-	// Try to fix a 10 bit character with a single bit error
-	private int fixSingleBitError (int in)	{
-		
-		return -1;
+		return best;
 	}
 	
 	// Hunt for the call format specifier
 	private int formatSpecifierHunt (int in)	{
 		int c1,c2;
-		c2=ret10BitCode(in&1023);
-		c1=ret10BitCode((in&0xFFC00)>>10);
+		c2=ret10BitCode(in&1023,true);
+		c1=ret10BitCode((in&0xFFC00)>>10,true);
 		if (c1!=c2) return -1;
 		else if (c1==112) return c1;
 		else if (c1==116) return c1;
@@ -410,5 +403,15 @@ public class CCIR493 extends FSK {
 			messageBuffer[a]=-1;
 		}
 	}
+	
+	// Invert the contents of the buffer10 variable
+	private void invertBuffer10()	{
+		int a,c=0;
+		for (a=0;a<BITVALUES.length;a++)	{
+			if ((buffer10&BITVALUES[a])==0) c=c+BITVALUES[a];
+		}
+		buffer10=c;
+	}
+
 
 }
