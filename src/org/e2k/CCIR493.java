@@ -238,19 +238,21 @@ public class CCIR493 extends FSK {
 		}
 		// Phasing complete now look for the format specifier
 		else if (messageState==1)	{
-			if (bitCount>=20) formatSpecifier=formatSpecifierHunt(buffer20);
-			else if (bitCount>300) state=1;
-			else return null;
-			if (formatSpecifier!=-1)	{
-				bitCount=0;
-				messageState=2;
-				if (formatSpecifier==112) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Distress Alert ");
-				else if (formatSpecifier==116) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 All Stations ");
-				else if (formatSpecifier==114) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Group Selective Call ");
-				else if (formatSpecifier==120) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Individual Selective Call ");
-				else if (formatSpecifier==102) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Geographic Selective Call ");
-				else if (formatSpecifier==123) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Individual Selective Call Using Semi/Automatic Service ");
-				else lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Unknown Call ");
+			// We now have sync so only check for the format specifier every 10 bits
+			if (bitCount%10==0)	{
+				formatSpecifier=formatSpecifierHunt(buffer20);
+				if (bitCount>300) state=1;
+				if (formatSpecifier!=-1)	{
+					bitCount=0;
+					messageState=2;
+					if (formatSpecifier==112) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Distress Alert ");
+					else if (formatSpecifier==116) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 All Stations ");
+					else if (formatSpecifier==114) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Group Selective Call ");
+					else if (formatSpecifier==120) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Individual Selective Call ");
+					else if (formatSpecifier==102) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Geographic Selective Call ");
+					else if (formatSpecifier==123) lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Individual Selective Call Using Semi/Automatic Service ");
+					else lineBuffer.append(theApp.getTimeStamp()+" CCIR493-4 Unknown Call ");
+				}
 			}
 		}
 		// Load the body of the message into the messageBuffer array
@@ -297,7 +299,7 @@ public class CCIR493 extends FSK {
 	// if errorBitsAllowed is false then no errors will be fixed
 	private int ret10BitCode (int in,boolean errorBitsAllowed)	{
 		int a,b,dif,errorMax,best=-1;
-		if (errorBitsAllowed==true) errorMax=2;
+		if (errorBitsAllowed==true) errorMax=1;
 		else errorMax=0;
 		for (a=0;a<VALIDWORDS.length;a++){
 			dif=0;
