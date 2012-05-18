@@ -3,7 +3,7 @@ of the Enigma 2000 group.
 
 http://groups.yahoo.com/group/enigma2000/
 
-Currently the program decodes the modes XPA , XPA2 , CROWD36 (partially) and CIS36-50 (BEE) but more modes will be added soon.
+Currently the program decodes the modes XPA , XPA2 , CCIR493-4 ,CROWD36 (partially) and CIS36-50 (BEE) but more modes will be added soon.
 The program can decode directly from your PCs soundcard or from a WAV file.
 
 The program is written in Java so it should run on any PC which has Java installed.
@@ -47,6 +47,7 @@ Build 21 added experimental CCIR493-4 decoding
 Build 22 yet more experimental CCIR493-4 decoding features
 Build 23 adds CCIR493-4 decoding
 Build 24 fixes a bug in CCIR493-4 decoding putting leading zeros in front of station identity sections
+Build 25 adds basic error correction to the CCIR493-4 mode 
 
 Reported Bugs
 -------------
@@ -56,4 +57,4 @@ Still problems with CROWD36 decoding. Not a bug as such but more a lack of under
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (10th May 2012) 
+Ian Wraith (18th May 2012) 
