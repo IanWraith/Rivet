@@ -292,13 +292,11 @@ public class CCIR493 extends FSK {
 		if (b==true) buffer20++;
 		}
 	
-	// Returns a 7 bit value from a 10 bit block
-	// the last 3 bits give the number of B (0) bits in the first 7 bits
-	// if there is an error then -1 is returned
-	// the routine will fix words with up to errorMax bits incorrect
+	// Returns a 7 bit value from a 10 bit block the last 3 bits give the number of B (0) bits in the first 7 bits
+	// if there is an error then -1 is returned the routine will fix words with up to errorMax bits incorrect
 	// if errorBitsAllowed is false then no errors will be fixed
 	private int ret10BitCode (int in,boolean errorBitsAllowed)	{
-		int a,b,dif,errorMax,best=-1;
+		int a,b,dif,errorMax;
 		if (errorBitsAllowed==true) errorMax=1;
 		else errorMax=0;
 		for (a=0;a<VALIDWORDS.length;a++){
@@ -306,10 +304,9 @@ public class CCIR493 extends FSK {
 			for (b=0;b<BITVALUES.length;b++)	{
 				if ((in&BITVALUES[b])!=(VALIDWORDS[a]&BITVALUES[b])) dif++;
 			}
-			if (dif==0) return a;
-			else if (dif<=errorMax) best=a;
+			if (dif<=errorMax) return a;
 		}
-		return best;
+		return -1;
 	}
 	
 	// Hunt for the call format specifier
