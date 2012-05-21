@@ -552,6 +552,10 @@ public class Rivet {
 			// Soundcard Input Level
 			line="<soundcard_level val='"+Integer.toString(soundCardInputLevel)+"'/>";
 			xmlfile.write(line);
+			// Soundcard Input
+			if (soundCardInput==true) line="<soundcard_input='1'>";
+			else line="<soundcard_input='0'>";
+			xmlfile.write(line);
 			// All done so close the root item //
 			line="</settings>";
 			xmlfile.write(line);
