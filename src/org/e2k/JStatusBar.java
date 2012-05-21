@@ -47,9 +47,10 @@ public class JStatusBar extends JPanel implements ChangeListener {
 		inputLevelSlider.setMinorTickSpacing(5);
 		inputLevelSlider.setPaintTicks(true);
 		inputLevelSlider.setPaintLabels(true);
-		inputLevelSlider.setBorder(BorderFactory.createTitledBorder("Input Level"));
+		inputLevelSlider.setBorder(BorderFactory.createTitledBorder("Input Level Adjust"));
 		// Give the volume progress bar a border //
-		volumeBar.setBorder(loweredbevel);
+		volumeBar.setBorder(BorderFactory.createTitledBorder("Input Level"));
+		volumeBar.setForeground(Color.GREEN);
 		// Ensure the elements of the status bar are displayed from the left
 		this.setLayout(new FlowLayout(FlowLayout.LEFT));
 		this.add(volumeBar,BorderLayout.CENTER);
