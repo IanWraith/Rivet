@@ -14,12 +14,12 @@
 package org.e2k;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-public class JStatusBar extends JPanel {
+public class JStatusBar extends JPanel implements ChangeListener {
 	
 	public static final long serialVersionUID=1;
 	private JLabel logMode=new JLabel();
@@ -28,6 +28,7 @@ public class JStatusBar extends JPanel {
 	private JProgressBar volumeBar=new JProgressBar(0,100);
 	private Border loweredbevel=BorderFactory.createLoweredBevelBorder();
 	private Rivet TtheApp;
+	private JSlider inputLevelSlider;
 	
 	public JStatusBar() {
 		logMode.setHorizontalAlignment(SwingConstants.LEFT);
@@ -39,11 +40,20 @@ public class JStatusBar extends JPanel {
 		modeLabel.setHorizontalAlignment(SwingConstants.LEFT);
 		modeLabel.setBorder(loweredbevel);
 		modeLabel.updateUI();
+		// Input level slider
+		inputLevelSlider=new JSlider(JSlider.HORIZONTAL,1,100,5);
+		inputLevelSlider.addChangeListener(this);
+		inputLevelSlider.setMajorTickSpacing(25);
+		inputLevelSlider.setMinorTickSpacing(5);
+		inputLevelSlider.setPaintTicks(true);
+		inputLevelSlider.setPaintLabels(true);
+		inputLevelSlider.setBorder(BorderFactory.createTitledBorder("Input Level"));
 		// Give the volume progress bar a border //
 		volumeBar.setBorder(loweredbevel);
 		// Ensure the elements of the status bar are displayed from the left
 		this.setLayout(new FlowLayout(FlowLayout.LEFT));
 		this.add(volumeBar,BorderLayout.CENTER);
+		this.add(inputLevelSlider,BorderLayout.CENTER);
 		this.add(modeLabel,BorderLayout.CENTER);
 		this.add(logMode,BorderLayout.CENTER);
 		this.add(statusLabel,BorderLayout.CENTER);
@@ -73,15 +83,20 @@ public class JStatusBar extends JPanel {
 	public void setApp (Rivet theApp)	{
 		TtheApp=theApp;
 	}
+	
+	// This is called when the slider changes
+	public void stateChanged(ChangeEvent e) {
+        JSlider source=(JSlider)e.getSource();
+        if (!source.getValueIsAdjusting()) {
+        	int level=(int)source.getValue();
+        	TtheApp.setSoundCardLevel(level);
+        }
+	}
 
-	// This class listens for button events
-	class ButtonListener implements ActionListener {
-		  ButtonListener() {
-		  }
-
-		  public void actionPerformed(ActionEvent e) {
-			
-		  }
-		}
+	// This allows the main program to set the slider value
+	public void setSoundCardInput (int scl)	{
+		inputLevelSlider.setValue(scl);
+	}
+	
 
 }

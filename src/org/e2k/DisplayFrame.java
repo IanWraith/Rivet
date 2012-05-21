@@ -117,8 +117,9 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			menuItemUpdate();
 		}
 		catch (Exception e)	{
+			String err=e.toString();
 			// Can't find the default settings file //
-			System.out.println("\nInformative : Unable to read the file rivet_settings.xml");
+			System.out.println("\nInformative : Unable to read the file rivet_settings.xml "+err);
 		}
 		
 		statusBarUpdate();
@@ -271,6 +272,9 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	
 	private void statusBarUpdate()	{
 		statusBar.setModeLabel(theApp.MODENAMES[theApp.getSystem()]);
+		// Update the soundcard input slider
+		statusBar.setSoundCardInput(theApp.getSoundCardLevel());
+		theApp.setSoundCardLevel(theApp.getSoundCardLevel());
 	}
 	
 	public void progressBarUpdate (int v)	{
@@ -351,5 +355,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	    StringSelection ss=new StringSelection(str);
 	    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, null);
 	}
+	
+	
 
 }

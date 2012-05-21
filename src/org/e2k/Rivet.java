@@ -44,7 +44,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 25) by Ian Wraith";
+	public String program_version="Rivet (Build 26) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -70,6 +70,7 @@ public class Rivet {
 	private boolean soundCardInput=false;
 	private boolean wavFileLoadOngoing=false;
 	private boolean invertSignal=false;
+	private int soundCardInputLevel=25;
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000"};
     
@@ -548,6 +549,9 @@ public class Rivet {
 			// CROWD36 sync tone
 			line="<c36tone val='"+Integer.toString(crowd36Handler.getSyncHighTone())+"'/>";
 			xmlfile.write(line);
+			// Soundcard Input Level
+			line="<soundcard_level val='"+Integer.toString(soundCardInputLevel)+"'/>";
+			xmlfile.write(line);
 			// All done so close the root item //
 			line="</settings>";
 			xmlfile.write(line);
@@ -593,7 +597,7 @@ public class Rivet {
 				if (attributes.getLength()>0) {
 					// Get the elements value //
 					String aval=attributes.getValue(0);
-					// Decode mode //
+					// Debug mode //
 					if (qName.equals("debug")) {
 						if (aval.equals("TRUE")) setDebug(true);
 						else setDebug(false);	
@@ -606,10 +610,12 @@ public class Rivet {
 					else if (qName.equals("c36tone"))	{
 						crowd36Handler.setSyncHighTone(Integer.parseInt(aval));
 					}
-					
-				}
+					else if (qName.equals("soundcard_level"))	{
+						soundCardInputLevel=Integer.parseInt(aval);
+					}
+				}	
+				
 			}
-			
 		}
 	
 	// Change the invert setting
@@ -619,6 +625,18 @@ public class Rivet {
 		// TODO : Fix the menu not updating when the invert signal option is changed
 		// Update the menu to show this
 		//window.repaint();
+	}
+	
+	// Set the soundcard input level in the input thread
+	public void setSoundCardLevel (int sli)	{
+		soundCardInputLevel=sli;
+		// Pass this to the input thread
+		inputThread.setInputLevel(sli);
+	}
+	
+	// Returns the current sound card input level
+	public int getSoundCardLevel()	{
+		return soundCardInputLevel;
 	}
 	
 }

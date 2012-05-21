@@ -42,7 +42,7 @@ public class InputThread extends Thread {
 	private int volumeBufferCounter=0;
 	private static int ISIZE=4096;
 	private byte buffer[]=new byte[ISIZE+1];
-	private final int MULTIPLY_FACTOR=25;
+	private int inputLevel=25;
 	private Rivet theApp; 
 	
  
@@ -214,6 +214,11 @@ public class InputThread extends Thread {
     	return this.sampleCounter;
     }
     
+    // Set the input level
+    public void setInputLevel (int il)	{
+    	this.inputLevel=il;
+    }
+    
     // Setup the input audio device
     public void setupAudio (WaveData waveData)	{
 		  try {
@@ -291,7 +296,7 @@ public class InputThread extends Thread {
 		for (a=0;a<ISIZE;a=a+2)	{
 			sample=(buffer[a]<<8)+buffer[a+1];
 			// Multiply the sample by a factor of MULTIPLY_FACTOR
-			sample=sample*MULTIPLY_FACTOR;
+			sample=sample*inputLevel;
 			// Add this sample to the circular volume buffer
 			addToVolumeBuffer(sample);
 			try		{
