@@ -113,6 +113,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// Read in the default settings file
 		try	{
 			theApp.readDefaultSettings();
+			// Update the soundcard input setting
+			theApp.setSoundCardInput(theApp.issoundCardInputTemp());
 			// Update the menus
 			menuItemUpdate();
 		}

@@ -71,6 +71,7 @@ public class Rivet {
 	private boolean wavFileLoadOngoing=false;
 	private boolean invertSignal=false;
 	private int soundCardInputLevel=25;
+	private boolean soundCardInputTemp;
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000"};
     
@@ -392,6 +393,7 @@ public class Rivet {
 		return soundCardInput;
 	}
 
+	// TODO : Fix a bug in this method where it isn't working if it is called by the rivet_settings.xml reader code
 	public void setSoundCardInput(boolean s) {
 		// If the soundcard is already running we need to close it
 		if (this.soundCardInput==true)	{
@@ -553,8 +555,8 @@ public class Rivet {
 			line="<soundcard_level val='"+Integer.toString(soundCardInputLevel)+"'/>";
 			xmlfile.write(line);
 			// Soundcard Input
-			if (soundCardInput==true) line="<soundcard_input='1'>";
-			else line="<soundcard_input='0'>";
+			if (soundCardInput==true) line="<soundcard_input val='1'/>";
+			else line="<soundcard_input val='0'/>";
 			xmlfile.write(line);
 			// All done so close the root item //
 			line="</settings>";
@@ -614,9 +616,16 @@ public class Rivet {
 					else if (qName.equals("c36tone"))	{
 						crowd36Handler.setSyncHighTone(Integer.parseInt(aval));
 					}
+					// Soundcard input level
 					else if (qName.equals("soundcard_level"))	{
 						soundCardInputLevel=Integer.parseInt(aval);
 					}
+					// Soundcard input
+					else if (qName.equals("soundcard_input"))	{
+						if (Integer.parseInt(aval)==1) soundCardInputTemp=true;
+						else soundCardInputTemp=false;
+					}
+					
 				}	
 				
 			}
@@ -641,6 +650,10 @@ public class Rivet {
 	// Returns the current sound card input level
 	public int getSoundCardLevel()	{
 		return soundCardInputLevel;
+	}
+	
+	public boolean issoundCardInputTemp()	{
+		return soundCardInputTemp;
 	}
 	
 }
