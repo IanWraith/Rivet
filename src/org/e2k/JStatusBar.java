@@ -26,14 +26,14 @@ public class JStatusBar extends JPanel implements ChangeListener {
 	private JLabel statusLabel=new JLabel();
 	private JLabel modeLabel=new JLabel();
 	private JProgressBar volumeBar=new JProgressBar(0,100);
-	private Border paddingBorder=BorderFactory.createEmptyBorder(10,10,10,10);
-	private Border border=BorderFactory.createLineBorder(Color.BLUE);
 	private Rivet TtheApp;
 	private JSlider inputLevelSlider;
-	private final int FONTSIZE=20;
-	private final String FONTTYPE="Times New Roman";
 	
 	public JStatusBar() {
+		final int FONTSIZE=20;
+		final String FONTTYPE="Times New Roman";
+		Border paddingBorder=BorderFactory.createEmptyBorder(10,10,10,10);
+		Border border=BorderFactory.createLineBorder(Color.BLUE);
 		logMode.setHorizontalAlignment(SwingConstants.LEFT);
 		logMode.setBorder(BorderFactory.createCompoundBorder(border,paddingBorder));
 		logMode.setFont(new Font(FONTTYPE,Font.BOLD,FONTSIZE));
