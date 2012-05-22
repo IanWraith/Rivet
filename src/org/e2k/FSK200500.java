@@ -21,6 +21,7 @@ public class FSK200500 extends FSK {
 	private int missingCharCounter=0;
 	private double adjBuffer[]=new double[7];
 	private int adjCounter=0;
+	private int resetCounter;
 	
 	
 	public FSK200500 (Rivet tapp,int baud)	{
@@ -83,6 +84,8 @@ public class FSK200500 extends FSK {
 				state=2;
 				energyBuffer.setBufferCounter(0);
 				bcount=0;
+				resetCounter=0;
+				theApp.setStatusLabel("Traffic");
 			}
 		}
 				
@@ -108,6 +111,7 @@ public class FSK200500 extends FSK {
 						characterCount=MAXCHARLENGTH;
 					}
 					else	{
+						resetCounter=0;
 						// Display the character in the standard way
 						String ch=getBaudotChar();
 						// LF
@@ -126,6 +130,9 @@ public class FSK200500 extends FSK {
 					}
 					if (bcount!=7)	{
 						missingCharCounter++;
+						resetCounter++;
+						// If we have had more than 20 characters since the last good one we have a serious problem so reset
+						if (resetCounter>20) state=1;
 					}
 					bcount=0;
 				}
