@@ -393,12 +393,13 @@ public class Rivet {
 		return soundCardInput;
 	}
 
-	// TODO : Fix a bug in this method where it isn't working if it is called by the rivet_settings.xml reader code
+	// Change the sound source
 	public void setSoundCardInput(boolean s) {
+		// Try to close the audio device if it is already in operation
+		if (this.soundCardInput==true) inputThread.closeAudio();
 		// If the soundcard is already running we need to close it
-		if (this.soundCardInput==true)	{
-			// Try to close the audio device
-			if (inputThread.closeAudio()==true) this.soundCardInput=false;
+		if (s==false)	{
+			this.soundCardInput=false;
 		}
 		else	{
 			// CROWD36
