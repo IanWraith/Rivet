@@ -26,19 +26,31 @@ public class JStatusBar extends JPanel implements ChangeListener {
 	private JLabel statusLabel=new JLabel();
 	private JLabel modeLabel=new JLabel();
 	private JProgressBar volumeBar=new JProgressBar(0,100);
-	private Border loweredbevel=BorderFactory.createLoweredBevelBorder();
+	private Border paddingBorder=BorderFactory.createEmptyBorder(10,10,10,10);
+	private Border border=BorderFactory.createLineBorder(Color.BLUE);
 	private Rivet TtheApp;
 	private JSlider inputLevelSlider;
+	private final int FONTSIZE=20;
+	private final String FONTTYPE="Times New Roman";
 	
 	public JStatusBar() {
 		logMode.setHorizontalAlignment(SwingConstants.LEFT);
+		logMode.setBorder(BorderFactory.createCompoundBorder(border,paddingBorder));
+		logMode.setFont(new Font(FONTTYPE,Font.BOLD,FONTSIZE));
+		logMode.setBackground(Color.YELLOW);
+		logMode.setOpaque(true);
 		logMode.updateUI();
-		logMode.setBorder(loweredbevel);
 		statusLabel.setHorizontalAlignment(SwingConstants.LEFT);
-		statusLabel.setBorder(loweredbevel);
+		statusLabel.setBorder(BorderFactory.createCompoundBorder(border,paddingBorder));
+		statusLabel.setFont(new Font(FONTTYPE,Font.BOLD,FONTSIZE));
+		statusLabel.setBackground(Color.YELLOW);
+		statusLabel.setOpaque(true);
 		statusLabel.updateUI();
 		modeLabel.setHorizontalAlignment(SwingConstants.LEFT);
-		modeLabel.setBorder(loweredbevel);
+		modeLabel.setBorder(BorderFactory.createCompoundBorder(border,paddingBorder));
+		modeLabel.setFont(new Font(FONTTYPE,Font.BOLD,FONTSIZE));
+		modeLabel.setBackground(Color.YELLOW);
+		modeLabel.setOpaque(true);
 		modeLabel.updateUI();
 		// Input level slider
 		inputLevelSlider=new JSlider(JSlider.HORIZONTAL,1,100,5);
