@@ -13,8 +13,6 @@ public class CCIR493 extends FSK {
 	private int highTone;
 	private int lowTone;
 	private int messageState;
-	private int characterCount=0;
-	private final int MAXCHARLENGTH=80;
 	private int highBin;
 	private int lowBin;
 	private double adjBuffer[]=new double[5];
@@ -75,7 +73,6 @@ public class CCIR493 extends FSK {
 			if (detectSync(circBuf,waveData)==true)	{
 				state=2;
 				lineBuffer.delete(0,lineBuffer.length());
-				characterCount=0;
 				rx=0;
 				dx=0;
 				buffer10=0;
@@ -91,19 +88,8 @@ public class CCIR493 extends FSK {
 			if (symbolCounter>=(long)samplesPerSymbol)	{		
 				// Demodulate a single bit
 				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
-				// If debugging display only the raw bits
-				if (theApp.isDebug()==true)	{
-					if (bit==true) lineBuffer.append("1");
-					else lineBuffer.append("0");
-					characterCount++;
-					if (characterCount==MAXCHARLENGTH)	{
-						outLines[0]=lineBuffer.toString();
-						characterCount=0;
-						lineBuffer.delete(0,lineBuffer.length());
-					}
-				}
-				// If not debugging handle the traffic properly
-				else outLines=handleTraffic(bit);
+				// Decode this
+				outLines=handleTraffic(bit);
 			}
 		}
 		sampleCount++;
