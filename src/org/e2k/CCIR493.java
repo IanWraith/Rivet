@@ -25,6 +25,7 @@ public class CCIR493 extends FSK {
 	private int bitCount=0;
 	private int messageBuffer[]=new int[20];
 	private int invertedPDXCounter;
+	private int unCorrectedInput;
 	private final int VALIDWORDS[]={7,518,262,773,134,645,389,900,70,581,325,836,197,708,452,963,38,549,293,804,
 			165,676,420,931,101,612,356,867,228,739,483,994,22,533,277,788,149,660,404,
 			915,85,596,340,851,212,723,467,978,53,564,308,819,180,691,435,946,116,627,
@@ -79,6 +80,7 @@ public class CCIR493 extends FSK {
 				buffer20=0;
 				bitCount=0;
 				invertedPDXCounter=0;
+				if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CCIR493-4 Sync Found";
 				clearMessageBuffer();
 				return outLines;
 			}
@@ -202,10 +204,14 @@ public class CCIR493 extends FSK {
 		// Hunt for dx and rx characters which make up the phasing sequence
 		if (messageState==0)	{
 			// Look for and count inverted PDX characters
-			if (buffer10==262) invertedPDXCounter++;
+			if (buffer10==262)	{
+				if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CCIR493-4 Inverted PDX";
+				invertedPDXCounter++;
+			}
 			// If more than 2 inverted PDXs have been received change the invert setting
 			if (invertedPDXCounter==2)	{
 				invertedPDXCounter=0;
+				dx++;
 				if (theApp.isInvertSignal()==true) theApp.setInvertSignal(false);
 				else theApp.setInvertSignal(true);
 				// Invert the contents of buffer10
@@ -213,21 +219,41 @@ public class CCIR493 extends FSK {
 			}
 			int c=ret10BitCode(buffer10,false);
 			// Detect and count phasing characters
-			if (c==125) dx++;
-			else if ((c<=111)&&(c>=104)) rx++;
+			if (c==125)	{
+				if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CCIR493-4 PDX";
+				dx++;
+			}
+			else if ((c<=111)&&(c>=104))	{
+				if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CCIR493-4 RX ("+Integer.toString(c)+")";
+				rx++;
+			}
 			// Is phasing complete ?
 			if (((dx==2)&&(rx==1))||((dx==1)&&(rx==2)))	{
 				bitCount=0;
 				messageState=1;
+				if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CCIR493-4 Phasing Detect : PDX="+Integer.toString(dx)+" RX="+Integer.toString(rx);
 			}
-			if (bitCount>300) state=1;
+			if (bitCount>1800)	{
+				if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CCIR493-4 Phasing Timeout";
+				state=1;
+			}
 		}
 		// Phasing complete now look for the format specifier
 		else if (messageState==1)	{
 			// We now have sync so only check for the format specifier every 10 bits
 			if (bitCount%10==0)	{
-				formatSpecifier=formatSpecifierHunt(buffer20);
-				if (bitCount>300) state=1;
+				int c1=ret10BitCode((buffer20&0xFFC00)>>10,true);
+				int c2=ret10BitCode(buffer20&1023,true);
+				formatSpecifier=formatSpecifierHunt(c1,c2);
+				if (theApp.isDebug()==true)	{
+					if (c2!=-1) outLines[0]=theApp.getTimeStamp()+" CCIR493-4 Character "+Integer.toString(c2);
+					else outLines[0]=theApp.getTimeStamp()+" CCIR493-4 Character Error was "+Integer.toString(unCorrectedInput);
+				}
+				// If we haven't received a format specifier after 300 bits then something has gone wrong
+				if (bitCount>300)	{
+					if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CCIR493-4 Format Specifier Timeout";
+					state=1;
+				}
 				if (formatSpecifier!=-1)	{
 					bitCount=0;
 					messageState=2;
@@ -283,6 +309,8 @@ public class CCIR493 extends FSK {
 	// if errorBitsAllowed is false then no errors will be fixed
 	private int ret10BitCode (int in,boolean errorBitsAllowed)	{
 		int a,b,dif,errorMax;
+		// Make copy of what is going into the error corrector
+		unCorrectedInput=in;
 		if (errorBitsAllowed==true) errorMax=1;
 		else errorMax=0;
 		for (a=0;a<VALIDWORDS.length;a++){
@@ -296,10 +324,7 @@ public class CCIR493 extends FSK {
 	}
 	
 	// Hunt for the call format specifier
-	private int formatSpecifierHunt (int in)	{
-		int c1,c2;
-		c2=ret10BitCode(in&1023,true);
-		c1=ret10BitCode((in&0xFFC00)>>10,true);
+	private int formatSpecifierHunt (int c1,int c2)	{
 		if (c1!=c2) return -1;
 		else if (c1==112) return c1;
 		else if (c1==116) return c1;
