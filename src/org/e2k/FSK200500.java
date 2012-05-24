@@ -185,6 +185,8 @@ public class FSK200500 extends FSK {
 			highBin=bin2;
 			lowBin=bin1;
 		}
+		// If either the low bin or the high bin are zero there is a problem so return false
+		if ((lowBin==0)||(highBin==0)) return null;
 		String line=theApp.getTimeStamp()+" FSK200/500 Sync Sequence Found";
 		return line;
 	}
