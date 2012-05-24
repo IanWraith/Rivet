@@ -133,6 +133,8 @@ public class CCIR493 extends FSK {
 			lowBin=b0;
 			}
 		int shift=highTone-lowTone;
+		// If either the low bin or the high bin are zero there is a problem so return false
+		if ((lowBin==0)||(highBin==0)) return false; 
 		// The shift for CCIR493-4 should be should be 170 Hz
 		if ((shift>=150)&&(shift<190)) return true;
 		else return false;

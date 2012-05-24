@@ -50,6 +50,7 @@ Build 24 fixes a bug in CCIR493-4 decoding putting leading zeros in front of sta
 Build 25 adds basic error correction to the CCIR493-4 mode 
 Build 26 adds a input level slider plus other improvements to the look of the status bar also improve the FSK200/500 code. 
 Build 27 adds further CCIR493-4 debugging data to try and find out why weak signals are being lost
+Build 28 hopefully further improve the detection of weak CCIR493-4 signals
 
 Reported Bugs
 -------------
@@ -59,4 +60,4 @@ Still problems with CROWD36 decoding. Not a bug as such but more a lack of under
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (23rd May 2012) 
+Ian Wraith (24th May 2012) 
