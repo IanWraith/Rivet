@@ -18,6 +18,7 @@ public class FSK2001000 extends FSK {
 	private final int MAXCHARLENGTH=80;
 	private double adjBuffer[]=new double[7];
 	private int adjCounter=0;
+	private int buffer16;
 	
 	public FSK2001000 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -69,6 +70,7 @@ public class FSK2001000 extends FSK {
 			lettersMode=true;
 			lineBuffer.delete(0,lineBuffer.length());
 			theApp.setStatusLabel("Sync Hunt");
+			buffer16=0xaaaa;
 			return null;
 		}
 		
@@ -89,6 +91,13 @@ public class FSK2001000 extends FSK {
 				boolean ibit=fsk2001000FreqHalf(circBuf,waveData,0);
 				if (ibit==true) lineBuffer.append("1");
 				else lineBuffer.append("0");
+				
+				// Check for a long run of zeros and if there is re-sync
+				addToBuffer16(ibit);
+				if ((buffer16&0xffff)==0)	{
+					buffer16=0xaaaa;
+					state=1;
+				}
 				
 				if (characterCount==60)	{
 					outLines[0]=lineBuffer.toString();
@@ -137,7 +146,10 @@ public class FSK2001000 extends FSK {
 			highBin=bin2;
 			lowBin=bin1;
 		}
+		// If either the low bin or the high bin are zero there is a problem so return false
+		if ((lowBin==0)||(highBin==0)) return null;
 		String line=theApp.getTimeStamp()+" FSK200/1000 Sync Sequence Found";
+		if (theApp.isDebug()==true)	line=line+" (lowBin="+Integer.toString(lowBin)+" highBin="+Integer.toString(highBin)+")";
 		return line;
 	}
 	
@@ -204,5 +216,13 @@ public class FSK2001000 extends FSK {
 		else if (av<0.0) return 1;
 		else return -1;
 	}
-
+	
+	// Have a 16 bit buffer to detect certain sequences
+	private void addToBuffer16(boolean bit)	{
+		buffer16=buffer16<<1;
+		buffer16=buffer16&0xffff;
+		if (bit==true) buffer16++;
+	}
+	
+	
 }
