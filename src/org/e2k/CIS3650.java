@@ -327,10 +327,12 @@ public class CIS3650 extends FSK {
 			lowTone=f0;
 			lowBin=b0;
 			}
-		int shift=highTone-lowTone;
+		// If either the low bin or the high bin are zero there is a problem so return false
+		if ((lowBin==0)||(highBin==0)) return false; 
 		// The shift for CIS36-50 should be should be 200 Hz
+		int shift=highTone-lowTone;
 		if ((shift>210)||(shift<190)) return false;
-		return true;
+		else return true;
 	}
 	
 	// Check if a number if a valid ITA-3 character
