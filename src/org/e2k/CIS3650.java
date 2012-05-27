@@ -96,7 +96,8 @@ public class CIS3650 extends FSK {
 				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
 				addToBuffer7(bit);
 				b7Count++;
-				if (b7Count==3)	{
+				// Get 14 bits (to allow the early late gate to settle) but only look at the last 3
+				if (b7Count==14)	{
 					buffer7=buffer7&0x7;
 					// Look for 101 (5) or 010 (2)
 					if ((buffer7==5)||(buffer7==2))	{
@@ -108,7 +109,10 @@ public class CIS3650 extends FSK {
 						clearStartBuffer();
 						theApp.setStatusLabel("50 Baud Sync Found");
 					}	
-					else state=1;
+					else	{
+						outLines[0]=theApp.getTimeStamp()+" Unable to obtain CIS 36-50 50 baud alternating sequence";
+						state=1;
+					}
 				}
 			}
 		}
@@ -119,13 +123,19 @@ public class CIS3650 extends FSK {
 			if (symbolCounter>=(long)samplesPerSymbol50)	{		
 				// Demodulate a single bit
 				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
-				// Increment the count since sync
-				countSinceSync++;
-				// If no sync work has been found in 500 bits then go back to hunting
-				if ((syncState==1)&&(countSinceSync==500))	{
-					state=1;
-					//if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
-					outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
+				// Look for an alternating sequence
+				if (syncState==1)	{
+					// Increment the count since sync
+					countSinceSync++;
+					addToBuffer7(bit);
+					// If the 7 bit buffer contains an alternating sequence reset the countSinceSync
+					if ((buffer7==85)||(buffer7==42)) countSinceSync=0;
+					// If no sync work has been found in 500 bits then go back to hunting
+					if (countSinceSync>=500)	{
+						state=1;
+						//if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
+						outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
+					}
 				}
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
