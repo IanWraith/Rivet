@@ -268,8 +268,13 @@ public class Rivet {
 	private void getAudioData()	{
 			// Get the sample from the input thread
 			try	{
+				
+				// TODO: Try to find out what happens if there is a read but no data in the pipe
+				
 				// Add the data from the thread pipe to the circular buffer
 				circBuffer.addToCircBuffer(inPipeData.readInt());
+				
+				
 				// Process this data
 				processData();
 	    		// Update the volume bar every 50 samples
