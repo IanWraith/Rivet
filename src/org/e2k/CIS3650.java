@@ -13,7 +13,6 @@ public class CIS3650 extends FSK {
 
 	private int state=0;
 	private double samplesPerSymbol50;
-	private double samplesPerSymbol36;
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
@@ -61,7 +60,6 @@ public class CIS3650 extends FSK {
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
-			samplesPerSymbol36=samplesPerSymbol(36.0,waveData.getSampleRate());
 			samplesPerSymbol50=samplesPerSymbol(50.0,waveData.getSampleRate());
 			state=1;
 			lineBuffer.delete(0,lineBuffer.length());
@@ -78,12 +76,7 @@ public class CIS3650 extends FSK {
 		if (state==1)	{
 			sampleCount++;
 			if (sampleCount<0) return null;
-			// Look for a 36 baud alternating sync sequence
-			if ((syncState==0)&&(detect36Sync(circBuf,waveData)==true))	{
-				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 36 baud sync sequence found";
-				syncState=1;
-				return outLines;
-			}
+			theApp.setStatusLabel("Sync Hunt");
 			// Look for a 50 baud alternating sync sequence
 			if (detect50Sync(circBuf,waveData)==true)	{
 				state=2;
@@ -92,6 +85,7 @@ public class CIS3650 extends FSK {
 				syncState=1;
 				buffer7=0;
 				b7Count=0;
+				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found : lowBin="+Integer.toString(lowBin)+" highBin="+Integer.toString(highBin);
 				return outLines;
 			}
 		}
@@ -107,7 +101,8 @@ public class CIS3650 extends FSK {
 					// Look for 101 (5) or 010 (2)
 					if ((buffer7==5)||(buffer7==2))	{
 						state=3;
-						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
+						//if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found : lowBin="+Integer.toString(lowBin)+" highBin="+Integer.toString(highBin);
+						outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud alternating sequence detected";
 						b7Count=0;
 						countSinceSync=0;
 						clearStartBuffer();
@@ -129,7 +124,8 @@ public class CIS3650 extends FSK {
 				// If no sync work has been found in 500 bits then go back to hunting
 				if ((syncState==1)&&(countSinceSync==500))	{
 					state=1;
-					if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
+					//if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
+					outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
 				}
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
@@ -272,45 +268,13 @@ public class CIS3650 extends FSK {
 		if (bit==true) buffer21++;
 	}
 	
-	// See if the buffer holds a 36 baud alternating sequence
-	private boolean detect36Sync(CircularDataBuffer circBuf,WaveData waveData)	{
-		int pos=0;
-		int f0=getSymbolFreq(circBuf,waveData,pos);
-		// Check this first tone isn't just noise the highest bin must make up 10% of the total
-		if (getPercentageOfTotal()<10.0) return false;
-		pos=(int)samplesPerSymbol36*1;
-		int f1=getSymbolFreq(circBuf,waveData,pos);
-		if (f0==f1) return false;
-		pos=(int)samplesPerSymbol36*2;
-		int f2=getSymbolFreq(circBuf,waveData,pos);
-		pos=(int)samplesPerSymbol36*3;
-		int f3=getSymbolFreq(circBuf,waveData,pos);
-		if (f3!=9999) return false;
-		// Look for a 36 baud alternating sequence
-		if ((f0==f2)&&(f1==f3)&&(f0!=f1)&&(f2!=f3))	{
-			if (f0>f1)	{
-				highTone=f0;
-				lowTone=f1;
-			}
-			else	{
-				highTone=f1;
-				lowTone=f0;
-			}
-			int shift=highTone-lowTone;
-			// Check for an incorrect shift
-			if ((shift>300)||(shift<150)) return false;
-			return true;
-		}
-		return false;
-	}
-	
 	// See if the buffer holds a 50 baud alternating sequence
 	private boolean detect50Sync(CircularDataBuffer circBuf,WaveData waveData)	{
 		int pos=0,b0,b1;
 		int f0=getSymbolFreq(circBuf,waveData,pos);
 		b0=getFreqBin();
 		// Check this first tone isn't just noise the highest bin must make up 10% of the total
-		if (getPercentageOfTotal()<10.0) return false;
+		//if (getPercentageOfTotal()<10.0) return false;
 		pos=(int)samplesPerSymbol50*1;
 		int f1=getSymbolFreq(circBuf,waveData,pos);
 		b1=getFreqBin();
