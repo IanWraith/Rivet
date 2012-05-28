@@ -44,6 +44,13 @@ public class InputThread extends Thread {
 	private byte buffer[]=new byte[ISIZE+1];
 	private int inputLevel=25;
 	private Rivet theApp; 
+	private boolean enable8000HzHighPassFilter=false;
+	
+	private final int NZEROS=5;
+	private final int NPOLES=5;
+	private double GAIN=1.210164804e+00;
+	private double xv[]=new double[NZEROS+1];
+	private double yv[]=new double[NPOLES+1];
 	
  
 	public InputThread (Rivet TtheApp) {
@@ -297,6 +304,8 @@ public class InputThread extends Thread {
 			sample=(buffer[a]<<8)+buffer[a+1];
 			// Multiply the sample by a factor of MULTIPLY_FACTOR
 			sample=sample*inputLevel;
+			// Is filtering enabled ?
+			if (enable8000HzHighPassFilter==true) sample=highPassFilter8000(sample);
 			// Add this sample to the circular volume buffer
 			addToVolumeBuffer(sample);
 			try		{
@@ -317,5 +326,31 @@ public class InputThread extends Thread {
     public boolean getAudioReady()	{
     	return this.audioReady;
     }
+
+	public boolean isEnableHighPassFilter() {
+		return enable8000HzHighPassFilter;
+	}
+
+	public void setEnableHighPassFilter(boolean enableHighPassFilter) {
+		this.enable8000HzHighPassFilter = enableHighPassFilter;
+	}
+	
+	private int highPassFilter8000 (int tin)	{
+		double in=tin;
+		xv[0]=xv[1]; 
+		xv[1]=xv[2]; 
+		xv[2]=xv[3]; 
+		xv[3]=xv[4]; 
+		xv[4]=xv[5]; 
+        xv[5]=in/GAIN;
+        yv[0]=yv[1]; 
+        yv[1]=yv[2]; 
+        yv[2]=yv[3]; 
+        yv[3]=yv[4]; 
+        yv[4]=yv[5]; 
+        yv[5]=(xv[5]-xv[0])+5*(xv[1]-xv[4])+10*(xv[3]-xv[2])+(0.6828274379*yv[0])+(-3.6744147716*yv[1])+(7.9196790761*yv[2])+(-8.5469343836*yv[3])+(4.6188237797*yv[4]);
+        return (int) yv[5];
+	}
+	
     
 }

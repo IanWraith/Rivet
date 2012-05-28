@@ -268,12 +268,12 @@ public class Rivet {
 	private void getAudioData()	{
 			// Get the sample from the input thread
 			try	{
-				
-				// TODO: Try to find out what happens if there is a read but no data in the pipe
-				
 				// Add the data from the thread pipe to the circular buffer
 				circBuffer.addToCircBuffer(inPipeData.readInt());
 				
+				
+				//int i=inPipeData.readInt();
+				//debugDump(Integer.toString(i));
 				
 				// Process this data
 				processData();
@@ -430,6 +430,7 @@ public class Rivet {
 				waveSetting.setSampleRate(11025.0);
 				waveSetting.setBytesPerFrame(2);
 				inputThread.setupAudio(waveSetting); 
+				inputThread.setEnableHighPassFilter(false);
 				waveData=waveSetting;
 				this.soundCardInput=true;	
 			}	
@@ -443,6 +444,7 @@ public class Rivet {
 				waveSetting.setSampleRate(8000.0);
 				waveSetting.setBytesPerFrame(2);
 				inputThread.setupAudio(waveSetting); 
+				inputThread.setEnableHighPassFilter(true);
 				waveData=waveSetting;
 				this.soundCardInput=true;	
 			}	
