@@ -204,6 +204,7 @@ public class CIS3650 extends FSK {
 						outLines[0]="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message "+Integer.toString(totalErrorCount)+" of these contained errors)";
 						countSinceSync=0;
 						syncState=1;
+						totalErrorCount=0;
 						clearStartBuffer();
 						state=3;
 					}
@@ -348,7 +349,8 @@ public class CIS3650 extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		if (Math.abs(av)<100) return 0;
+		// was 100
+		if (Math.abs(av)<1) return 0;
 		else if (av<0.0) return 1;
 		else return -1;
 	}	
@@ -377,7 +379,7 @@ public class CIS3650 extends FSK {
 			if (startBuffer[a+44]!=startBuffer[a+44+70]) dif++;
 		}	
 		// Allow up to 3 differences
-		if (dif>3) return false;
+		if (dif>4) return false;
 		// Check the session key contains at least 8 valid ITA3 characters
 		count=0;
 		for (a=44;a<(44+70);a=a+7)	{
