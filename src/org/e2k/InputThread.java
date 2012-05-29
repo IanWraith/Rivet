@@ -48,7 +48,7 @@ public class InputThread extends Thread {
 	
 	private final int NZEROS=5;
 	private final int NPOLES=5;
-	private double GAIN=1.210164804e+00;
+	private double GAIN=1.465703499e+00;
 	private double xv[]=new double[NZEROS+1];
 	private double yv[]=new double[NPOLES+1];
 	
@@ -170,7 +170,7 @@ public class InputThread extends Thread {
 		int a,countLoad;
 		try	{
 			countLoad=audioStream.read(inBlock);
-			for (a=0;a<countLoad;a++)	{
+			for (a=0;a<countLoad;a++)	{	
 				outPipe.writeInt(LEconv8(inBlock[a]));
 				fileCounter++;
 				sampleCounter++;
@@ -348,7 +348,11 @@ public class InputThread extends Thread {
         yv[2]=yv[3]; 
         yv[3]=yv[4]; 
         yv[4]=yv[5]; 
-        yv[5]=(xv[5]-xv[0])+5*(xv[1]-xv[4])+10*(xv[3]-xv[2])+(0.6828274379*yv[0])+(-3.6744147716*yv[1])+(7.9196790761*yv[2])+(-8.5469343836*yv[3])+(4.6188237797*yv[4]);
+       
+        yv[5] =   (xv[5] - xv[0]) + 5 * (xv[1] - xv[4]) + 10 * (xv[3] - xv[2])
+                + (  0.4654872078 * yv[0]) + ( -2.6821254658 * yv[1])
+                + (  6.2124935034 * yv[2]) + ( -7.2343877545 * yv[3])
+                + (  4.2380254154 * yv[4]);
         return (int) yv[5];
 	}
 	
