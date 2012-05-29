@@ -131,7 +131,7 @@ public class CIS3650 extends FSK {
 					// If the 7 bit buffer contains an alternating sequence reset the countSinceSync
 					if ((buffer7==85)||(buffer7==42)) countSinceSync=0;
 					// If no sync work has been found in 500 bits then go back to hunting
-					if (countSinceSync>=500)	{
+					if (countSinceSync>=1000)	{
 						state=1;
 						//if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
 						outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
@@ -141,7 +141,7 @@ public class CIS3650 extends FSK {
 					if (syncState==1)	{
 						addToStartBuffer(bit);
 						// Check if the start buffer is valid
-						if ((checkStartBuffer()==true)&&(countSinceSync>=183))	{
+						if (checkStartBuffer()==true)	{
 							syncState=2;
 							theApp.setStatusLabel("Decoding Message");
 							outLines[0]=theApp.getTimeStamp()+" Message Start";
@@ -284,7 +284,7 @@ public class CIS3650 extends FSK {
 		int f0=getSymbolFreq(circBuf,waveData,pos);
 		b0=getFreqBin();
 		// Check this first tone isn't just noise the highest bin must make up 10% of the total
-		//if (getPercentageOfTotal()<10.0) return false;
+		if (getPercentageOfTotal()<10.0) return false;
 		pos=(int)samplesPerSymbol50*1;
 		int f1=getSymbolFreq(circBuf,waveData,pos);
 		b1=getFreqBin();
@@ -372,9 +372,12 @@ public class CIS3650 extends FSK {
 		}
 		if (count!=21) return false;
 		// Check the 70 bit session keys are almost the same
+		int dif=0;
 		for (a=0;a<70;a++)	{
-			if (startBuffer[a+44]!=startBuffer[a+44+70]) return false;
+			if (startBuffer[a+44]!=startBuffer[a+44+70]) dif++;
 		}	
+		// Allow up to 3 differences
+		if (dif>3) return false;
 		// Check the session key contains at least 8 valid ITA3 characters
 		count=0;
 		for (a=44;a<(44+70);a=a+7)	{
