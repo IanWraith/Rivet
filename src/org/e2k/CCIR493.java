@@ -37,6 +37,7 @@ public class CCIR493 extends FSK {
 	
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
+		setRecordEnergy(true);
 	}
 	
 	// The main decode routine
@@ -149,8 +150,22 @@ public class CCIR493 extends FSK {
 	// Return the symbol frequency given the bins that hold the possible tones
 	private boolean getSymbolFreqBin (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		boolean bit;
+		
+		setWindowEnable(false);
+		
 		// Run FFTs on the early and late parts of the symbol
 		double early[]=do160FFTHalfSymbolBinRequest(circBuf,start,lowBin,highBin);
+		
+		if (state==2) theApp.debugDump(getSpectrumValsString());
+		
+		setWindowEnable(true);
+		
+		// Run FFTs on the early and late parts of the symbol
+		do160FFTHalfSymbolBinRequest(circBuf,start,lowBin,highBin);
+		
+		if (state==2) theApp.debugDump(getSpectrumValsString());
+		
+		
 		start=start+((int)samplesPerSymbol/2);
 		double late[]=do160FFTHalfSymbolBinRequest(circBuf,start,lowBin,highBin);
 		// Feed the early late difference into a buffer
@@ -169,6 +184,12 @@ public class CCIR493 extends FSK {
 			if (lowTotal>highTotal) bit=false;
 			else bit=true;
 		}
+		
+		if (state==2)	{
+			if (bit==false) theApp.debugDump("0");
+			else theApp.debugDump("1");
+		}
+		
 		return bit;
 	}
 	

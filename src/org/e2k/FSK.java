@@ -1,5 +1,8 @@
 package org.e2k;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 public class FSK {
@@ -18,6 +21,9 @@ public class FSK {
 	private DoubleFFT_1D fft80=new DoubleFFT_1D(FFT_80_SIZE);
 	private DoubleFFT_1D fft160=new DoubleFFT_1D(FFT_160_SIZE);
 	private double componentDC;
+	private List<Double>spectrumVals=new ArrayList<Double>();
+	private boolean recordEnergy=false;
+	private boolean windowEnable=false;
 
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -29,12 +35,15 @@ public class FSK {
 	public double[] getSpectrum (double[]data)	{
 			double spectrum[]=new double[data.length/2];
 			double highS=0;
+			// If we are energy spectrum recording clear the list
+			if (recordEnergy==true) spectrumVals.clear();
 			// Clear the total energy sum
 			totalEnergy=0.0;
 			int a,count=0;
 			componentDC=data[0];
 			for (a=2;a<data.length;a=a+2)	{
 				spectrum[count]=Math.sqrt(Math.pow(data[a],2.0)+Math.pow(data[a+1],2.0));
+				if (recordEnergy==true) spectrumVals.add(spectrum[count]);
 				if (spectrum[count]>highS) highS=spectrum[count];
 				// Add this to the total energy sum
 				totalEnergy=totalEnergy+spectrum[count];
@@ -172,7 +181,7 @@ public class FSK {
 		for (a=0;a<datar.length;a++)	{
 			if ((a>=60)&&(a<120)) datar[a]=samData[a-60];
 			else datar[a]=0.0;
-			//datar[a]=windowBlackman(datar[a],a,datar.length);
+			if (windowEnable==true) datar[a]=windowBlackman(datar[a],a,datar.length);
 		}
 		fft160.realForward(datar);
 		double spec[]=getSpectrum(datar);
@@ -191,7 +200,7 @@ public class FSK {
 		for (a=0;a<datar.length;a++)	{
 			if ((a>=60)&&(a<100)) datar[a]=samData[a-60];
 			else datar[a]=0.0;
-			//datar[a]=windowBlackman(datar[a],a,datar.length);
+			if (windowEnable==true) datar[a]=windowBlackman(datar[a],a,datar.length);
 		}
 		fft160.realForward(datar);
 		double spec[]=getSpectrum(datar);
@@ -257,6 +266,30 @@ public class FSK {
 		return BAUDOT_NUMBERS[i];
 	}
 
-	
+	public boolean isRecordEnergy() {
+		return recordEnergy;
+	}
+
+	public void setRecordEnergy(boolean recordEnergy) {
+		this.recordEnergy = recordEnergy;
+	}
+
+	public String getSpectrumValsString()	{
+		int a;
+		StringBuffer sb=new StringBuffer();
+		for (a=0;a<spectrumVals.size();a++)	{
+			double s=spectrumVals.get(a);
+			sb.append(Double.toString(s)+",");
+		}
+		return sb.toString();
+	}
+
+	public boolean isWindowEnable() {
+		return windowEnable;
+	}
+
+	public void setWindowEnable(boolean windowEnable) {
+		this.windowEnable = windowEnable;
+	}
 	
 }
