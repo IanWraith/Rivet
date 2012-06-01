@@ -15,7 +15,7 @@ public class CCIR493 extends FSK {
 	private int messageState;
 	private int highBin;
 	private int lowBin;
-	private double adjBuffer[]=new double[5];
+	private double adjBuffer[]=new double[15];
 	private int adjCounter=0;
 	private int buffer10=0;
 	private int buffer20=0;
@@ -188,19 +188,24 @@ public class CCIR493 extends FSK {
 			if (lowTotal>highTotal) bit=false;
 			else bit=true;
 		}
+
+		double dif;
+		if (lowTotal>highTotal) dif=early[1]-late[1];
+		else dif=early[0]-late[0];
+		addToAdjBuffer(dif);
+		symbolCounter=adjAdjust();
+		
 		
 		if (state==2)	{
 			String line;
 			if (bit==true) line="1,";
 			else line="0,";
-			line=line+Double.toString(lowTotal)+","+Double.toString(highTotal)+","+Double.toString(lowTotal+highTotal)+","+Double.toString((early[0]+early[1])-(late[0]+late[1]));
+			line=line+Double.toString(lowTotal)+","+Double.toString(highTotal)+","+Double.toString(dif);
 			if (errorState==true) line=line+",ERROR";
 			//theApp.debugDump(line);
 		}
 		
-		if (lowTotal>highTotal) addToAdjBuffer(early[1]-late[1]);
-		else addToAdjBuffer(early[0]-late[0]);
-		symbolCounter=adjAdjust();
+
 		
 		return bit;
 	}
