@@ -35,9 +35,13 @@ public class CCIR493 extends FSK {
 			187,698,442,953,123,634,378,889,250,761,505,1016};
 	private final int BITVALUES[]={1,2,4,8,16,32,64,128,256,512};
 	
+	
+	private boolean errorState=false;
+	
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
 		setRecordEnergy(true);
+		
 	}
 	
 	// The main decode routine
@@ -137,7 +141,10 @@ public class CCIR493 extends FSK {
 		// If either the low bin or the high bin are zero there is a problem so return false
 		if ((lowBin==0)||(highBin==0)) return false; 
 		// The shift for CCIR493-4 should be should be 170 Hz
-		if ((shift>=150)&&(shift<190)) return true;
+		if ((shift>=150)&&(shift<190))	{
+			theApp.debugDump(Integer.toString(lowBin)+","+Integer.toString(highBin));
+			return true;
+		}
 		else return false;
 	}	
 	
@@ -151,27 +158,24 @@ public class CCIR493 extends FSK {
 	private boolean getSymbolFreqBin (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		boolean bit;
 		
-		setWindowEnable(false);
-		
 		// Run FFTs on the early and late parts of the symbol
 		double early[]=do160FFTHalfSymbolBinRequest(circBuf,start,lowBin,highBin);
 		
-		if (state==2) theApp.debugDump(getSpectrumValsString());
-		
-		setWindowEnable(true);
-		
-		// Run FFTs on the early and late parts of the symbol
-		do160FFTHalfSymbolBinRequest(circBuf,start,lowBin,highBin);
-		
-		if (state==2) theApp.debugDump(getSpectrumValsString());
+		//if (state==2) theApp.debugDump(getSpectrumValsString());
 		
 		
 		start=start+((int)samplesPerSymbol/2);
 		double late[]=do160FFTHalfSymbolBinRequest(circBuf,start,lowBin,highBin);
+		
+		//if (state==2) theApp.debugDump(getSpectrumValsString());
+		
 		// Feed the early late difference into a buffer
-		addToAdjBuffer(early[0]-late[0]);
+		//addToAdjBuffer(early[0]-late[0]);
+		
+		
+		
 		// Calculate the symbol timing correction
-		symbolCounter=adjAdjust();
+		//symbolCounter=adjAdjust();
 		// Now work out the binary state represented by this symbol
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
@@ -186,9 +190,17 @@ public class CCIR493 extends FSK {
 		}
 		
 		if (state==2)	{
-			if (bit==false) theApp.debugDump("0");
-			else theApp.debugDump("1");
+			String line;
+			if (bit==true) line="1,";
+			else line="0,";
+			line=line+Double.toString(lowTotal)+","+Double.toString(highTotal)+","+Double.toString(lowTotal+highTotal)+","+Double.toString((early[0]+early[1])-(late[0]+late[1]));
+			if (errorState==true) line=line+",ERROR";
+			//theApp.debugDump(line);
 		}
+		
+		if (lowTotal>highTotal) addToAdjBuffer(early[1]-late[1]);
+		else addToAdjBuffer(early[0]-late[0]);
+		symbolCounter=adjAdjust();
 		
 		return bit;
 	}
@@ -332,6 +344,9 @@ public class CCIR493 extends FSK {
 	// if errorBitsAllowed is false then no errors will be fixed
 	private int ret10BitCode (int in,boolean errorBitsAllowed)	{
 		int a,b,dif,errorMax;
+		
+		errorState=false;
+		
 		// Make copy of what is going into the error corrector
 		unCorrectedInput=in;
 		if (errorBitsAllowed==true) errorMax=1;
@@ -343,6 +358,9 @@ public class CCIR493 extends FSK {
 			}
 			if (dif<=errorMax) return a;
 		}
+		
+		errorState=true;
+		
 		return -1;
 	}
 	
