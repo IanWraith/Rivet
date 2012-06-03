@@ -15,7 +15,7 @@ public class CCIR493 extends FSK {
 	private int messageState;
 	private int highBin;
 	private int lowBin;
-	private double adjBuffer[]=new double[5];
+	private double adjBuffer[]=new double[15];
 	private int adjCounter=0;
 	private int buffer10=0;
 	private int buffer20=0;
@@ -153,10 +153,6 @@ public class CCIR493 extends FSK {
 		double early[]=do160FFTHalfSymbolBinRequest(circBuf,start,lowBin,highBin);
 		start=start+((int)samplesPerSymbol/2);
 		double late[]=do160FFTHalfSymbolBinRequest(circBuf,start,lowBin,highBin);
-		// Feed the early late difference into a buffer
-		addToAdjBuffer(early[0]-late[0]);
-		// Calculate the symbol timing correction
-		symbolCounter=adjAdjust();
 		// Now work out the binary state represented by this symbol
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
@@ -169,6 +165,11 @@ public class CCIR493 extends FSK {
 			if (lowTotal>highTotal) bit=false;
 			else bit=true;
 		}
+		// Early/Late gate code
+		if (lowTotal>highTotal) addToAdjBuffer(early[1]-late[1]);
+		else addToAdjBuffer(early[0]-late[0]);
+		symbolCounter=adjAdjust();
+		// All done return the bit value
 		return bit;
 	}
 	

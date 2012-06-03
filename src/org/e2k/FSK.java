@@ -172,7 +172,7 @@ public class FSK {
 		for (a=0;a<datar.length;a++)	{
 			if ((a>=60)&&(a<120)) datar[a]=samData[a-60];
 			else datar[a]=0.0;
-			//datar[a]=windowBlackman(datar[a],a,datar.length);
+			datar[a]=windowBlackman(datar[a],a,datar.length);
 		}
 		fft160.realForward(datar);
 		double spec[]=getSpectrum(datar);
@@ -191,7 +191,7 @@ public class FSK {
 		for (a=0;a<datar.length;a++)	{
 			if ((a>=60)&&(a<100)) datar[a]=samData[a-60];
 			else datar[a]=0.0;
-			//datar[a]=windowBlackman(datar[a],a,datar.length);
+			datar[a]=windowBlackman(datar[a],a,datar.length);
 		}
 		fft160.realForward(datar);
 		double spec[]=getSpectrum(datar);
