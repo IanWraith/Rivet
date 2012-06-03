@@ -206,42 +206,49 @@ public class FSK200500 extends FSK {
 	// is to do two FFTs of the first and last halves of the symbol
 	// that allows us to use the data for the early/late gate and to detect a half bit (which is used as a stop bit)
 	private int fsk200500FreqHalf (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
+		int v;
 		int sp=(int)samplesPerSymbol/2;
 		// First half
 		double ff1[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
 		// Last half
 		double ff2[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
-		
+		// Determine the symbol value
 		int high1,high2;
 		if (ff1[0]>ff1[1]) high1=0;
 		else high1=1;
 		if (ff2[0]>ff2[1]) high2=0;
 		else high2=1;
-		
-		double early=ff1[1];
-		double late=ff2[1];
-		addToAdjBuffer(early-late);
-		
 		// Both the same
 		if (high1==high2)	{
-			if (high1==0) return 1;
-			else return 0;
+			if (high1==0) v=1;
+			else v=0;
 		}
 		else	{
 			// Test if this really could be a half bit
 			if (checkValid()==true)	{
 				// Is this a stop bit
-				if (high2>high1) return 2;
+				if (high2>high1) v=2;
 				// No this must be a normal full bit
-				if ((ff1[0]+ff2[0])>(ff1[1]+ff2[1])) return 1;
+				else if ((ff1[0]+ff2[0])>(ff1[1]+ff2[1])) v=1;
 				else return 0;
 			}
 			else	{
 				// If there isn't a vaid baudot character in the buffer this can't be a half bit and must be a full bit
-				if ((ff1[0]+ff2[0])>(ff1[1]+ff2[1])) return 1;
-				else return 0;
+				if ((ff1[0]+ff2[0])>(ff1[1]+ff2[1])) v=1;
+				else v= 0;
 			}
 		}
+		
+		// Early/Late gate code
+		if (v<2)	{
+			double lowTotal=ff1[0]+ff2[0];
+			double highTotal=ff1[1]+ff2[1];
+			if (lowTotal>highTotal) addToAdjBuffer(ff1[1]-ff2[1]);
+			else addToAdjBuffer(ff1[0]-ff2[0]);	
+		}
+		else addToAdjBuffer(0);
+		
+	return v;
 	}
 	
 	// Add incoming data to the character buffer
@@ -319,7 +326,7 @@ public class FSK200500 extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		if (Math.abs(av)<0.75) return 0;
+		if (Math.abs(av)<15) return 0;
 		else if (av<0.0) return 1;
 		else return -1;
 	}
