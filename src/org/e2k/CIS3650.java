@@ -32,7 +32,7 @@ public class CIS3650 extends FSK {
 	private int lowBin;
 	private int b7Count;
 	private int countSinceSync;
-	private double adjBuffer[]=new double[5];
+	private double adjBuffer[]=new double[15];
 	private int adjCounter=0;
 	private boolean startBuffer[]=new boolean[184];
 	
@@ -247,10 +247,6 @@ public class CIS3650 extends FSK {
 		double early[]=do80FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
 		start=start+((int)samplesPerSymbol50/2);
 		double late[]=do80FFTBinRequest(circBuf,waveData,start,lowBin,highBin);
-		
-		addToAdjBuffer(early[0]-late[0]);
-		symbolCounter=adjAdjust();
-
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
 		if (theApp.isInvertSignal()==false)	{
@@ -261,6 +257,11 @@ public class CIS3650 extends FSK {
 			if (lowTotal>highTotal) bit=true;
 			else bit=false;
 		}
+		// Early/Late gate code
+		if (lowTotal>highTotal) addToAdjBuffer(early[1]-late[1]);
+		else addToAdjBuffer(early[0]-late[0]);
+		symbolCounter=adjAdjust();
+		// All done return the bit value
 		return bit;
 	}
 	
