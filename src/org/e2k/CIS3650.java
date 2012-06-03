@@ -85,7 +85,7 @@ public class CIS3650 extends FSK {
 				syncState=1;
 				buffer7=0;
 				b7Count=0;
-				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found : lowBin="+Integer.toString(lowBin)+" highBin="+Integer.toString(highBin);
+				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
 				return outLines;
 			}
 		}
@@ -102,15 +102,14 @@ public class CIS3650 extends FSK {
 					// Look for 101 (5) or 010 (2)
 					if ((buffer7==5)||(buffer7==2))	{
 						state=3;
-						//if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found : lowBin="+Integer.toString(lowBin)+" highBin="+Integer.toString(highBin);
-						outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud alternating sequence detected";
+						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found : lowBin="+Integer.toString(lowBin)+" highBin="+Integer.toString(highBin);
 						b7Count=0;
 						countSinceSync=0;
 						clearStartBuffer();
 						theApp.setStatusLabel("50 Baud Sync Found");
 					}	
 					else	{
-						outLines[0]=theApp.getTimeStamp()+" Unable to obtain CIS 36-50 50 baud alternating sequence";
+						if (theApp.isDebug()==true)  outLines[0]=theApp.getTimeStamp()+" Unable to obtain CIS 36-50 50 baud alternating sequence";
 						state=1;
 					}
 				}
@@ -133,15 +132,14 @@ public class CIS3650 extends FSK {
 					// If no sync work has been found in 500 bits then go back to hunting
 					if (countSinceSync>=500)	{
 						state=1;
-						//if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
-						outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
+						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
 					}
 				}
 				if (theApp.isDebug()==false)	{
 					if (syncState==1)	{
 						addToStartBuffer(bit);
 						// Check if the start buffer is valid
-						if ((checkStartBuffer()==true)&&(countSinceSync>=183))	{
+						if (checkStartBuffer()==true)	{
 							syncState=2;
 							theApp.setStatusLabel("Decoding Message");
 							outLines[0]=theApp.getTimeStamp()+" Message Start";
@@ -285,7 +283,7 @@ public class CIS3650 extends FSK {
 		int f0=getSymbolFreq(circBuf,waveData,pos);
 		b0=getFreqBin();
 		// Check this first tone isn't just noise the highest bin must make up 10% of the total
-		//if (getPercentageOfTotal()<10.0) return false;
+		if (getPercentageOfTotal()<10.0) return false;
 		pos=(int)samplesPerSymbol50*1;
 		int f1=getSymbolFreq(circBuf,waveData,pos);
 		b1=getFreqBin();
@@ -372,17 +370,19 @@ public class CIS3650 extends FSK {
 			if (startBuffer[a]==true) count++;
 		}
 		if (count!=21) return false;
+		count=0;
 		// Check the 70 bit session keys are almost the same
 		for (a=0;a<70;a++)	{
-			if (startBuffer[a+44]!=startBuffer[a+44+70]) return false;
+			if (startBuffer[a+44]!=startBuffer[a+44+70]) count++;
 		}	
+		if (count>1) return false;
 		// Check the session key contains at least 8 valid ITA3 characters
 		count=0;
 		for (a=44;a<(44+70);a=a+7)	{
 			o=extractIntFromStart(a);
 			if (checkITA3Char(o)==true)	count++;
 		}
-		if (count>8) return true;
+		if (count>=8) return true;
 		else return false;
 	}
 	
