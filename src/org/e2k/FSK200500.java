@@ -19,7 +19,7 @@ public class FSK200500 extends FSK {
 	private final int MAXCHARLENGTH=80;
 	private int bcount;
 	private int missingCharCounter=0;
-	private double adjBuffer[]=new double[7];
+	private double adjBuffer[]=new double[5];
 	private int adjCounter=0;
 	private int resetCounter;
 	
@@ -93,9 +93,11 @@ public class FSK200500 extends FSK {
 		if (state==2)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
-				symbolCounter=0;
+				//symbolCounter=0;
 				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
 				
+				
+	
 				// TODO : Get the invert feature working with FSK200/500
 				if (theApp.isInvertSignal()==true)	{
 					if (ibit==0) ibit=1;
@@ -104,7 +106,8 @@ public class FSK200500 extends FSK {
 				// If this is a full bit add it to the character buffer
 				// If it is a half bit it signals the end of a character
 				if (ibit==2)	{
-					symbolCounter=((int)samplesPerSymbol/2)+adjAdjust();
+					//symbolCounter=((int)samplesPerSymbol/2)+adjAdjust();
+					symbolCounter=((int)samplesPerSymbol/2);
 					// If debugging display the character buffer in binary form + the number of bits since the last character and this baudot character
 					if (theApp.isDebug()==true)	{
 						lineBuffer.append(getCharBuffer()+" ("+Integer.toString(bcount)+")  "+getBaudotChar());
@@ -137,7 +140,8 @@ public class FSK200500 extends FSK {
 					bcount=0;
 				}
 				else	{
-					addToCharBuffer(ibit);	
+					addToCharBuffer(ibit);
+					symbolCounter=adjAdjust();
 				}
 				// If the character count has reached MAXCHARLENGTH then display this line
 				if (characterCount>=MAXCHARLENGTH)	{
@@ -240,14 +244,19 @@ public class FSK200500 extends FSK {
 		}
 		
 		// Early/Late gate code
+		// was <2
 		if (v<2)	{
 			double lowTotal=ff1[0]+ff2[0];
 			double highTotal=ff1[1]+ff2[1];
-			if (lowTotal>highTotal) addToAdjBuffer(ff1[1]-ff2[1]);
-			else addToAdjBuffer(ff1[0]-ff2[0]);	
+			
+			if (lowTotal>highTotal) addToAdjBuffer(getPercentageDifference(ff1[0],ff2[0]));
+			else addToAdjBuffer(getPercentageDifference(ff1[1],ff2[1]));
+			
+			//if (lowTotal>highTotal) addToAdjBuffer(ff1[1]-ff2[1]);
+			//else addToAdjBuffer(ff1[0]-ff2[0]);	
 		}
 		else addToAdjBuffer(0);
-		
+	
 	return v;
 	}
 	
@@ -324,12 +333,25 @@ public class FSK200500 extends FSK {
 	}
 	
 	// Get the average value and return an adjustment value
-	private int adjAdjust()	{
+	private int adjAdjustX()	{
 		double av=adjAverage();
-		if (Math.abs(av)<15) return 0;
+		//theApp.debugDump(Double.toString(av));
+		// was 25
+		if (Math.abs(av)<25) return 0;
 		else if (av<0.0) return 1;
 		else return -1;
 	}
+	
+	// Get the average value and return an adjustment value
+	private int adjAdjust()	{
+		double av=adjAverage();
+		double r=Math.abs(av)/20;
+		if (av<0) r=0-r;
+		
+		//theApp.debugDump(Double.toString(av)+","+Integer.toString((int)r));
+		
+		return (int)r;
+	}	
 
 	// Return a quality indicator
 	public String getQuailty()	{

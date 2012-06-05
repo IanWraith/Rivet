@@ -18,7 +18,7 @@ public class FSK {
 	private DoubleFFT_1D fft80=new DoubleFFT_1D(FFT_80_SIZE);
 	private DoubleFFT_1D fft160=new DoubleFFT_1D(FFT_160_SIZE);
 	private double componentDC;
-
+	
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
 			return (sampleFreq/dbaud);
@@ -53,7 +53,7 @@ public class FSK {
 			return (int)ret;
 		}
 	
-	// Find the bin containing the hight value from an array of doubles
+	// Find the bin containing the high value from an array of doubles
 	public int findHighBin(double[]x)	{
 			int a,highBin=-1;
 			highestValue=-1;
@@ -262,6 +262,10 @@ public class FSK {
 		return BAUDOT_NUMBERS[i];
 	}
 
+	// This returns the percentage difference between x and y
+	public double getPercentageDifference (double x,double y)	{
+		return (((x-y)/(x+y))*100.0);
+	}
 	
 	
 }

@@ -15,7 +15,7 @@ public class CCIR493 extends FSK {
 	private int messageState;
 	private int highBin;
 	private int lowBin;
-	private double adjBuffer[]=new double[15];
+	private double adjBuffer[]=new double[1];
 	private int adjCounter=0;
 	private int buffer10=0;
 	private int buffer20=0;
@@ -165,9 +165,15 @@ public class CCIR493 extends FSK {
 			if (lowTotal>highTotal) bit=false;
 			else bit=true;
 		}
+		
+		
+		
+		//theApp.debugDump(Integer.toString(bin1)+","+Integer.toString(bin2));
+		
+		
 		// Early/Late gate code
-		if (lowTotal>highTotal) addToAdjBuffer(early[1]-late[1]);
-		else addToAdjBuffer(early[0]-late[0]);
+		if (lowTotal>highTotal) addToAdjBuffer(getPercentageDifference(early[0],late[0]));
+		else addToAdjBuffer(getPercentageDifference(early[1],late[1]));
 		symbolCounter=adjAdjust();
 		// All done return the bit value
 		return bit;
@@ -190,12 +196,16 @@ public class CCIR493 extends FSK {
 		return (total/adjBuffer.length);
 	}
 	
+	
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		if (Math.abs(av)<5) return 0;
-		else if (av<0.0) return 1;
-		else return -1;
+		double r=Math.abs(av)/5;
+		if (av<0) r=0-r;
+		
+		//theApp.debugDump(Double.toString(av)+","+Integer.toString((int)r));
+		
+		return (int)r;
 	}		
 	
 	// The main function for handling incoming bits
