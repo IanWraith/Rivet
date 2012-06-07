@@ -256,8 +256,8 @@ public class CIS3650 extends FSK {
 			else bit=false;
 		}
 		// Early/Late gate code
-		if (lowTotal>highTotal) addToAdjBuffer(early[1]-late[1]);
-		else addToAdjBuffer(early[0]-late[0]);
+		if (lowTotal>highTotal) addToAdjBuffer(getPercentageDifference(early[0],late[0]));
+		else addToAdjBuffer(getPercentageDifference(early[1],late[1]));
 		symbolCounter=adjAdjust();
 		// All done return the bit value
 		return bit;
@@ -347,9 +347,9 @@ public class CIS3650 extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		if (Math.abs(av)<100) return 0;
-		else if (av<0.0) return 1;
-		else return -1;
+		double r=Math.abs(av)/10;
+		if (av<0) r=0-r;
+		return (int)r;
 	}	
 	
 	// Add a bit to the start buffer
