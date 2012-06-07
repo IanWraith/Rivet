@@ -239,7 +239,7 @@ public class FSK200500 extends FSK {
 			else	{
 				// If there isn't a vaid baudot character in the buffer this can't be a half bit and must be a full bit
 				if ((ff1[0]+ff2[0])>(ff1[1]+ff2[1])) v=1;
-				else v= 0;
+				else v=0;
 			}
 		}
 		
@@ -333,23 +333,10 @@ public class FSK200500 extends FSK {
 	}
 	
 	// Get the average value and return an adjustment value
-	private int adjAdjustX()	{
-		double av=adjAverage();
-		//theApp.debugDump(Double.toString(av));
-		// was 25
-		if (Math.abs(av)<25) return 0;
-		else if (av<0.0) return 1;
-		else return -1;
-	}
-	
-	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
 		double r=Math.abs(av)/20;
 		if (av<0) r=0-r;
-		
-		//theApp.debugDump(Double.toString(av)+","+Integer.toString((int)r));
-		
 		return (int)r;
 	}	
 
