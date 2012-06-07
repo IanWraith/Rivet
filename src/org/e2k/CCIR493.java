@@ -15,7 +15,7 @@ public class CCIR493 extends FSK {
 	private int messageState;
 	private int highBin;
 	private int lowBin;
-	private double adjBuffer[]=new double[1];
+	private double adjBuffer[]=new double[10];
 	private int adjCounter=0;
 	private int buffer10=0;
 	private int buffer20=0;
@@ -34,6 +34,8 @@ public class CCIR493 extends FSK {
 			29,540,284,795,156,667,411,922,92,603,347,858,219,730,474,985,60,571,315,826,
 			187,698,442,953,123,634,378,889,250,761,505,1016};
 	private final int BITVALUES[]={1,2,4,8,16,32,64,128,256,512};
+	
+	private int errorState=1;
 	
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
@@ -166,15 +168,20 @@ public class CCIR493 extends FSK {
 			else bit=true;
 		}
 		
-		
-		
-		//theApp.debugDump(Integer.toString(bin1)+","+Integer.toString(bin2));
-		
-		
 		// Early/Late gate code
 		if (lowTotal>highTotal) addToAdjBuffer(getPercentageDifference(early[0],late[0]));
 		else addToAdjBuffer(getPercentageDifference(early[1],late[1]));
 		symbolCounter=adjAdjust();
+		
+		//double avj=adjAverage();
+		//String line;
+		//if (bit==true) line="1";
+		//else line="0";
+		//if (errorState==0) line=line+",OK,";
+		//else line=line+",ERROR,";
+		//line=line+Double.toString(avj)+","+Long.toString(symbolCounter)+","+getSpectrumValsString();
+		//theApp.debugDump(line);
+		
 		// All done return the bit value
 		return bit;
 	}
@@ -202,9 +209,6 @@ public class CCIR493 extends FSK {
 		double av=adjAverage();
 		double r=Math.abs(av)/5;
 		if (av<0) r=0-r;
-		
-		//theApp.debugDump(Double.toString(av)+","+Integer.toString((int)r));
-		
 		return (int)r;
 	}		
 	
@@ -256,6 +260,7 @@ public class CCIR493 extends FSK {
 			// We now have sync so only check for the format specifier every 10 bits
 			if (bitCount%10==0)	{
 				int c1=ret10BitCode((buffer20&0xFFC00)>>10,true);
+				//theApp.debugDump("CHAR "+Integer.toString(c1));
 				int c2=ret10BitCode(buffer20&1023,true);
 				formatSpecifier=formatSpecifierHunt(c1,c2);
 				if (theApp.isDebug()==true)	{
@@ -324,6 +329,7 @@ public class CCIR493 extends FSK {
 		int a,b,dif,errorMax;
 		// Make copy of what is going into the error corrector
 		unCorrectedInput=in;
+		errorState=0;
 		if (errorBitsAllowed==true) errorMax=1;
 		else errorMax=0;
 		for (a=0;a<VALIDWORDS.length;a++){
@@ -333,6 +339,7 @@ public class CCIR493 extends FSK {
 			}
 			if (dif<=errorMax) return a;
 		}
+		errorState=1;
 		return -1;
 	}
 	
