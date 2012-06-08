@@ -19,7 +19,7 @@ public class FSK200500 extends FSK {
 	private final int MAXCHARLENGTH=80;
 	private int bcount;
 	private int missingCharCounter=0;
-	private double adjBuffer[]=new double[5];
+	private double adjBuffer[]=new double[2];
 	private int adjCounter=0;
 	private int resetCounter;
 	
@@ -106,8 +106,8 @@ public class FSK200500 extends FSK {
 				// If this is a full bit add it to the character buffer
 				// If it is a half bit it signals the end of a character
 				if (ibit==2)	{
-					//symbolCounter=((int)samplesPerSymbol/2)+adjAdjust();
-					symbolCounter=((int)samplesPerSymbol/2);
+					symbolCounter=(int)samplesPerSymbol/2;
+					//symbolCounter=((int)samplesPerSymbol/2);
 					// If debugging display the character buffer in binary form + the number of bits since the last character and this baudot character
 					if (theApp.isDebug()==true)	{
 						lineBuffer.append(getCharBuffer()+" ("+Integer.toString(bcount)+")  "+getBaudotChar());
@@ -142,6 +142,7 @@ public class FSK200500 extends FSK {
 				else	{
 					addToCharBuffer(ibit);
 					symbolCounter=adjAdjust();
+					//symbolCounter=0;
 				}
 				// If the character count has reached MAXCHARLENGTH then display this line
 				if (characterCount>=MAXCHARLENGTH)	{
@@ -213,14 +214,14 @@ public class FSK200500 extends FSK {
 		int v;
 		int sp=(int)samplesPerSymbol/2;
 		// First half
-		double ff1[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
+		double early[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
 		// Last half
-		double ff2[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
+		double late[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
 		// Determine the symbol value
 		int high1,high2;
-		if (ff1[0]>ff1[1]) high1=0;
+		if (early[0]>early[1]) high1=0;
 		else high1=1;
-		if (ff2[0]>ff2[1]) high2=0;
+		if (late[0]>late[1]) high2=0;
 		else high2=1;
 		// Both the same
 		if (high1==high2)	{
@@ -233,12 +234,12 @@ public class FSK200500 extends FSK {
 				// Is this a stop bit
 				if (high2>high1) v=2;
 				// No this must be a normal full bit
-				else if ((ff1[0]+ff2[0])>(ff1[1]+ff2[1])) v=1;
-				else return 0;
+				else if ((early[0]+late[0])>(early[1]+late[1])) v=1;
+				else v=0;
 			}
 			else	{
 				// If there isn't a vaid baudot character in the buffer this can't be a half bit and must be a full bit
-				if ((ff1[0]+ff2[0])>(ff1[1]+ff2[1])) v=1;
+				if ((early[0]+late[0])>(early[1]+late[1])) v=1;
 				else v=0;
 			}
 		}
@@ -246,17 +247,15 @@ public class FSK200500 extends FSK {
 		// Early/Late gate code
 		// was <2
 		if (v<2)	{
-			double lowTotal=ff1[0]+ff2[0];
-			double highTotal=ff1[1]+ff2[1];
+			double lowTotal=early[0]+late[0];
+			double highTotal=early[1]+late[1];
+			if (lowTotal>highTotal) addToAdjBuffer(getPercentageDifference(early[0],late[0]));
+			else addToAdjBuffer(getPercentageDifference(early[1],late[1]));
 			
-			if (lowTotal>highTotal) addToAdjBuffer(getPercentageDifference(ff1[0],ff2[0]));
-			else addToAdjBuffer(getPercentageDifference(ff1[1],ff2[1]));
+			//theApp.debugDump(Double.toString(early[0])+","+Double.toString(late[0])+","+Double.toString(early[1])+","+Double.toString(late[1]));
 			
-			//if (lowTotal>highTotal) addToAdjBuffer(ff1[1]-ff2[1]);
-			//else addToAdjBuffer(ff1[0]-ff2[0]);	
 		}
-		else addToAdjBuffer(0);
-	
+		
 	return v;
 	}
 	
@@ -335,8 +334,10 @@ public class FSK200500 extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		double r=Math.abs(av)/20;
+		double r=Math.abs(av)/5;
 		if (av<0) r=0-r;
+		//theApp.debugDump(Double.toString(av)+","+Double.toString(r));
+		//r=0;
 		return (int)r;
 	}	
 
