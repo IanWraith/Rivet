@@ -93,11 +93,7 @@ public class FSK200500 extends FSK {
 		if (state==2)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
-				//symbolCounter=0;
 				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
-				
-				
-	
 				// TODO : Get the invert feature working with FSK200/500
 				if (theApp.isInvertSignal()==true)	{
 					if (ibit==0) ibit=1;
@@ -107,7 +103,6 @@ public class FSK200500 extends FSK {
 				// If it is a half bit it signals the end of a character
 				if (ibit==2)	{
 					symbolCounter=(int)samplesPerSymbol/2;
-					//symbolCounter=((int)samplesPerSymbol/2);
 					// If debugging display the character buffer in binary form + the number of bits since the last character and this baudot character
 					if (theApp.isDebug()==true)	{
 						lineBuffer.append(getCharBuffer()+" ("+Integer.toString(bcount)+")  "+getBaudotChar());
@@ -135,14 +130,17 @@ public class FSK200500 extends FSK {
 						missingCharCounter++;
 						resetCounter++;
 						// If we have had more than 20 characters since the last good one we have a serious problem so reset
-						if (resetCounter>20) state=1;
+						if (resetCounter>20)	{
+							theApp.setStatusLabel("Sync Hunt");
+							outLines[0]=theApp.getTimeStamp()+" FSK200/500 Sync Lost";
+							state=1;
+						}
 					}
 					bcount=0;
 				}
 				else	{
 					addToCharBuffer(ibit);
 					symbolCounter=adjAdjust();
-					//symbolCounter=0;
 				}
 				// If the character count has reached MAXCHARLENGTH then display this line
 				if (characterCount>=MAXCHARLENGTH)	{
@@ -150,7 +148,6 @@ public class FSK200500 extends FSK {
 					lineBuffer.delete(0,lineBuffer.length());
 					characterCount=0;
 				}
-			//theApp.debugDump(diagBuffer.toString());
 			}
 		}
 		sampleCount++;
