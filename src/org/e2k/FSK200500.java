@@ -18,11 +18,11 @@ public class FSK200500 extends FSK {
 	private boolean inChar[]=new boolean[7];
 	private final int MAXCHARLENGTH=80;
 	private int bcount;
-	private int missingCharCounter=0;
+	private long missingCharCounter=0;
+	private long totalCharCounter=0;
 	private double adjBuffer[]=new double[2];
 	private int adjCounter=0;
-	private int resetCounter;
-	
+	private double errorPercentage;
 	
 	public FSK200500 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -37,8 +37,11 @@ public class FSK200500 extends FSK {
 		return baudRate;
 	}
 
+	// Set the objects decode state and the status bar
 	public void setState(int state) {
-		this.state = state;
+		this.state=state;
+		if (state==1) theApp.setStatusLabel("Sync Hunt");
+		else if (state==2) theApp.setStatusLabel("Decoding Traffic");
 	}
 
 	public int getState() {
@@ -63,7 +66,7 @@ public class FSK200500 extends FSK {
 				return null;
 			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
-			state=1;
+			setState(1);
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
@@ -73,7 +76,6 @@ public class FSK200500 extends FSK {
 			characterCount=0;
 			lettersMode=true;
 			lineBuffer.delete(0,lineBuffer.length());
-			theApp.setStatusLabel("Sync Hunt");
 			return null;
 		}
 		
@@ -81,11 +83,11 @@ public class FSK200500 extends FSK {
 		if (state==1)	{
 			if (sampleCount>0) outLines[0]=syncSequenceHunt(circBuf,waveData);
 			if (outLines[0]!=null)	{
-				state=2;
+				setState(2);
 				energyBuffer.setBufferCounter(0);
 				bcount=0;
-				resetCounter=0;
-				theApp.setStatusLabel("Traffic");
+				totalCharCounter=0;
+				missingCharCounter=0;
 			}
 		}
 				
@@ -102,6 +104,7 @@ public class FSK200500 extends FSK {
 				// If this is a full bit add it to the character buffer
 				// If it is a half bit it signals the end of a character
 				if (ibit==2)	{
+					totalCharCounter++;
 					symbolCounter=(int)samplesPerSymbol/2;
 					// If debugging display the character buffer in binary form + the number of bits since the last character and this baudot character
 					if (theApp.isDebug()==true)	{
@@ -109,7 +112,6 @@ public class FSK200500 extends FSK {
 						characterCount=MAXCHARLENGTH;
 					}
 					else	{
-						resetCounter=0;
 						// Display the character in the standard way
 						String ch=getBaudotChar();
 						// LF
@@ -128,12 +130,11 @@ public class FSK200500 extends FSK {
 					}
 					if (bcount!=7)	{
 						missingCharCounter++;
-						resetCounter++;
-						// If we have had more than 20 characters since the last good one we have a serious problem so reset
-						if (resetCounter>20)	{
-							theApp.setStatusLabel("Sync Hunt");
+				        errorPercentage=((double)missingCharCounter/(double)totalCharCounter)*100.0;
+						// If more than 50% of the received characters are bad we have a serious problem
+						if (errorPercentage>50)	{
 							outLines[0]=theApp.getTimeStamp()+" FSK200/500 Sync Lost";
-							state=1;
+							setState(1);
 						}
 					}
 					bcount=0;
@@ -340,8 +341,7 @@ public class FSK200500 extends FSK {
 
 	// Return a quality indicator
 	public String getQuailty()	{
-		String line;
-		line="There were "+Integer.toString(missingCharCounter)+" missing characters";
+		String line="Missing characters made up "+String.format("%.2f",errorPercentage)+"% of this message";
 		return line;
 	}
 
