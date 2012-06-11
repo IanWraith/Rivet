@@ -61,13 +61,12 @@ public class CIS3650 extends FSK {
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			samplesPerSymbol50=samplesPerSymbol(50.0,waveData.getSampleRate());
-			state=1;
+			setState(1);
 			lineBuffer.delete(0,lineBuffer.length());
 			syncState=0;
 			buffer7=0;
 			buffer21=0;
 			characterCount=0;
-			theApp.setStatusLabel("Sync Hunt");
 			return null;
 		}
 		
@@ -76,13 +75,12 @@ public class CIS3650 extends FSK {
 		if (state==1)	{
 			sampleCount++;
 			if (sampleCount<0) return null;
-			theApp.setStatusLabel("Sync Hunt");
 			// Look for a 50 baud alternating sync sequence
 			if (detect50Sync(circBuf,waveData)==true)	{
-				state=2;
 				totalErrorCount=0;
 				totalCharacterCount=0;
 				syncState=1;
+				setState(2);
 				buffer7=0;
 				b7Count=0;
 				outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found";
@@ -101,12 +99,11 @@ public class CIS3650 extends FSK {
 					buffer7=buffer7&0x7;
 					// Look for 101 (5) or 010 (2)
 					if ((buffer7==5)||(buffer7==2))	{
-						state=3;
+						setState(3);
 						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found : lowBin="+Integer.toString(lowBin)+" highBin="+Integer.toString(highBin);
 						b7Count=0;
 						countSinceSync=0;
 						clearStartBuffer();
-						theApp.setStatusLabel("50 Baud Sync Found");
 					}	
 					else	{
 						if (theApp.isDebug()==true)  outLines[0]=theApp.getTimeStamp()+" Unable to obtain CIS 36-50 50 baud alternating sequence";
@@ -131,7 +128,7 @@ public class CIS3650 extends FSK {
 					if ((buffer7==85)||(buffer7==42)) countSinceSync=0;
 					// If no sync work has been found in 500 bits then go back to hunting
 					if (countSinceSync>=500)	{
-						state=1;
+						setState(1);
 						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
 					}
 				}
@@ -141,7 +138,7 @@ public class CIS3650 extends FSK {
 						// Check if the start buffer is valid
 						if (checkStartBuffer()==true)	{
 							syncState=2;
-							theApp.setStatusLabel("Decoding Message");
+							setState(state);
 							outLines[0]=theApp.getTimeStamp()+" Message Start";
 							long header=extractSyncAsLong();
 							outLines[1]="Sync 0x"+Long.toHexString(header);
@@ -203,7 +200,7 @@ public class CIS3650 extends FSK {
 						countSinceSync=0;
 						syncState=1;
 						clearStartBuffer();
-						state=3;
+						setState(3);
 					}
 				}
 				else	{
@@ -224,8 +221,13 @@ public class CIS3650 extends FSK {
 		return outLines;
 	}
 	
+	// Set the decoder state and update the status label
 	public void setState(int state) {
-		this.state = state;
+		this.state=state;
+		if (state==1) theApp.setStatusLabel("Sync Hunt");
+		else if (state==2) theApp.setStatusLabel("Validating Sync");
+		else if ((state==3)&&(syncState==1)) theApp.setStatusLabel("50 Baud Sync Found");
+		else if ((state==3)&&(syncState==2)) theApp.setStatusLabel("Decoding Message");
 	}
 
 	public int getState() {
