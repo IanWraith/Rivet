@@ -53,7 +53,7 @@ public class JStatusBar extends JPanel implements ChangeListener {
 		modeLabel.setOpaque(true);
 		modeLabel.updateUI();
 		// Input level slider
-		inputLevelSlider=new JSlider(JSlider.HORIZONTAL,1,100,5);
+		inputLevelSlider=new JSlider(JSlider.HORIZONTAL,-50,50,5);
 		inputLevelSlider.addChangeListener(this);
 		inputLevelSlider.setMajorTickSpacing(25);
 		inputLevelSlider.setMinorTickSpacing(5);

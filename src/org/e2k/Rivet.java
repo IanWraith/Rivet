@@ -44,7 +44,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 30) by Ian Wraith";
+	public String program_version="Rivet (Build 31) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -70,7 +70,7 @@ public class Rivet {
 	private boolean soundCardInput=false;
 	private boolean wavFileLoadOngoing=false;
 	private boolean invertSignal=false;
-	private int soundCardInputLevel=25;
+	private int soundCardInputLevel=0;
 	private boolean soundCardInputTemp;
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000"};
@@ -268,13 +268,8 @@ public class Rivet {
 	private void getAudioData()	{
 			// Get the sample from the input thread
 			try	{
-				
-				// TODO: Try to find out what happens if there is a read but no data in the pipe
-				
 				// Add the data from the thread pipe to the circular buffer
 				circBuffer.addToCircBuffer(inPipeData.readInt());
-				
-				
 				// Process this data
 				processData();
 	    		// Update the volume bar every 50 samples

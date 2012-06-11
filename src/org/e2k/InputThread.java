@@ -42,7 +42,7 @@ public class InputThread extends Thread {
 	private int volumeBufferCounter=0;
 	private static int ISIZE=4096;
 	private byte buffer[]=new byte[ISIZE+1];
-	private int inputLevel=25;
+	private int inputLevel=0;
 	private Rivet theApp; 
 	
  
@@ -295,8 +295,10 @@ public class InputThread extends Thread {
 		// Get the required number of samples
 		for (a=0;a<ISIZE;a=a+2)	{
 			sample=(buffer[a]<<8)+buffer[a+1];
-			// Multiply the sample by a factor of MULTIPLY_FACTOR
-			sample=sample*inputLevel;
+			// If inputLevel is positive then multiply the sample with it
+			// If it is negatibe then divide the sample by it
+			if (inputLevel>0) sample=sample*inputLevel;
+			else sample=sample/Math.abs(inputLevel);
 			// Add this sample to the circular volume buffer
 			addToVolumeBuffer(sample);
 			try		{
