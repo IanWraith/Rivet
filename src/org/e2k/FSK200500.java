@@ -341,7 +341,7 @@ public class FSK200500 extends FSK {
 
 	// Return a quality indicator
 	public String getQuailty()	{
-		String line="Missing characters made up "+String.format("%.2f",errorPercentage)+"% of this message";
+		String line="Missing characters made up "+String.format("%.2f",errorPercentage)+"% of this message ("+Long.toString(missingCharCounter)+" characters missing)";
 		return line;
 	}
 
