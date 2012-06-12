@@ -15,8 +15,6 @@ public class CCIR493 extends FSK {
 	private int messageState;
 	private int highBin;
 	private int lowBin;
-	private double adjBuffer[]=new double[10];
-	private int adjCounter=0;
 	private int buffer10=0;
 	private int buffer20=0;
 	private int dx;
@@ -34,8 +32,9 @@ public class CCIR493 extends FSK {
 			29,540,284,795,156,667,411,922,92,603,347,858,219,730,474,985,60,571,315,826,
 			187,698,442,953,123,634,378,889,250,761,505,1016};
 	private final int BITVALUES[]={1,2,4,8,16,32,64,128,256,512};
-	
-	private int errorState=1;
+	private final double KALMAN1=0.99;
+	private final double KALMAN2=0.009;
+	private final double EARLYLATEADJUST=5;
 	
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
@@ -169,8 +168,8 @@ public class CCIR493 extends FSK {
 		}
 		
 		// Early/Late gate code
-		if (lowTotal>highTotal) addToAdjBuffer(getPercentageDifference(early[0],late[0]));
-		else addToAdjBuffer(getPercentageDifference(early[1],late[1]));
+		if (lowTotal>highTotal) kalmanFilter(getPercentageDifference(early[0],late[0]),KALMAN1,KALMAN2);
+		else kalmanFilter(getPercentageDifference(early[1],late[1]),KALMAN1,KALMAN2);
 		symbolCounter=adjAdjust();
 		
 		//double avj=adjAverage();
@@ -186,29 +185,15 @@ public class CCIR493 extends FSK {
 		return bit;
 	}
 	
-	// Add a comparator output to a circular buffer of values
-	private void addToAdjBuffer (double in)	{
-		adjBuffer[adjCounter]=in;
-		adjCounter++;
-		if (adjCounter==adjBuffer.length) adjCounter=0;
-	}
-	
-	// Return the average of the circular buffer
-	private double adjAverage()	{
-		int a;
-		double total=0.0;
-		for (a=0;a<adjBuffer.length;a++)	{
-			total=total+adjBuffer[a];
-		}
-		return (total/adjBuffer.length);
-	}
-	
-	
+
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
-		double av=adjAverage();
-		double r=Math.abs(av)/5;
-		if (av<0) r=0-r;
+		double r=Math.abs(kalmanNew)/EARLYLATEADJUST;
+		if (kalmanNew<0) r=0-r;
+		
+		//theApp.debugDump(Double.toString(kalmanNew)+","+Integer.toString((int)r));
+		//r=0;
+		
 		return (int)r;
 	}		
 	
@@ -329,7 +314,6 @@ public class CCIR493 extends FSK {
 		int a,b,dif,errorMax;
 		// Make copy of what is going into the error corrector
 		unCorrectedInput=in;
-		errorState=0;
 		if (errorBitsAllowed==true) errorMax=1;
 		else errorMax=0;
 		for (a=0;a<VALIDWORDS.length;a++){
@@ -339,7 +323,6 @@ public class CCIR493 extends FSK {
 			}
 			if (dif<=errorMax) return a;
 		}
-		errorState=1;
 		return -1;
 	}
 	
@@ -442,6 +425,5 @@ public class CCIR493 extends FSK {
 		}
 		buffer10=c;
 	}
-
-
+	
 }

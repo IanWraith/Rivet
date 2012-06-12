@@ -23,6 +23,8 @@ public class FSK {
 	private double componentDC;
 	private List<Double>spectrumVals=new ArrayList<Double>();
 	private boolean spectrumRecord=false;
+	public double kalmanNew=0.0;
+	public double kalmanOld=0.0; 
 	
 	// Return the number of samples per baud
 	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
@@ -284,4 +286,13 @@ public class FSK {
 		}
 		return sb.toString();
 	}
+	
+	// A Kalman filter for use by the FSK early/late gate
+	public double kalmanFilter (double in,double cof1,double cof2)	{
+		double newo=(cof1*kalmanOld)+(cof2*in);
+		kalmanOld=kalmanNew;
+		kalmanNew=newo;
+		return newo;
+	}
+	
 }
