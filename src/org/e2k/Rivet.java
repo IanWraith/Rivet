@@ -620,6 +620,9 @@ public class Rivet {
 					// Soundcard input level
 					else if (qName.equals("soundcard_level"))	{
 						soundCardInputLevel=Integer.parseInt(aval);
+						// Check if this is to high or to low
+						if (soundCardInputLevel<-10) soundCardInputLevel=-10;
+						else if (soundCardInputLevel>10) soundCardInputLevel=10;
 					}
 					// Soundcard input
 					else if (qName.equals("soundcard_input"))	{
