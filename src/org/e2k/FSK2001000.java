@@ -174,7 +174,8 @@ public class FSK2001000 extends FSK {
 		// Last half
 		double late[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
 		// Feed the early late difference into a buffer
-		addToAdjBuffer(early[0]-late[0]);
+		if ((early[0]+late[0])>(early[1]+late[1])) addToAdjBuffer(getPercentageDifference(early[0],late[0]));
+		else addToAdjBuffer(getPercentageDifference(early[1],late[1]));
 		// Calculate the symbol timing correction
 		symbolCounter=adjAdjust();
 		// Now work out the binary state represented by this symbol
@@ -212,9 +213,9 @@ public class FSK2001000 extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		if (Math.abs(av)<0.75) return 0;
-		else if (av<0.0) return 1;
-		else return -1;
+		double r=Math.abs(av)/10;
+		if (av<0) r=0-r;
+		return (int)r;
 	}
 	
 	// Have a 16 bit buffer to detect certain sequences
