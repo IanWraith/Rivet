@@ -53,7 +53,8 @@ Build 27 adds further CCIR493-4 debugging data to try and find out why weak sign
 Build 28 hopefully further improve the detection of weak CCIR493-4 signals
 Build 29 improved FSK200/1000 decoding
 Build 30 adds proportional early/late gate control to the FSK modes.
-Build 31 Improved input level control which can attenuate,improved CIS36-50 and FSK200/500 status bar updating.
+Build 31 Improved input level control which can attenuate,improved CIS36-50 decoding,FSK200/500 status bar updating,
+		 improved FSK200/1000 binary decoding
 
 Reported Bugs
 -------------
@@ -63,4 +64,4 @@ Still problems with CROWD36 decoding. Not a bug as such but more a lack of under
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (11th June 2012) 
+Ian Wraith (13th June 2012) 
