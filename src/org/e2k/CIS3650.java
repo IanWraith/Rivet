@@ -35,7 +35,7 @@ public class CIS3650 extends FSK {
 	private boolean startBuffer[]=new boolean[184];
 	private final double KALMAN1=0.99;
 	private final double KALMAN2=0.009;
-	private final double EARLYLATEADJUST=1;
+	private final double EARLYLATEADJUST=2;
 	
 	public CIS3650 (Rivet tapp)	{
 		theApp=tapp;
@@ -73,7 +73,7 @@ public class CIS3650 extends FSK {
 		
 		
 		// Look for a 36 baud or a 50 baud alternating sequence
-		if (state==1)	{
+		else if (state==1)	{
 			sampleCount++;
 			if (sampleCount<0) return null;
 			// Look for a 50 baud alternating sync sequence
@@ -88,7 +88,7 @@ public class CIS3650 extends FSK {
 			}
 		}
 		
-		if (state==2)	{
+		else if (state==2)	{
 			if (symbolCounter>=(long)samplesPerSymbol50)	{		
 				// Demodulate a single bit
 				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
@@ -114,7 +114,7 @@ public class CIS3650 extends FSK {
 		}
 			
 		// Read in symbols
-		if (state==3)	{
+		else if (state==3)	{
 			// Only demodulate a bit every samplesPerSymbol50 samples
 			if (symbolCounter>=(long)samplesPerSymbol50)	{		
 				// Demodulate a single bit
@@ -126,8 +126,8 @@ public class CIS3650 extends FSK {
 					addToBuffer7(bit);
 					// If the 7 bit buffer contains an alternating sequence reset the countSinceSync
 					if ((buffer7==85)||(buffer7==42)) countSinceSync=0;
-					// If no sync work has been found in 500 bits then go back to hunting
-					if (countSinceSync>=500)	{
+					// If no sync work has been found in 250 bits then go back to hunting
+					if (countSinceSync>=250)	{
 						setState(1);
 						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
 					}
