@@ -9,6 +9,9 @@ public class FSK {
 	
 	private final String BAUDOT_LETTERS[]={"N/A","E","<LF>","A"," ","S","I","U","<CR>","D","R","J","N","F","C","K","T","Z","L","W","H","Y","P","Q","O","B","G","<FIG>","M","X","V","<LET>"};
 	private final String BAUDOT_NUMBERS[]={"N/A","3","<LF>","-"," ","<BELL>","8","7","<CR>","$","4","'",",","!",":","(","5","+",")","2","#","6","0","1","9","?","&","<FIG>",".","/","=","<LET>"};
+	public final int ITA3VALS[]={26,25,76,28,56,19,97,82,112,35,11,98,97,84,70,74,13,100,42,69,50,73,37,22,21,49,67,88,14,38,104,7,52,41,44,81};
+	public final String ITA3LETS[]={"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","<cr>","<lf>","<let>","<fig>"," ","","<Request>","<Idle a>","<Idle b>","<0x51>"}; 
+	public final String ITA3NUMS[]={"","?",":","","3","","","","8","<BELL>",")",")",".",",","9","0","1","4","'","5","7","=","2","/","6","+","<cr>","<lf>","<let>","<fig>"," ","","<Request>","<Idle a>","<Idle b>","<0x51>"}; 
 	public boolean lettersMode=true;
 	private int highSpectrum;
 	private double totalEnergy;
@@ -293,6 +296,24 @@ public class FSK {
 		kalmanOld=kalmanNew;
 		kalmanNew=newo;
 		return newo;
+	}
+	
+	// Return a ITA-3 character
+	public int retITA3Val (int c)	{
+		int a;
+		for (a=0;a<ITA3VALS.length;a++)	{
+			if (c==ITA3VALS[a]) return a;
+		}
+		return 0;
+	}
+	
+	// Check if a number if a valid ITA-3 character
+	public boolean checkITA3Char (int c)	{
+		int a;
+		for (a=0;a<ITA3VALS.length;a++)	{
+			if (c==ITA3VALS[a]) return true;
+		}
+		return false;
 	}
 	
 }

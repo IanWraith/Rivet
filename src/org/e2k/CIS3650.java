@@ -24,8 +24,6 @@ public class CIS3650 extends FSK {
 	private int buffer21=0;
 	private int characterCount;
 	private int startCount;
-	private final int ITA3VALS[]={26,25,76,28,56,19,97,82,112,35,11,98,97,84,70,74,13,100,42,69,50,73,37,22,21,49,67,88,14,38,104,7,52,41,44,81};
-	private final String ITA3LETS[]={"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","<cr>","<lf>","<let>","<fig>"," ","<unperf>","<Request>","<Idle a>","<Idle b>","<0x51>"}; 
 	private int totalCharacterCount=0;
 	private int totalErrorCount=0;
 	private int highBin;
@@ -311,25 +309,6 @@ public class CIS3650 extends FSK {
 		else return true;
 	}
 	
-	// Check if a number if a valid ITA-3 character
-	private boolean checkITA3Char (int c)	{
-		int a;
-		for (a=0;a<ITA3VALS.length;a++)	{
-			if (c==ITA3VALS[a]) return true;
-		}
-		return false;
-	}
-	
-	// Return a ITA-3 character
-	private int retITA3Val (int c)	{
-		int a;
-		for (a=0;a<ITA3VALS.length;a++)	{
-			if (c==ITA3VALS[a]) return a;
-		}
-		return 0;
-	}
-	
-
 	// Get an adjustment value from the Kalman filter
 	private int adjAdjust()	{
 		double r=Math.abs(kalmanNew)/EARLYLATEADJUST;
