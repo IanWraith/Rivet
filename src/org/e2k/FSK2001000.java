@@ -13,10 +13,11 @@ public class FSK2001000 extends FSK {
 	private StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int characterCount=0;
+	private int totalCharacterCount=0;
 	private int highBin;
 	private int lowBin;
 	private final int MAXCHARLENGTH=80;
-	private double adjBuffer[]=new double[7];
+	private double adjBuffer[]=new double[5];
 	private int adjCounter=0;
 	private int buffer7;
 	private int buffer16;
@@ -108,6 +109,8 @@ public class FSK2001000 extends FSK {
 				int ita=testBuffer28();
 				if (ita>0)	{
 					startCount=0;
+					characterCount=0;
+					totalCharacterCount=0;
 					setState(3);
 					// Non inverted
 					if (ita==1)	{
@@ -153,6 +156,7 @@ public class FSK2001000 extends FSK {
 						lineBuffer.append(ITA3LETS[c]);
 						startCount=0;
 						characterCount++;
+						totalCharacterCount++;
 						
 						// Display 50 characters on a line
 						if (characterCount==50)	{
@@ -365,5 +369,11 @@ public class FSK2001000 extends FSK {
 		buffer7=buffer7&0x7F;
 		if (bit==true) buffer7++;
 	}
+	
+	// Return a quality indicator
+	public String getQuailty()	{
+		String line="There were "+Integer.toString(totalCharacterCount)+" characters in this message.";
+		return line;
+		}
 	
 }

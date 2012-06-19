@@ -251,6 +251,9 @@ public class Rivet {
 				else if (system==6)	{
 					addLine(fsk200500Handler.getQuailty(),Color.BLACK,plainFont);
 				}
+				else if (system==8)	{
+					addLine(fsk2001000Handler.getQuailty(),Color.BLACK,plainFont);
+				}
 				
 				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
