@@ -42,6 +42,7 @@ public class FSK2001000 extends FSK {
 		if (state==1) theApp.setStatusLabel("Sync Hunt");
 		else if (state==2) theApp.setStatusLabel("Msg Hunt");
 		else if (state==3) theApp.setStatusLabel("Decoding");
+		else if (state==4) theApp.setStatusLabel("Debug Only");
 	}
 
 	public int getState() {
@@ -84,7 +85,8 @@ public class FSK2001000 extends FSK {
 		else if (state==1)	{
 			if (sampleCount>0) outLines[0]=syncSequenceHunt(circBuf,waveData);
 			if (outLines[0]!=null)	{
-				setState(2);
+				if (theApp.isDebug()==true) setState(4);
+				else setState(2);
 				energyBuffer.setBufferCounter(0);
 			}
 		}
@@ -147,8 +149,6 @@ public class FSK2001000 extends FSK {
 				boolean ibit=fsk2001000FreqHalf(circBuf,waveData,0);
 				addToBuffer7(ibit);
 				startCount++;
-				
-
 				// Every 7 bits we should have an ITA-3 character
 				if (startCount%7==0)	{
 					if (checkITA3Char(buffer7)==true)	{
@@ -158,27 +158,35 @@ public class FSK2001000 extends FSK {
 						characterCount++;
 						totalCharacterCount++;
 						
-						// Display 50 characters on a line
-						if (characterCount==50)	{
+						// Display MAXCHARLENGTH characters on a line
+						if (characterCount==MAXCHARLENGTH)	{
 							outLines[0]=lineBuffer.toString();
 							lineBuffer.delete(0,lineBuffer.length());
 							characterCount=0;
 						}
 						
 					}
-					
-					//startCount=0;
-					//buffer7=0;
-					//characterCount++;
-					// Keep a count of the total number of characters in a message
-					//totalCharacterCount++;
-					// If a message has gone on for 5000 characters there must be a problem so force an end
-					//if (totalCharacterCount>5000) syncState=4;
 				} 
-				
+			}
+		}	
+		// Debug only
+		else if (state==4)	{
+			if (symbolCounter>=samplesPerSymbol)	{
+				symbolCounter=0;
+				boolean ibit=fsk2001000FreqHalf(circBuf,waveData,0);
+				if (ibit==true) lineBuffer.append("1");
+				else lineBuffer.append("0");
+				characterCount++;
+				// Display MAXCHARLENGTH characters on a line
+				if (characterCount==MAXCHARLENGTH)	{
+					outLines[0]=lineBuffer.toString();
+					lineBuffer.delete(0,lineBuffer.length());
+					characterCount=0;
+				}
 				
 			}
-		}		
+			
+		}
 		
 		
 		sampleCount++;
