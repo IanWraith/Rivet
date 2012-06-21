@@ -12,6 +12,9 @@ public class FSK {
 	public final int ITA3VALS[]={26,25,76,28,56,19,97,82,112,35,11,98,97,84,70,74,13,100,42,69,50,73,37,22,21,49,67,88,14,38,104,7,52,41,44,81};
 	public final String ITA3LETS[]={"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","<cr>","<lf>","<let>","<fig>"," ","","<Request>","<Idle a>","<Idle b>","<0x51>"}; 
 	public final String ITA3NUMS[]={"","?",":","","3","","","","8","<BELL>",")",")",".",",","9","0","1","4","'","5","7","=","2","/","6","+","<cr>","<lf>","<let>","<fig>"," ","","<Request>","<Idle a>","<Idle b>","<0x51>"}; 
+	public final int CCIR476VALS[]={106,92,46,39,86,85,116,43,78,77,113,45,71,75,83,27,53,105,23,30,101,99,58,29,60,114,89,57,120,108,54,90,15};
+	public final String CCIR476LETS[]={"<32>"," ","Q","W","E","R","T","Y","U","I","O","P","A","S","D","F","G","H","J","K","L","Z","X","C","V","B","N","M","<cr>","<lf>","<fig>","<let>","<alpha>"};
+	public final String CCIR476NUMS[]={"<32>"," ","1","2","3","4","5","6","7","8","9","0","-","'"," ","%","@","#","*","(",")","+","/",":","=","?",",",".","<cr>","<lf>","<fig>","<let>","<alpha>"};
 	public boolean lettersMode=true;
 	private int highSpectrum;
 	private double totalEnergy;
@@ -315,5 +318,24 @@ public class FSK {
 		}
 		return false;
 	}
+	
+	// Return a CCIR476 character
+	public int retCCIR476Val (int c)	{
+		int a;
+		for (a=0;a<CCIR476VALS.length;a++)	{
+			if (c==CCIR476VALS[a]) return a;
+		}
+		return 0;
+	}
+	
+	// Check if a number if a valid CCIR476 character
+	public boolean checkCCIR476Char (int c)	{
+		int a;
+		for (a=0;a<CCIR476VALS.length;a++)	{
+			if (c==CCIR476VALS[a]) return true;
+		}
+		return false;
+	}	
+	
 	
 }
