@@ -19,10 +19,6 @@ public class FSK2001000 extends FSK {
 	private final int MAXCHARLENGTH=80;
 	private double adjBuffer[]=new double[5];
 	private int adjCounter=0;
-	private int buffer7;
-	private int buffer16;
-	private int buffer28;
-	private int startCount;
 	
 	public FSK2001000 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -41,8 +37,7 @@ public class FSK2001000 extends FSK {
 		this.state=state;
 		if (state==1) theApp.setStatusLabel("Sync Hunt");
 		else if (state==2) theApp.setStatusLabel("Msg Hunt");
-		else if (state==3) theApp.setStatusLabel("Decoding");
-		else if (state==4) theApp.setStatusLabel("Debug Only");
+		else if (state==3) theApp.setStatusLabel("Debug Only");
 	}
 
 	public int getState() {
@@ -77,7 +72,6 @@ public class FSK2001000 extends FSK {
 			characterCount=0;
 			lettersMode=true;
 			lineBuffer.delete(0,lineBuffer.length());
-			buffer16=0xaaaa;
 			return null;
 		}
 		
@@ -85,92 +79,25 @@ public class FSK2001000 extends FSK {
 		else if (state==1)	{
 			if (sampleCount>0) outLines[0]=syncSequenceHunt(circBuf,waveData);
 			if (outLines[0]!=null)	{
-				if (theApp.isDebug()==true) setState(4);
+				if (theApp.isDebug()==true) setState(3);
 				else setState(2);
 				energyBuffer.setBufferCounter(0);
 			}
 		}
 		
-		// Message Hunt
+		// Main message decode section
 		else if (state==2)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
 				symbolCounter=0;
 				boolean ibit=fsk2001000FreqHalf(circBuf,waveData,0);
-				//if (ibit==true) lineBuffer.append("1");
-				//else lineBuffer.append("0");
-				// Check for a long run of zeros and if there is re-sync
-				addToBuffer16(ibit);
-				if ((buffer16&0xffff)==0)	{
-					buffer16=0xaaaa;
-					setState(1);
-				}
-				// Add this to the 28 bit buffer
-				addToBuffer28(ibit);
-				// Test if this contains 3 valid or inverted ITA3 characters 
-				int ita=testBuffer28();
-				if (ita>0)	{
-					startCount=0;
-					characterCount=0;
-					totalCharacterCount=0;
-					setState(3);
-					// Non inverted
-					if (ita==1)	{
-						int a;
-						int chars[]=extract7BitCharsFromBuffer28();
-						for (a=0;a<4;a++) 	{
-							int c=retITA3Val(chars[a]);
-							if (a==0) outLines[0]=ITA3LETS[c];
-							else outLines[0]=outLines[0]+ITA3LETS[c];
-						}
-						
-					}
-					// Inverted
-					else if (ita==2)	{
-						// Change the programs invert setting
-						if (theApp.isInvertSignal()==false) theApp.setInvertSignal(true);
-						else theApp.setInvertSignal(false);
-						int a;
-						int chars[]=extract7BitCharsFromInvertedBuffer28();
-						for (a=0;a<4;a++) 	{
-							int c=retITA3Val(chars[a]);
-							if (a==0) outLines[0]=ITA3NUMS[c];
-							else outLines[0]=outLines[0]+ITA3NUMS[c];
-						}
-					}
-				}
-			}
+				
 		}
 		
-		else if (state==3)	{
-			// Only do this at the start of each symbol
-			if (symbolCounter>=samplesPerSymbol)	{
-				symbolCounter=0;
-				boolean ibit=fsk2001000FreqHalf(circBuf,waveData,0);
-				addToBuffer7(ibit);
-				startCount++;
-				// Every 7 bits we should have an ITA-3 character
-				if (startCount%7==0)	{
-					if (checkITA3Char(buffer7)==true)	{
-						int c=retITA3Val(buffer7);
-						lineBuffer.append(ITA3LETS[c]);
-						startCount=0;
-						characterCount++;
-						totalCharacterCount++;
-						
-						// Display MAXCHARLENGTH characters on a line
-						if (characterCount==MAXCHARLENGTH)	{
-							outLines[0]=lineBuffer.toString();
-							lineBuffer.delete(0,lineBuffer.length());
-							characterCount=0;
-						}
-						
-					}
-				} 
-			}
+		
 		}	
 		// Debug only
-		else if (state==4)	{
+		else if (state==3)	{
 			if (symbolCounter>=samplesPerSymbol)	{
 				symbolCounter=0;
 				boolean ibit=fsk2001000FreqHalf(circBuf,waveData,0);
@@ -296,86 +223,6 @@ public class FSK2001000 extends FSK {
 		double r=Math.abs(av)/10;
 		if (av<0) r=0-r;
 		return (int)r;
-	}
-	
-	// Have a 16 bit buffer to detect certain sequences
-	private void addToBuffer16(boolean bit)	{
-		buffer16=buffer16<<1;
-		buffer16=buffer16&0xffff;
-		if (bit==true) buffer16++;
-	}
-	
-	private void addToBuffer28(boolean bit)	{
-		buffer28=buffer28<<1;
-		buffer28=buffer28&0x7FFFFFF;
-		if (bit==true) buffer28++;
-	}
-	
-	private int[] extract7BitCharsFromBuffer28()	{
-		int c;
-		int out[]=new int[4];
-		// 1
-		c=buffer28&0xFE00000;
-		out[0]=c>>21;
-		// 2
-		c=buffer28&0x1FC000;
-		out[1]=c>>14;
-		// 3
-		c=buffer28&0x3F80;
-		out[2]=c>>7;
-		// 4
-		out[3]=buffer28&0x7F;
-		return out;
-	}
-	
-	private int countOnes (int in)	{
-		int a,count=0;
-		final int bits[]={64,32,16,8,4,2,1};
-		for (a=0;a<bits.length;a++)	{
-			if ((in&bits[a])>0) count++;
-		}
-		return count;
-	}
-	
-	private int invertITA3 (int in)	{
-		int a,out=0;
-		final int bits[]={64,32,16,8,4,2,1};
-		for (a=0;a<bits.length;a++)	{
-			if ((in&bits[a])==0) out=out+bits[a];
-		}
-		return out;	
-	}
-	
-	private int testBuffer28()	{
-		int a;
-		int count[]=new int[4];
-		int chars[]=extract7BitCharsFromBuffer28();
-		for (a=0;a<4;a++)	{
-			count[a]=countOnes(chars[a]);
-		}
-		// Normal
-		if ((count[0]==3)&&(count[1]==3)&&(count[2]==3)&&(count[3]==3)) return 1;
-		// Inverted
-		else if ((count[0]==4)&&(count[1]==4)&&(count[2]==4)&&(count[3]==4)) return 2;
-		// Nothing
-		else return 0;
-	}
-	
-	private int[] extract7BitCharsFromInvertedBuffer28 ()	{
-		int a;
-		int out[]=new int[4];
-		int inv[]=extract7BitCharsFromBuffer28();
-		for (a=0;a<4;a++)	{
-			out[a]=invertITA3(inv[a]);
-		}
-		return out;
-	}
-	
-	// Add a bit to the 7 bit buffer
-	private void addToBuffer7(boolean bit)	{
-		buffer7<<=1;
-		buffer7=buffer7&0x7F;
-		if (bit==true) buffer7++;
 	}
 	
 	// Return a quality indicator
