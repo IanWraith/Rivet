@@ -13,16 +13,20 @@ public class FSK2001000 extends FSK {
 	private StringBuffer lineBuffer=new StringBuffer();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int characterCount=0;
-	private int totalCharacterCount=0;
 	private int highBin;
 	private int lowBin;
 	private final int MAXCHARLENGTH=80;
 	private double adjBuffer[]=new double[5];
 	private int adjCounter=0;
+	private CircularBitSet circularBitSet=new CircularBitSet();
+	private int bitCount=0;
+	private int blockCount=0;
+	private int missingBlockCount=0;
 	
 	public FSK2001000 (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
+		circularBitSet.setTotalLength(288);
 	}
 	
 	public void setBaudRate(int baudRate) {
@@ -91,6 +95,16 @@ public class FSK2001000 extends FSK {
 			if (symbolCounter>=samplesPerSymbol)	{
 				symbolCounter=0;
 				boolean ibit=fsk2001000FreqHalf(circBuf,waveData,0);
+				circularBitSet.add(ibit);
+				bitCount++;
+				// Look for a block start
+				if (circularBitSet.extractSection(0,32).equals("10000010111011010100111100011001"))	{
+					// Count the number of missing blocks
+					if (bitCount>288) missingBlockCount=missingBlockCount+(bitCount/288);
+					outLines[0]="Block Start ("+Integer.toString(bitCount)+")";
+					bitCount=0;
+					blockCount++;
+				}
 				
 		}
 		
@@ -227,7 +241,7 @@ public class FSK2001000 extends FSK {
 	
 	// Return a quality indicator
 	public String getQuailty()	{
-		String line="There were "+Integer.toString(totalCharacterCount)+" characters in this message.";
+		String line="There were "+Integer.toString(blockCount)+" blocks in this message with " +Integer.toString(missingBlockCount)+" missing.";
 		return line;
 		}
 	
