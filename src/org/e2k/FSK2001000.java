@@ -101,7 +101,9 @@ public class FSK2001000 extends FSK {
 				if (circularBitSet.extractSection(0,32).equals("10000010111011010100111100011001"))	{
 					// Count the number of missing blocks
 					if (bitCount>288) missingBlockCount=missingBlockCount+(bitCount/288);
-					outLines[0]="Block Start ("+Integer.toString(bitCount)+")";
+					// Display the block
+					outLines[0]="Block Start ("+Integer.toString(bitCount)+" bits since last block)";
+					outLines[1]=circularBitSet.extractBitSetasHex();
 					bitCount=0;
 					blockCount++;
 				}
