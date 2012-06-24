@@ -22,6 +22,7 @@ public class FSK2001000 extends FSK {
 	private int bitCount=0;
 	private int blockCount=0;
 	private int missingBlockCount=0;
+	private int bitsSinceLastBlockHeader=0;
 	
 	public FSK2001000 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -86,6 +87,7 @@ public class FSK2001000 extends FSK {
 				if (theApp.isDebug()==true) setState(3);
 				else setState(2);
 				energyBuffer.setBufferCounter(0);
+				bitsSinceLastBlockHeader=0;
 			}
 		}
 		
@@ -97,6 +99,7 @@ public class FSK2001000 extends FSK {
 				boolean ibit=fsk2001000FreqHalf(circBuf,waveData,0);
 				circularBitSet.add(ibit);
 				bitCount++;
+				bitsSinceLastBlockHeader++;
 				// Look for a block start
 				if (circularBitSet.extractSection(0,32).equals("10000010111011010100111100011001"))	{
 					// Count the number of missing blocks
@@ -105,9 +108,11 @@ public class FSK2001000 extends FSK {
 					outLines[0]="Block Start ("+Integer.toString(bitCount)+" bits since last block)";
 					outLines[1]=circularBitSet.extractBitSetasHex();
 					bitCount=0;
+					bitsSinceLastBlockHeader=0;
 					blockCount++;
 				}
-				
+				// If there have been more than 2880 bits with a header (i.e 10 blocks) we have a serious problem
+				if (bitsSinceLastBlockHeader>2880) setState(1);
 		}
 		
 		
