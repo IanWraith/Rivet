@@ -31,7 +31,7 @@ public class FSK2001000 extends FSK {
 	}
 	
 	public void setBaudRate(int baudRate) {
-		this.baudRate = baudRate;
+		this.baudRate=baudRate;
 	}
 
 	public int getBaudRate() {
@@ -100,8 +100,10 @@ public class FSK2001000 extends FSK {
 				circularBitSet.add(ibit);
 				bitCount++;
 				bitsSinceLastBlockHeader++;
-				// Look for a block start
-				if (circularBitSet.extractSection(0,32).equals("10000010111011010100111100011001"))	{
+				// Compare the first 32 bits of the circular buffer to the known FSK200/1000 header
+				int difSync=compareSync(circularBitSet.extractSection(0,32));
+				// If there are no or just 1 differences this is a valid block
+				if (difSync<2)	{
 					// Count the number of missing blocks
 					if (bitCount>288) missingBlockCount=missingBlockCount+(bitCount/288);
 					// Display the block
@@ -251,5 +253,17 @@ public class FSK2001000 extends FSK {
 		String line="There were "+Integer.toString(blockCount)+" blocks in this message with " +Integer.toString(missingBlockCount)+" missing.";
 		return line;
 		}
+	
+	// Compare a String with the known FSK200/1000 block header
+	private int compareSync (String comp)	{
+		final String SYNC="10000010111011010100111100011001";
+		// If the input String isn't the same length as the SYNC String then we have a serious problem !
+		if (comp.length()!=SYNC.length()) return 32;
+		int a,dif=0;
+		for (a=0;a<comp.length();a++)	{
+			if (comp.charAt(a)!=SYNC.charAt(a)) dif++;
+		}
+		return dif;
+	}
 	
 }
