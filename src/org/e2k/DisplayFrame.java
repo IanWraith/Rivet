@@ -160,7 +160,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		}
 		// Help
 		if (event_name=="Help") {
-			BareBonesBrowserLaunch.openURL("https://github.com/IanWraith/Rivet/wiki");
+			BareBonesBrowserLaunch.openURL("https://github.com/IanWraith/Rivet/wiki/Introduction");
 		}
 		// Sound Samples
 		if (event_name=="Sound Sample Files")	{
