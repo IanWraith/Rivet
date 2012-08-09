@@ -198,6 +198,7 @@ public class FSK2001000 extends FSK {
 	// is to do two FFTs of the first and last halves of the symbol
 	// that allows us to use the data for the early/late gate and to detect a half bit (which is used as a stop bit)
 	private boolean fsk2001000FreqHalf (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
+		boolean out;
 		int sp=(int)samplesPerSymbol/2;
 		// First half
 		double early[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
@@ -212,15 +213,20 @@ public class FSK2001000 extends FSK {
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
 		if (theApp.isInvertSignal()==false)	{
-			if (lowTotal>highTotal) return true;
-			else return false;
+			if (lowTotal>highTotal) out=true;
+			else out=false;
 		}
 		else	{
 			// If inverted is set invert the bit returned
-			if (lowTotal>highTotal) return false;
-			else return true;
+			if (lowTotal>highTotal) out=false;
+			else out=true;
 		}
-		
+		// Is the bit stream being recorded ?
+		if (theApp.isBitStreamOut()==true)	{
+			if (out==true) theApp.bitStreamWrite("1");
+			else theApp.bitStreamWrite("0");
+		}
+		return out;
 	}
 	
 	// Add a comparator output to a circular buffer of values

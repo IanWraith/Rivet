@@ -27,7 +27,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public static final long serialVersionUID=1;
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
-	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item;
+	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item,bitstream_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item;
 	private JMenuItem FSK2001000_item;
 	private JMenuItem CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
@@ -52,6 +52,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		save_settings_item.addActionListener(this);
 		mainMenu.add(save_to_file=new JRadioButtonMenuItem("Save to File",theApp.getLogging()));
 		save_to_file.addActionListener(this);
+		mainMenu.add(bitstream_item=new JRadioButtonMenuItem("Save Bit Stream to File",theApp.isBitStreamOut()));
+		bitstream_item.addActionListener(this);		
 		mainMenu.add(soundcard_item=new JRadioButtonMenuItem("Soundcard Input",theApp.isSoundCardInput()));
 		soundcard_item.addActionListener(this);
 		mainMenu.add(exit_item=new JMenuItem("Exit"));		
@@ -198,6 +200,21 @@ public class DisplayFrame extends JFrame implements ActionListener {
 				 closeLogFile();
 			 }
 		}	
+		
+		// Bit Stream Out
+		if (event_name=="Save Bit Stream to File")	{
+			if (theApp.isBitStreamOut()==false)	{
+				if (saveBitStreamDialogBox()==false)	{
+					menuItemUpdate();
+					return;
+				}
+				theApp.setBitStreamOut(true);				
+			}
+			else	{
+				closeBitStreamFile();
+			}
+		}
+		
 		// Soundcard Input
 		if (event_name=="Soundcard Input")	{
 			if (theApp.isSoundCardInput()==true) theApp.setSoundCardInput(false);
@@ -247,6 +264,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		debug_item.setSelected(theApp.isDebug());
 		soundcard_item.setSelected(theApp.isSoundCardInput());
 		invert_item.setSelected(theApp.isInvertSignal());
+		bitstream_item.setSelected(theApp.isBitStreamOut());
 	}
 	
 	// Display a dialog box so the user can select a WAV file they wish to process
@@ -298,7 +316,20 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			 theApp.file.close();
 		 }
 		 catch (Exception e)	{
-			 JOptionPane.showMessageDialog(null,"Error closing Log file","DMRDecode", JOptionPane.INFORMATION_MESSAGE);
+			 JOptionPane.showMessageDialog(null,"Error closing Log file","Rivet", JOptionPane.INFORMATION_MESSAGE);
+		 }
+	}
+	
+	// Close the Bit Stream file
+	public void closeBitStreamFile()	{
+		 theApp.setBitStreamOut(false);
+		 try 	{
+			 // Close the file
+			 theApp.bitStreamFile.flush();
+			 theApp.bitStreamFile.close();
+		 }
+		 catch (Exception e)	{
+			 JOptionPane.showMessageDialog(null,"Error closing the Bit Stream file","Rivet", JOptionPane.INFORMATION_MESSAGE);
 		 }
 	}
 	
@@ -359,6 +390,52 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, null);
 	}
 	
+	// Display a dialog box so the user can select a location and name for a bit stream file
+	public boolean saveBitStreamDialogBox ()	{
+		if (theApp.isBitStreamOut()==true) return false;
+		String file_name;
+		// Bring up a dialog box that allows the user to select the name
+		// of the saved file
+		JFileChooser fc=new JFileChooser();
+		// The dialog box title //
+		fc.setDialogTitle("Select the bit stream output file name");
+		// Start in current directory
+		fc.setCurrentDirectory(new File("."));
+		// Don't all types of file to be selected //
+		fc.setAcceptAllFileFilterUsed(false);
+		// Only show .txt files //
+		fc.setFileFilter(new BitStreamFileFilter());
+		// Show save dialog this method does not return until the dialog is closed
+		int returnval=fc.showSaveDialog(this);
+		// If the user has selected cancel then quit
+		if (returnval==JFileChooser.CANCEL_OPTION) return false;
+		// Get the file name an path of the selected file
+		file_name=fc.getSelectedFile().getPath();
+		// Does the file name end in .bsf ? //
+		// If not then automatically add a .bsf ending //
+		int last_index=file_name.lastIndexOf(".bsf");
+		if (last_index!=(file_name.length()-4)) file_name=file_name + ".bsf";
+		// Create a file with this name //
+		File tfile=new File(file_name);
+		// If the file exists ask the user if they want to overwrite it
+		if (tfile.exists()) {
+			int response = JOptionPane.showConfirmDialog(null,
+					"Overwrite existing file?", "Confirm Overwrite",
+					JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.QUESTION_MESSAGE);
+			if (response == JOptionPane.CANCEL_OPTION) return false;
+		}
+		// Open the file
+		try {
+			theApp.bitStreamFile=new FileWriter(tfile);
+			
+		} catch (Exception e) {
+			System.out.println("\nError opening the bit stream file");
+			return false;
+		}
+		theApp.setBitStreamOut(true);
+		return true;
+	}
 	
 
 }

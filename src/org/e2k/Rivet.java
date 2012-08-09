@@ -44,7 +44,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 32) by Ian Wraith";
+	public String program_version="Rivet (Build 33) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -66,12 +66,14 @@ public class Rivet {
 	private WaveData waveData=new WaveData();
 	private boolean logging=false;
 	public FileWriter file;
+	public FileWriter bitStreamFile;
 	private boolean debug=false;
 	private boolean soundCardInput=false;
 	private boolean wavFileLoadOngoing=false;
 	private boolean invertSignal=false;
 	private int soundCardInputLevel=0;
 	private boolean soundCardInputTemp;
+	private boolean bitStreamOut=false;
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000"};
     
@@ -378,6 +380,19 @@ public class Rivet {
 		return true;
 	}
 	
+	// Write a string to the bit stream file
+	public boolean bitStreamWrite(String fline) {
+		try {
+			file.write(fline);
+		} catch (Exception e) {
+			// We have a problem
+			bitStreamOut=false;
+			JOptionPane.showMessageDialog(null,"Error writing to the bit stream file.\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		return true;
+	}	
+	
 	// Adds a line to the display
 	public void addLine(String line,Color col,Font font) {
 		if (logging==true) fileWrite(line);
@@ -661,6 +676,14 @@ public class Rivet {
 	
 	public boolean issoundCardInputTemp()	{
 		return soundCardInputTemp;
+	}
+
+	public boolean isBitStreamOut() {
+		return bitStreamOut;
+	}
+
+	public void setBitStreamOut(boolean bitStreamOut) {
+		this.bitStreamOut = bitStreamOut;
 	}
 	
 }
