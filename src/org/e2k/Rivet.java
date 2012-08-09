@@ -383,7 +383,7 @@ public class Rivet {
 	// Write a string to the bit stream file
 	public boolean bitStreamWrite(String fline) {
 		try {
-			file.write(fline);
+			bitStreamFile.write(fline);
 		} catch (Exception e) {
 			// We have a problem
 			bitStreamOut=false;
