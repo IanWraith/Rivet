@@ -65,6 +65,12 @@ public class CROWD36 extends MFSK {
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return null;
 			}
+			// Check this is a 16 bit WAV file
+			if (waveData.getSampleSizeInBits()!=16)	{
+				state=-1;
+				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
+				return null;
+			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
 			figureShift=false;
