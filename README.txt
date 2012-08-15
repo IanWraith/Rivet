@@ -56,6 +56,7 @@ Build 30 adds proportional early/late gate control to the FSK modes.
 Build 31 Improved input level control which can attenuate,improved CIS36-50 decoding,FSK200/500 status bar updating,
 		 improved FSK200/1000 binary decoding
 Build 32 adds basic FSK200/1000 frame decoding
+Build 33 fixes an ITA3 character set bug , checks for 8 bit WAV files and enables bitstream outputs to be saved
 
 Reported Bugs
 -------------
@@ -65,4 +66,4 @@ Still problems with CROWD36 decoding. Not a bug as such but more a lack of under
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (29th June 2012) 
+Ian Wraith (15th August 2012) 
