@@ -168,6 +168,26 @@ public class FSK {
 		return vals;
 		}
 	
+	// Does a 80 point FFT on 40 samples (a half symbol) then returns the values of two specific bins
+	public double[] doGWHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
+		double vals[]=new double[2];
+		// Get the data from the circular buffer
+		double samData[]=circBuf.extractDataDouble(start,40);
+		double datar[]=new double[FFT_80_SIZE];
+		// Run the data through a Blackman window
+		int a;
+		for (a=0;a<datar.length;a++)	{
+			if ((a>=20)&&(a<60)) datar[a]=samData[a-20];
+			else datar[a]=0.0;
+			datar[a]=windowBlackman(datar[a],a,datar.length);
+			}
+		fft80.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		vals[0]=spec[bin0];
+		vals[1]=spec[bin1];
+		return vals;
+		}
+	
 	public int do80FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
 		double datar[]=circBuf.extractDataDouble(start,FFT_80_SIZE);

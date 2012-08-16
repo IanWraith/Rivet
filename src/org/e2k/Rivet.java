@@ -44,7 +44,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 33) by Ian Wraith";
+	public String program_version="Rivet (Build 34) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -59,6 +59,7 @@ public class Rivet {
     public FSK2001000 fsk2001000Handler=new FSK2001000(this,200);
     public CIS3650 cis3650Handler=new CIS3650(this);
     public CCIR493 ccir493Handler=new CCIR493(this);
+    public GW gwHandler=new GW(this);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -75,7 +76,7 @@ public class Rivet {
 	private boolean soundCardInputTemp;
 	private boolean bitStreamOut=false;
 	
-	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000"};
+	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000","GW FSK"};
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
@@ -194,6 +195,11 @@ public class Rivet {
 		else return false;
 		}	
 	
+	public boolean isGW()	{
+		if (system==9) return true;
+		else return false;
+	}
+	
 	// Tell the input thread to start to load a .WAV file
 	public void loadWAVfile(String fileName)	{
 		String disp;
@@ -218,7 +224,9 @@ public class Rivet {
 		// CCIR493-4
 		else if (system==7) ccir493Handler.setState(0);
 		// FSK200/1000
-		else if (system==8) fsk2001000Handler.setState(0);		
+		else if (system==8) fsk2001000Handler.setState(0);	
+		// GW
+		else if (system==9) gwHandler.setState(0);
 		// Ensure the program knows we have a WAV file load ongoing
 		wavFileLoadOngoing=true;
 	}
@@ -306,6 +314,8 @@ public class Rivet {
 			else if (system==7)	outLines=ccir493Handler.decode(circBuffer,waveData);
 			// FSK200/1000
 			else if (system==8)	outLines=fsk2001000Handler.decode(circBuffer,waveData);
+			// GW
+			else if (system==9) outLines=gwHandler.decode(circBuffer,waveData);
 			// Return if nothing at all has been returned
 			if (outLines==null) return;
 			// Display the decode objects output
@@ -485,6 +495,20 @@ public class Rivet {
 				waveData=waveSetting;
 				this.soundCardInput=true;	
 			}	
+			// GW
+			else if (system==9)	{
+				WaveData waveSetting=new WaveData();
+				waveSetting.setChannels(1);
+				waveSetting.setEndian(true);
+				waveSetting.setSampleSizeInBits(16);
+				waveSetting.setFromFile(false);
+				waveSetting.setSampleRate(8000.0);
+				waveSetting.setBytesPerFrame(2);
+				inputThread.setupAudio(waveSetting); 
+				waveData=waveSetting;
+				this.soundCardInput=true;	
+			}				
+			
 			
 		}
 	}
@@ -509,6 +533,8 @@ public class Rivet {
 		else if (system==7)	ccir493Handler.setState(0);
 		// FSK200/1000
 		else if (system==8)	fsk2001000Handler.setState(0);
+		// GW
+		else if (system==9) gwHandler.setState(0);
 	}
 	
 	// Gets all the text on the screen and returns it as a string
