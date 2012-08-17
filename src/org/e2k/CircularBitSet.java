@@ -68,7 +68,7 @@ public class CircularBitSet extends BitSet {
 			else bset.clear(bcount);
 			bcount++;
 			if (bcount==8)	{
-				out[ocount]=binaryToInt(bset);
+				out[ocount]=binaryToInt8(bset);
 				ocount++;
 				bset.clear();
 				bcount=0;
@@ -80,7 +80,7 @@ public class CircularBitSet extends BitSet {
 	}
 	
 	// Converts an 8 bit BitSet into an int
-	private int binaryToInt (BitSet bin)	{
+	private int binaryToInt8 (BitSet bin)	{
 		int total=0;
 		if (bin.get(0)==true) total=total+128;
 		if (bin.get(1)==true) total=total+64;
@@ -93,5 +93,5 @@ public class CircularBitSet extends BitSet {
 		return total;
 	}
 	
-	
+
 }

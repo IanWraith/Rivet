@@ -18,10 +18,12 @@ public class GW extends FSK {
 	private double adjBuffer[]=new double[5];
 	private int adjCounter=0;
 	private CircularBitSet syncBitSet=new CircularBitSet();
+	private int characterCount=0;
+	private int bitCount;
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
-		syncBitSet.setTotalLength(24);
+		syncBitSet.setTotalLength(50);
 	}
 	
 	// The main decode routine
@@ -60,6 +62,7 @@ public class GW extends FSK {
 				if (syncSequenceHunt(circBuf,waveData)==true)	{
 					setState(2);
 					syncState=0;
+					bitCount=0;
 				}
 			}
 		}
@@ -68,18 +71,47 @@ public class GW extends FSK {
 			if (symbolCounter>=samplesPerSymbol100)	{
 				symbolCounter=0;
 				boolean ibit=gwFreqHalf(circBuf,waveData,0);
+				bitCount++;
+				
+				if (theApp.isDebug()==true)	{
+					if (ibit==true) lineBuffer.append("1");
+					else lineBuffer.append("0");
+					characterCount++;
+					// Have we reached the end of a line
+					if (characterCount==80)	{
+						characterCount=0;
+						outLines[0]=lineBuffer.toString();
+						lineBuffer.delete(0,lineBuffer.length());
+					}
+				}
 				
 				// Hunt for a sync
 				if (syncState==0)	{
-				
 					syncBitSet.add(ibit);
 					
+					if (bitCount==101)	{
+						outLines[0]=syncBitSet.extractSection(0,100);
+						state=1;
+					}
+					
+				}
+				else if (syncState==1)	{
+					if (ibit==true) lineBuffer.append("1");
+					else lineBuffer.append("0");
+					characterCount++;
+					// Have we reached the end of a line
+					if (characterCount==50)	{
+						characterCount=0;
+						outLines[0]=lineBuffer.toString();
+						lineBuffer.delete(0,lineBuffer.length());
+					}
 				}
 				
 				
 			}
 			
 		}
+	
 		
 		
 		sampleCount++;
@@ -163,7 +195,7 @@ public class GW extends FSK {
 		return (int)r;
 	}
 	
-	// Hunt for an alternating sequence with a 200 Hz difference
+	// Hunt for a four bit alternating sequence with a 200 Hz difference
 	private boolean syncSequenceHunt(CircularDataBuffer circBuf,WaveData waveData)	{
 		int pos=0,b0,b1;
 		int f0=getSymbolFreq(circBuf,waveData,pos);
@@ -172,15 +204,19 @@ public class GW extends FSK {
 		if (getPercentageOfTotal()<10.0) return false;
 		pos=(int)samplesPerSymbol100*1;
 		int f1=getSymbolFreq(circBuf,waveData,pos);
+		int f2=getSymbolFreq(circBuf,waveData,(pos+pos));
+		int f3=getSymbolFreq(circBuf,waveData,(pos+pos+pos));
 		b1=getFreqBin();
 		if (f0==f1) return false;
+		if (f1!=f3) return false;
+		if (f0!=f2) return false;
 		if (f0>f1)	{
 			highTone=f0;
 			highBin=b0;
 			lowTone=f1;
 			lowBin=b1;
 			}
-			else	{
+		else	{
 			highTone=f1;
 			highBin=b1;
 			lowTone=f0;
@@ -190,9 +226,9 @@ public class GW extends FSK {
 		if ((lowBin==0)||(highBin==0)) return false; 
 		// The shift for GW FSK should be should be 200 Hz
 		int shift=highTone-lowTone;
-		if ((shift>210)||(shift<190)) return false;
+		if ((shift>250)||(shift<150)) return false;
 		else return true;
 	}	
 	
-	
+
 }
