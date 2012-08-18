@@ -18,12 +18,14 @@ public class GW extends FSK {
 	private double adjBuffer[]=new double[5];
 	private int adjCounter=0;
 	private CircularBitSet syncBitSet=new CircularBitSet();
+	private CircularBitSet dataBitSet=new CircularBitSet();
 	private int characterCount=0;
 	private int bitCount;
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
-		syncBitSet.setTotalLength(50);
+		syncBitSet.setTotalLength(10);
+		dataBitSet.setTotalLength(40);
 	}
 	
 	// The main decode routine
@@ -63,6 +65,7 @@ public class GW extends FSK {
 					setState(2);
 					syncState=0;
 					bitCount=0;
+					syncBitSet.clear();
 				}
 			}
 		}
@@ -89,21 +92,25 @@ public class GW extends FSK {
 				if (syncState==0)	{
 					syncBitSet.add(ibit);
 					
-					if (bitCount==101)	{
-						outLines[0]=syncBitSet.extractSection(0,100);
-						state=1;
+					// Note : The sync may be the 16 bit 1110100110101101
+					// rather than the 10 bit 0110101101 
+					if (bitCount>=10)	{
+						String tSync=syncBitSet.extractSection(0,10);
+						if (tSync.equals("0110101101")) {
+							syncState=1;
+							bitCount=0;
+						}
+						else if (bitCount>32) setState(1);
 					}
 					
 				}
 				else if (syncState==1)	{
-					if (ibit==true) lineBuffer.append("1");
-					else lineBuffer.append("0");
-					characterCount++;
-					// Have we reached the end of a line
-					if (characterCount==50)	{
-						characterCount=0;
-						outLines[0]=lineBuffer.toString();
-						lineBuffer.delete(0,lineBuffer.length());
+					dataBitSet.add(ibit);
+					if (bitCount==40)	{
+						
+						outLines[0]=theApp.getTimeStamp()+" Sync 0x1ad "+dataBitSet.extractSection(0,40);
+						syncState=0;
+						bitCount=0;
 					}
 				}
 				
