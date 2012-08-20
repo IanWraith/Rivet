@@ -24,7 +24,7 @@ public class GW extends FSK {
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
-		syncBitSet.setTotalLength(24);
+		syncBitSet.setTotalLength(192);
 		dataBitSet.setTotalLength(150);
 	}
 	
@@ -94,13 +94,19 @@ public class GW extends FSK {
 					
 					// Note : The sync may be the 16 bit 1110100110101101
 					// rather than the 10 bit 0110101101 
-					if (bitCount>=24)	{
-						String tSync=syncBitSet.extractSection(0,24);
+					if (bitCount>=syncBitSet.getTotalLength())	{
+						String tSync=syncBitSet.extractSection((syncBitSet.getTotalLength()-8),syncBitSet.getTotalLength());
 						
 						
 						
-						if (tSync.equals("110111101101111011011110")) {
-							syncState=1;
+						if (tSync.equals("11111111")) {
+							
+							
+							//outLines[0]=syncBitSet.extractSection(0,syncBitSet.getTotalLength());
+							outLines[0]=theApp.getTimeStamp()+" "+syncBitSet.extractBitSetasHex();
+							
+							
+							//syncState=1;
 							bitCount=0;
 						}
 						else if (bitCount>320) setState(1);
