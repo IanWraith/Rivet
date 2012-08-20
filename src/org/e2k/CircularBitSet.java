@@ -25,7 +25,9 @@ public class CircularBitSet extends BitSet {
 	// Extract a section of the circular BitSet as binary encoded as a String
 	public String extractSection (int start,int end)	{
 		StringBuffer out=new StringBuffer();
-		int a,tc=counter;
+		int a;
+		int tc=counter+start;
+		if (tc>=totalLength) tc=tc-totalLength;
 		for (a=start;a<end;a++)	{
 			if (this.get(tc)==true) out.append("1");
 			else out.append("0");
