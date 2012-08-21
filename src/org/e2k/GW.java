@@ -15,17 +15,18 @@ public class GW extends FSK {
 	private int lowTone;
 	private int highBin;
 	private int lowBin;
-	private double adjBuffer[]=new double[5];
+	private double adjBuffer[]=new double[8];
 	private int adjCounter=0;
 	private CircularBitSet syncBitSet=new CircularBitSet();
 	private CircularBitSet dataBitSet=new CircularBitSet();
 	private int characterCount=0;
 	private int bitCount;
+	private int lineCount=0;
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
-		syncBitSet.setTotalLength(192);
-		dataBitSet.setTotalLength(150);
+		syncBitSet.setTotalLength(152);
+		dataBitSet.setTotalLength(230);
 	}
 	
 	// The main decode routine
@@ -94,17 +95,21 @@ public class GW extends FSK {
 					
 					// Note : The sync may be the 16 bit 1110100110101101
 					// rather than the 10 bit 0110101101 
+					
+					// A frame may consist of 230 or 231 bits !!!!!!!!!!!!!
+					
 					if (bitCount>=syncBitSet.getTotalLength())	{
-						String tSync=syncBitSet.extractSection((syncBitSet.getTotalLength()-8),syncBitSet.getTotalLength());
+						String tSync=syncBitSet.extractSection(8,16);
+						String eSync=syncBitSet.extractSection((152-8),152);
 						
 						
-						
-						if (tSync.equals("11111111")) {
+						if ((tSync.equals("00100000"))&&(eSync.equals("11111111"))) {
 							
 							
 							//outLines[0]=syncBitSet.extractSection(0,syncBitSet.getTotalLength());
-							outLines[0]=theApp.getTimeStamp()+" "+syncBitSet.extractBitSetasHex();
+							outLines[0]=theApp.getTimeStamp()+" "+Integer.toString(lineCount)+" "+syncBitSet.extractBitSetasHex()+" ("+Integer.toString(bitCount)+")";
 							
+							lineCount++;
 							
 							//syncState=1;
 							bitCount=0;
@@ -208,7 +213,7 @@ public class GW extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		double r=Math.abs(av)/10;
+		double r=Math.abs(av)/20;
 		if (av<0) r=0-r;
 		return (int)r;
 	}
