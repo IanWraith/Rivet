@@ -25,7 +25,7 @@ public class GW extends FSK {
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
-		syncBitSet.setTotalLength(152);
+		syncBitSet.setTotalLength(230);
 		dataBitSet.setTotalLength(230);
 	}
 	
@@ -99,20 +99,28 @@ public class GW extends FSK {
 					// A frame may consist of 230 or 231 bits !!!!!!!!!!!!!
 					
 					if (bitCount>=syncBitSet.getTotalLength())	{
-						String tSync=syncBitSet.extractSection(8,16);
-						String eSync=syncBitSet.extractSection((152-8),152);
+						String tSync=syncBitSet.extractSection((230-16),(230-8));
+						String eSync=syncBitSet.extractSection((230-8),230);
 						
 						
-						if ((tSync.equals("00100000"))&&(eSync.equals("11111111"))) {
+						if ((tSync.equals("11011110"))&&(eSync.equals("11111111"))) {
 							
 							
 							//outLines[0]=syncBitSet.extractSection(0,syncBitSet.getTotalLength());
-							outLines[0]=theApp.getTimeStamp()+" "+Integer.toString(lineCount)+" "+syncBitSet.extractBitSetasHex()+" ("+Integer.toString(bitCount)+")";
 							
-							lineCount++;
+							outLines[0]=theApp.getTimeStamp()+" "+Integer.toString(lineCount)+" "+syncBitSet.extractBitSetasHex()+" ("+Integer.toString(bitCount)+")";
+							outLines[1]=syncBitSet.extractSection(0,230);
+							
+							if (bitCount!=231)	{
+								outLines[0]=null;
+								outLines[1]=null;
+							}
+							else lineCount++;
+							
 							
 							//syncState=1;
 							bitCount=0;
+		
 						}
 						else if (bitCount>320) setState(1);
 					}
@@ -224,7 +232,7 @@ public class GW extends FSK {
 		int f0=getSymbolFreq(circBuf,waveData,pos);
 		b0=getFreqBin();
 		// Check this first tone isn't just noise the highest bin must make up 10% of the total
-		if (getPercentageOfTotal()<10.0) return false;
+		//if (getPercentageOfTotal()<10.0) return false;
 		pos=(int)samplesPerSymbol100*1;
 		int f1=getSymbolFreq(circBuf,waveData,pos);
 		int f2=getSymbolFreq(circBuf,waveData,(pos+pos));
