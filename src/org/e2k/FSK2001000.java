@@ -280,10 +280,15 @@ public class FSK2001000 extends FSK {
 	// Process a FSK200/1000 block
 	private String[] processBlock()	{
 		String linesOut[]=new String[2];
+		// Convert the block to an array of ints
+		int data[]=circularBitSet.returnInts();
+		// Elements 4 and 5 contain the line number
+		int lineNos=(data[4]<<3)+((data[5]&224)>>5);
+		
 		// Count the number of missing blocks
 		if (bitCount>288) missingBlockCount=missingBlockCount+(bitCount/288);
 		// Display the block
-		linesOut[0]="Block Start ("+Integer.toString(bitCount)+" bits since last block)";
+		linesOut[0]="Block Start ("+Integer.toString(bitCount)+" bits since last block) Line No "+Integer.toString(lineNos);
 		linesOut[1]=circularBitSet.extractBitSetasHex();
 		bitCount=0;
 		bitsSinceLastBlockHeader=0;
