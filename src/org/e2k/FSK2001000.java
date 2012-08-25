@@ -108,22 +108,11 @@ public class FSK2001000 extends FSK {
 				bitsSinceLastBlockHeader++;
 				// Compare the first 32 bits of the circular buffer to the known FSK200/1000 header
 				int difSync=compareSync(circularBitSet.extractSection(0,32));
-				// If there are no or just 1 differences this is a valid block
-				if (difSync<2)	{
-					// Count the number of missing blocks
-					if (bitCount>288) missingBlockCount=missingBlockCount+(bitCount/288);
-					// Display the block
-					outLines[0]="Block Start ("+Integer.toString(bitCount)+" bits since last block)";
-					outLines[1]=circularBitSet.extractBitSetasHex();
-					bitCount=0;
-					bitsSinceLastBlockHeader=0;
-					blockCount++;
-				}
+				// If there are no or just 1 differences this is a valid block so process it
+				if (difSync<2) outLines=processBlock();
 				// If there have been more than 2880 bits with a header (i.e 10 blocks) we have a serious problem
 				if (bitsSinceLastBlockHeader>2880) setState(1);
-		}
-		
-		
+			}		
 		}	
 		// Debug only
 		else if (state==3)	{
@@ -287,5 +276,20 @@ public class FSK2001000 extends FSK {
 		}
 		return dif;
 	}
+	
+	// Process a FSK200/1000 block
+	private String[] processBlock()	{
+		String linesOut[]=new String[2];
+		// Count the number of missing blocks
+		if (bitCount>288) missingBlockCount=missingBlockCount+(bitCount/288);
+		// Display the block
+		linesOut[0]="Block Start ("+Integer.toString(bitCount)+" bits since last block)";
+		linesOut[1]=circularBitSet.extractBitSetasHex();
+		bitCount=0;
+		bitsSinceLastBlockHeader=0;
+		blockCount++;
+		return linesOut;
+	}
+	
 	
 }
