@@ -219,13 +219,13 @@ public class FSK2001000 extends FSK {
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
 		if (theApp.isInvertSignal()==false)	{
-			if (lowTotal>highTotal) out=true;
-			else out=false;
+			if (lowTotal>highTotal) out=false;
+			else out=true;
 		}
 		else	{
 			// If inverted is set invert the bit returned
-			if (lowTotal>highTotal) out=false;
-			else out=true;
+			if (lowTotal>highTotal) out=true;
+			else out=false;
 		}
 		// Is the bit stream being recorded ?
 		if (theApp.isBitStreamOut()==true)	{
