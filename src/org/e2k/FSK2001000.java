@@ -268,12 +268,22 @@ public class FSK2001000 extends FSK {
 	
 	// Compare a String with the known FSK200/1000 block header
 	private int compareSync (String comp)	{
-		final String SYNC="10000010111011010100111100011001";
+		// Inverse sync 0x82ED4F19
+		final String INVSYNC="10000010111011010100111100011001";
+		// Sync 0x7D12B0E6
+		final String SYNC="01111101000100101011000011100110";
 		// If the input String isn't the same length as the SYNC String then we have a serious problem !
 		if (comp.length()!=SYNC.length()) return 32;
-		int a,dif=0;
+		int a,dif=0,invdif=0;
 		for (a=0;a<comp.length();a++)	{
 			if (comp.charAt(a)!=SYNC.charAt(a)) dif++;
+			if (comp.charAt(a)!=INVSYNC.charAt(a)) invdif++;
+		}
+		// If the inverted difference is less than 2 the user must have things the wrong way around
+		if (invdif<2)	{
+			if (theApp.isInvertSignal()==true) theApp.setInvertSignal(false);
+			else theApp.setInvertSignal(true);
+			return invdif;
 		}
 		return dif;
 	}
