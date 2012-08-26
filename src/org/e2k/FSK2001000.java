@@ -284,17 +284,32 @@ public class FSK2001000 extends FSK {
 		int data[]=circularBitSet.returnInts();
 		// Elements 4 and 5 contain the line number
 		int lineNos=(data[4]<<3)+((data[5]&224)>>5);
-		
 		// Count the number of missing blocks
 		if (bitCount>288) missingBlockCount=missingBlockCount+(bitCount/288);
-		// Display the block
-		linesOut[0]="Block Start ("+Integer.toString(bitCount)+" bits since last block) Line No "+Integer.toString(lineNos);
-		linesOut[1]=circularBitSet.extractBitSetasHex();
+		// Check if this is a divider block
+		if (checkDividerBlock(data)==true)	{
+			// Divide the messages with this //
+			linesOut[0]="----------------------------------------------------------";
+		}
+		else	{
+			// Display the block
+			linesOut[0]="Block Start ("+Integer.toString(bitCount)+" bits since last block) Line No "+Integer.toString(lineNos);
+			linesOut[1]=circularBitSet.extractBitSetasHex();
+		}
 		bitCount=0;
 		bitsSinceLastBlockHeader=0;
 		blockCount++;
 		return linesOut;
 	}
 	
+	// Check if this is a divider block
+	private boolean checkDividerBlock(int da[])	{
+		int a,zeroCount=0;
+		for (a=5;a<da.length;a++)	{
+			if (da[a]==0) zeroCount++;
+		}
+		if (zeroCount>=30) return true;
+		else return false;
+	}
 	
 }
