@@ -95,20 +95,4 @@ public class CircularBitSet extends BitSet {
 		return total;
 	}
 	
-	// Return an 8 bit int from a certain position in this Bitset
-	public int get8Int (int off)	{
-		int total=0;
-		off=off*8;
-		if (this.get(0+off)==true) total=total+128;
-		if (this.get(1+off)==true) total=total+64;
-		if (this.get(2+off)==true) total=total+32;
-		if (this.get(3+off)==true) total=total+16;
-		if (this.get(4+off)==true) total=total+8;
-		if (this.get(5+off)==true) total=total+4;
-		if (this.get(6+off)==true) total=total+2;
-		if (this.get(7+off)==true) total++;
-		return total;
-	}
-	
-
 }
