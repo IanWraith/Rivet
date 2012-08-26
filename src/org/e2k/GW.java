@@ -5,7 +5,6 @@ import javax.swing.JOptionPane;
 public class GW extends FSK {
 	
 	private int state=0;
-	private int syncState=0;
 	private double samplesPerSymbol100;
 	private Rivet theApp;
 	public long sampleCount=0;
@@ -17,7 +16,6 @@ public class GW extends FSK {
 	private int lowBin;
 	private double adjBuffer[]=new double[8];
 	private int adjCounter=0;
-	private CircularBitSet syncBitSet=new CircularBitSet();
 	private CircularBitSet dataBitSet=new CircularBitSet();
 	private int characterCount=0;
 	private int bitCount;
@@ -25,8 +23,7 @@ public class GW extends FSK {
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
-		syncBitSet.setTotalLength(230);
-		dataBitSet.setTotalLength(230);
+		dataBitSet.setTotalLength(144);
 	}
 	
 	// The main decode routine
@@ -64,9 +61,8 @@ public class GW extends FSK {
 			if (sampleCount>0)	{
 				if (syncSequenceHunt(circBuf,waveData)==true)	{
 					setState(2);
-					syncState=0;
 					bitCount=0;
-					syncBitSet.clear();
+					dataBitSet.clear();
 				}
 			}
 		}
@@ -75,6 +71,7 @@ public class GW extends FSK {
 			if (symbolCounter>=samplesPerSymbol100)	{
 				symbolCounter=0;
 				boolean ibit=gwFreqHalf(circBuf,waveData,0);
+				dataBitSet.add(ibit);
 				bitCount++;
 				
 				if (theApp.isDebug()==true)	{
@@ -88,63 +85,19 @@ public class GW extends FSK {
 						lineBuffer.delete(0,lineBuffer.length());
 					}
 				}
-				
-				// Hunt for a sync
-				if (syncState==0)	{
-					syncBitSet.add(ibit);
-					
-					// Note : The sync may be the 16 bit 1110100110101101
-					// rather than the 10 bit 0110101101 
-					
-					// A frame may consist of 230 or 231 bits !!!!!!!!!!!!!
-					
-					if (bitCount>=syncBitSet.getTotalLength())	{
-						String tSync=syncBitSet.extractSection((230-16),(230-8));
-						String eSync=syncBitSet.extractSection((230-8),230);
-						
-						
-						if ((tSync.equals("11011110"))&&(eSync.equals("11111111"))) {
+				else	{
+					// Have we enough data bits to start looking for the sync sequence
+					if (bitCount>=dataBitSet.getTotalLength())	{
+						int data[]=dataBitSet.returnInts();
+						// Free channel marker
+						if ((data[0]==0x20)&&(data[1]==0x38)) outLines[0]=handleFreeTrafficMarker(data);
 							
-							
-							//outLines[0]=syncBitSet.extractSection(0,syncBitSet.getTotalLength());
-							
-							outLines[0]=theApp.getTimeStamp()+" "+Integer.toString(lineCount)+" "+syncBitSet.extractBitSetasHex()+" ("+Integer.toString(bitCount)+")";
-							outLines[1]=syncBitSet.extractSection(0,230);
-							
-							if (bitCount!=231)	{
-								outLines[0]=null;
-								outLines[1]=null;
-							}
-							else lineCount++;
-							
-							
-							//syncState=1;
-							bitCount=0;
-		
-						}
-						else if (bitCount>320) setState(1);
 					}
-					
-				}
-				else if (syncState==1)	{
-					dataBitSet.add(ibit);
-					if (bitCount==150)	{
-						
-						outLines[0]=theApp.getTimeStamp()+" Sync 0x1ad";
-						outLines[1]=dataBitSet.extractSection(0,150);
-						
-						syncState=0;
-						bitCount=0;
-					}
-				}
-				
-				
-			}
-			
+					// If we have received more than 350 bits with no valid frame we have a problem
+					if (bitCount>350) setState(1);
+				}	
+			}	
 		}
-	
-		
-		
 		sampleCount++;
 		symbolCounter++;
 		return outLines;
@@ -232,15 +185,11 @@ public class GW extends FSK {
 		int f0=getSymbolFreq(circBuf,waveData,pos);
 		b0=getFreqBin();
 		// Check this first tone isn't just noise the highest bin must make up 10% of the total
-		//if (getPercentageOfTotal()<10.0) return false;
+		if (getPercentageOfTotal()<10.0) return false;
 		pos=(int)samplesPerSymbol100*1;
 		int f1=getSymbolFreq(circBuf,waveData,pos);
-		int f2=getSymbolFreq(circBuf,waveData,(pos+pos));
-		int f3=getSymbolFreq(circBuf,waveData,(pos+pos+pos));
 		b1=getFreqBin();
 		if (f0==f1) return false;
-		if (f1!=f3) return false;
-		if (f0!=f2) return false;
 		if (f0>f1)	{
 			highTone=f0;
 			highBin=b0;
@@ -256,10 +205,22 @@ public class GW extends FSK {
 		// If either the low bin or the high bin are zero there is a problem so return false
 		if ((lowBin==0)||(highBin==0)) return false; 
 		// The shift for GW FSK should be should be 200 Hz
-		int shift=highTone-lowTone;
-		if ((shift>250)||(shift<150)) return false;
+		if ((highTone-lowTone)!=200) return false;
 		else return true;
 	}	
+	
+	// Check if a free channel marker frame is OK
+	private String handleFreeTrafficMarker(int[] frame)	{
+		// frame[] 11 to 16 should all be the same
+		if ((frame[11]==frame[12])&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]!=0xff))	{
+			StringBuffer lo=new StringBuffer();
+			lo.append(theApp.getTimeStamp());
+			lo.append(" Free Channel Marker from Station 0x"+Integer.toHexString(frame[11]));
+			lo.append(" ("+dataBitSet.extractBitSetasHex()+")");
+			return lo.toString();
+		}
+		else return null;
+	}
 	
 
 }
