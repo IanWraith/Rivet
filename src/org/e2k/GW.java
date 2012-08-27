@@ -19,7 +19,6 @@ public class GW extends FSK {
 	private CircularBitSet dataBitSet=new CircularBitSet();
 	private int characterCount=0;
 	private int bitCount;
-	private int lineCount=0;
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
@@ -73,7 +72,7 @@ public class GW extends FSK {
 				boolean ibit=gwFreqHalf(circBuf,waveData,0);
 				dataBitSet.add(ibit);
 				bitCount++;
-				
+				// Debug only
 				if (theApp.isDebug()==true)	{
 					if (ibit==true) lineBuffer.append("1");
 					else lineBuffer.append("0");
@@ -95,7 +94,9 @@ public class GW extends FSK {
 									
 					}
 					// If we have received more than 350 bits with no valid frame we have a problem
-					if (bitCount>400) setState(1);
+					if (bitCount>400)	{
+						setState(1);
+					}
 					
 					
 				}	
@@ -118,7 +119,7 @@ public class GW extends FSK {
 	
 	// Get the frequency at a certain symbol
 	private int getSymbolFreq (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		int fr=do80FFT(circBuf,waveData,start);
+		int fr=do160FFT(circBuf,waveData,start);
 		return fr;
 	}
 	
@@ -221,7 +222,8 @@ public class GW extends FSK {
 			StringBuffer lo=new StringBuffer();
 			lo.append(theApp.getTimeStamp());
 			lo.append(" Free Channel Marker from Station 0x"+Integer.toHexString(frame[12]));
-			lo.append(" ("+dataBitSet.extractBitSetasHex()+")"+Integer.toString(bitCount));
+			lo.append(" ("+dataBitSet.extractBitSetasHex()+") "+Integer.toString(bitCount));
+			lo.append(" : Lo "+Integer.toString(lowBin)+" Hi : "+Integer.toString(highBin));
 			setState(1);
 			return lo.toString();
 		}
