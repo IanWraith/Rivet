@@ -23,7 +23,7 @@ public class GW extends FSK {
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
-		dataBitSet.setTotalLength(144);
+		dataBitSet.setTotalLength(152);
 	}
 	
 	// The main decode routine
@@ -90,11 +90,14 @@ public class GW extends FSK {
 					if (bitCount>=dataBitSet.getTotalLength())	{
 						int data[]=dataBitSet.returnInts();
 						// Free channel marker
-						if ((data[0]==0x20)&&(data[1]==0x38)) outLines[0]=handleFreeTrafficMarker(data);
-							
+						int sync=data[0]&63;
+						if ((sync==0x25)&&(data[1]==0x20)) outLines[0]=handleFreeTrafficMarker(data);
+									
 					}
 					// If we have received more than 350 bits with no valid frame we have a problem
-					if (bitCount>350) setState(1);
+					if (bitCount>400) setState(1);
+					
+					
 				}	
 			}	
 		}
@@ -189,6 +192,8 @@ public class GW extends FSK {
 		pos=(int)samplesPerSymbol100*1;
 		int f1=getSymbolFreq(circBuf,waveData,pos);
 		b1=getFreqBin();
+		// Check this second tone isn't just noise the highest bin must make up 10% of the total
+		//if (getPercentageOfTotal()<10.0) return false;
 		if (f0==f1) return false;
 		if (f0>f1)	{
 			highTone=f0;
@@ -212,14 +217,15 @@ public class GW extends FSK {
 	// Check if a free channel marker frame is OK
 	private String handleFreeTrafficMarker(int[] frame)	{
 		// frame[] 11 to 16 should all be the same
-		if ((frame[11]==frame[12])&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]!=0xff))	{
+		if ((frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]==frame[17])&&(frame[17]!=0xff))	{
 			StringBuffer lo=new StringBuffer();
 			lo.append(theApp.getTimeStamp());
-			lo.append(" Free Channel Marker from Station 0x"+Integer.toHexString(frame[11]));
-			lo.append(" ("+dataBitSet.extractBitSetasHex()+")");
+			lo.append(" Free Channel Marker from Station 0x"+Integer.toHexString(frame[12]));
+			lo.append(" ("+dataBitSet.extractBitSetasHex()+")"+Integer.toString(bitCount));
+			setState(1);
 			return lo.toString();
 		}
-		else return null;
+		else return null;	
 	}
 	
 
