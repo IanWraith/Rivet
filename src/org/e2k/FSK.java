@@ -173,15 +173,15 @@ public class FSK {
 		double vals[]=new double[2];
 		// Get the data from the circular buffer
 		double samData[]=circBuf.extractDataDouble(start,40);
-		double datar[]=new double[FFT_80_SIZE];
+		double datar[]=new double[FFT_160_SIZE];
 		// Run the data through a Blackman window
 		int a;
 		for (a=0;a<datar.length;a++)	{
-			if ((a>=20)&&(a<60)) datar[a]=samData[a-20];
+			if ((a>=60)&&(a<100)) datar[a]=samData[a-60];
 			else datar[a]=0.0;
 			datar[a]=windowBlackman(datar[a],a,datar.length);
 			}
-		fft80.realForward(datar);
+		fft160.realForward(datar);
 		double spec[]=getSpectrum(datar);
 		vals[0]=spec[bin0];
 		vals[1]=spec[bin1];
@@ -197,6 +197,21 @@ public class FSK {
 			datar[a]=windowBlackman(datar[a],a,datar.length);
 			}		
 		fft80.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
+		}
+	
+	
+	public int do160FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+		double datar[]=circBuf.extractDataDouble(start,FFT_160_SIZE);
+		// Run the data through a Blackman window
+		int a;
+		for (a=0;a<datar.length;a++)	{
+			datar[a]=windowBlackman(datar[a],a,datar.length);
+			}		
+		fft160.realForward(datar);
 		double spec[]=getSpectrum(datar);
 		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
