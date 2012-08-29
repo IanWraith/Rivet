@@ -295,6 +295,9 @@ public class FSK2001000 extends FSK {
 			// Display the block
 			linesOut[0]="Block Start ("+Integer.toString(bitCount)+" bits since last block) Line No "+Integer.toString(lineNos);
 			linesOut[1]=circularBitSet.extractBitSetasHex();
+			// Line 1 only
+			// Possible circuit identifiers
+			if (lineNos==1) linesOut[0]=linesOut[0]+" (18,19.20,21) 0x"+Integer.toHexString(data[18])+" 0x"+Integer.toHexString(data[19])+" 0x"+Integer.toHexString(data[20])+" 0x"+Integer.toHexString(data[21]);
 		}
 		bitCount=0;
 		bitsSinceLastBlockHeader=0;
