@@ -89,15 +89,11 @@ public class GW extends FSK {
 					if (bitCount>=dataBitSet.getTotalLength())	{
 						int data[]=dataBitSet.returnInts();
 						// Free channel marker
-						int sync=data[0]&63;
-						if ((sync==0x25)&&(data[1]==0x20)) outLines[0]=handleFreeTrafficMarker(data);
+						if ((data[0]&124)==36) outLines[0]=handleFreeTrafficMarker(data);
 									
 					}
 					// If we have received more than 350 bits with no valid frame we have a problem
-					if (bitCount>400)	{
-						setState(1);
-					}
-					
+					if (bitCount>400) setState(1);
 					
 				}	
 			}	
