@@ -173,7 +173,7 @@ public class GW extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		double r=Math.abs(av)/20;
+		double r=Math.abs(av)/15;
 		if (av<0) r=0-r;
 		return (int)r;
 	}
