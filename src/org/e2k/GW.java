@@ -217,12 +217,35 @@ public class GW extends FSK {
 		if ((frame[9]==0xf2)&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]==frame[17])&&(frame[17]!=0xff))	{
 			StringBuffer lo=new StringBuffer();
 			lo.append(theApp.getTimeStamp());
-			lo.append(" Free Channel Marker from Station 0x"+Integer.toHexString(frame[12]));
-			lo.append(" ("+dataBitSet.extractBitSetasHex()+") "+Integer.toString(bitCount));
+			lo.append(" Free Channel Marker from Station 0x"+Integer.toHexString(frame[12])+" ("+stationName(frame[12])+")");
+			//lo.append(" ("+dataBitSet.extractBitSetasHex()+")");
 			bitCount=0;
 			return lo.toString();
 		}
 		else return null;	
+	}
+	
+	// Return the GW station name
+	private String stationName (int id)	{
+		if (id==0x33) return "LFI, Rogaland, Norway";
+		else if (id==0x47) return "HLF, Seoul, South Korea";
+		else if (id==0x4e) return "VCS, Halifax, Canada";
+		else if (id==0x5d) return "KEJ, Honolulu, Hawaii ";
+		else if (id==0x5e) return "CPK, Santa Cruz, Bolivia";
+		else if (id==0x5f) return "A9M, Hamala, Bahrain";
+		else if (id==0x63) return "9HD, Malta";
+		else if (id==0xc3) return "XSV, Tianjin, China";
+		else if (id==0xc9) return "ZLA, Awanui, New Zealand";
+		else if (id==0xcc) return "HEC, Bern, Switzerland";
+		else if (id==0xd2) return "ZSC, Capetown, RSA";
+		else if (id==0xd7) return "KPH, San Franisco, USA";
+		else if (id==0xd8) return "WNU, Slidell Radio, USA";
+		else if (id==0xdb) return "KHF, Agana, Guam";
+		else if (id==0xdc) return "KFS, Palo Alto, USA";
+		else if (id==0xdd) return "LSD836, Buenos Airos, Argentinia";
+		else if (id==0xde) return "SAB, Goeteborg, Sweden";
+		else if (id==0xe3) return "8PO, Bridgetown, Barbados";
+		else return "Unknown";
 	}
 	
 
