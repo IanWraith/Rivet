@@ -319,7 +319,7 @@ public class FSK {
 	// Return a spectrum array as a CSV string
 	public String getSpectrumValsString()	{
 		int a;
-		StringBuffer sb=new StringBuffer();
+		StringBuilder sb=new StringBuilder();
 		for (a=0;a<spectrumVals.size();a++)	{
 			double s=spectrumVals.get(a);
 			sb.append(Double.toString(s)+",");

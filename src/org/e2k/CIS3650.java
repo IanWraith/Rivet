@@ -16,7 +16,7 @@ public class CIS3650 extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	public StringBuffer lineBuffer=new StringBuffer();
+	public StringBuilder lineBuffer=new StringBuilder();
 	private int highTone;
 	private int lowTone;
 	private int syncState;
@@ -378,7 +378,7 @@ public class CIS3650 extends FSK {
 	
 	// Extract a session key from the start buffer
 	private String extractSessionKey()	{
-		StringBuffer sb=new StringBuffer();
+		StringBuilder sb=new StringBuilder();
 		int a,o;
 		sb.append("Session Key is ");
 		for (a=44;a<(44+70);a=a+7)	{

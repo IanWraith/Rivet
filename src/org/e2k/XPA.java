@@ -25,7 +25,7 @@ public class XPA extends MFSK {
 	private long symbolCounter=0;
 	private String previousCharacter;
 	private int groupCount=0;
-	private StringBuffer lineBuffer=new StringBuffer();
+	private StringBuilder lineBuffer=new StringBuilder();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private long syncFoundPoint;
 	private int longCorrectionFactor;

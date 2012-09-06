@@ -10,7 +10,7 @@ public class FSK200500 extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	private StringBuffer lineBuffer=new StringBuffer();
+	private StringBuilder lineBuffer=new StringBuilder();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int characterCount=0;
 	private int highBin;
@@ -277,7 +277,7 @@ public class FSK200500 extends FSK {
 	
 	// Display the inChar buffer in binary when in debug mode
 	private String getCharBuffer()	{
-		StringBuffer lb=new StringBuffer();
+		StringBuilder lb=new StringBuilder();
 		int a;
 		for (a=0;a<7;a++)	{
 			if (inChar[a]==true) lb.append("1");

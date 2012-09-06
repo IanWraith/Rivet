@@ -24,7 +24,7 @@ public class CircularBitSet extends BitSet {
 	
 	// Extract a section of the circular BitSet as binary encoded as a String
 	public String extractSection (int start,int end)	{
-		StringBuffer out=new StringBuffer();
+		StringBuilder out=new StringBuilder();
 		int a;
 		int tc=counter+start;
 		if (tc>=totalLength) tc=tc-totalLength;
@@ -50,7 +50,7 @@ public class CircularBitSet extends BitSet {
 	// This method outputs a string which displays the circular array as 8 bit hex numbers
 	public String extractBitSetasHex()	{
 		int a;
-		StringBuffer out=new StringBuffer();
+		StringBuilder out=new StringBuilder();
 		int idata[]=returnInts();
 		for (a=0;a<idata.length;a++)	{
 			out.append(Integer.toHexString(idata[a]));

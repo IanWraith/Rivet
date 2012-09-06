@@ -10,7 +10,7 @@ public class FSK2001000 extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	private StringBuffer lineBuffer=new StringBuffer();
+	private StringBuilder lineBuffer=new StringBuilder();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int characterCount=0;
 	private int highBin;

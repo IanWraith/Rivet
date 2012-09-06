@@ -9,7 +9,7 @@ public class GW extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	public StringBuffer lineBuffer=new StringBuffer();
+	public StringBuilder lineBuffer=new StringBuilder();
 	private int highTone;
 	private int lowTone;
 	private int highBin;
@@ -215,7 +215,7 @@ public class GW extends FSK {
 		// Free Channel Marker
 		// farme[] 9 to 11 should be 0xf2 & frame[] 12 to 17 should all be the same
 		if ((frame[9]==0xf2)&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]==frame[17])&&(frame[17]!=0xff))	{
-			StringBuffer lo=new StringBuffer();
+			StringBuilder lo=new StringBuilder();
 			lo.append(theApp.getTimeStamp());
 			lo.append(" GW Free Channel Marker from Station 0x"+Integer.toHexString(frame[12])+" ("+stationName(frame[12])+")");
 			lo.append(" ("+dataBitSet.extractBitSetasHex()+")");
@@ -225,7 +225,7 @@ public class GW extends FSK {
 		}
 		// Unknown
 		else if (frame[1]==0x33)	{
-			StringBuffer lo=new StringBuffer();
+			StringBuilder lo=new StringBuilder();
 			lo.append(theApp.getTimeStamp()+" GW UNID ");
 			int a;
 			for (a=0;a<8;a++)	{

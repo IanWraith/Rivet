@@ -9,7 +9,7 @@ public class CCIR493 extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	public StringBuffer lineBuffer=new StringBuffer();
+	public StringBuilder lineBuffer=new StringBuilder();
 	private int highTone;
 	private int lowTone;
 	private int messageState;

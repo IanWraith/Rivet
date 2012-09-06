@@ -11,7 +11,7 @@ public class CROWD36 extends MFSK {
 	public long sampleCount=0;
 	private long symbolCounter=0;
 	private long energyStartPoint;
-	private StringBuffer lineBuffer=new StringBuffer();
+	private StringBuilder lineBuffer=new StringBuilder();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private boolean figureShift=false; 
 	private int lineCount=0;
@@ -309,7 +309,7 @@ public class CROWD36 extends MFSK {
 	}
 	
 	public String toneResults()	{
-		StringBuffer out=new StringBuffer();
+		StringBuilder out=new StringBuilder();
 		int a;
 		out.append("Low "+Integer.toString(toneLowCount));
 		for (a=0;a<toneCount.length;a++)	{

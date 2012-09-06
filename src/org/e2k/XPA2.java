@@ -13,7 +13,7 @@ public class XPA2 extends MFSK {
 	private long syncFoundPoint;
 	private String previousCharacter;
 	private int groupCount=0;
-	private StringBuffer lineBuffer=new StringBuffer();
+	private StringBuilder lineBuffer=new StringBuilder();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int correctionFactor;
 	private final int PIVOT=5000;
