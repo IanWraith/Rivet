@@ -88,8 +88,8 @@ public class GW extends FSK {
 					// Have we enough data bits to start looking for the sync sequence
 					if (bitCount>=dataBitSet.getTotalLength())	{
 						int data[]=dataBitSet.returnInts();
-						// Free channel marker
-						if ((data[0]&124)==36) outLines[0]=handleFreeTrafficMarker(data);									
+						// Look for the sync word then handle any traffic detected
+						if ((data[0]&124)==36) outLines[0]=handleGWTraffic(data);									
 					}
 					// If we have received more than 500 bits with no valid frame we have a problem
 					if (bitCount>500) setState(1);
@@ -211,14 +211,26 @@ public class GW extends FSK {
 	}	
 	
 	// Check if a free channel marker frame is OK
-	private String handleFreeTrafficMarker(int[] frame)	{
-		// farme[] 9 to 11 should be 0xf2
-		// frame[] 12 to 17 should all be the same
+	private String handleGWTraffic(int[] frame)	{
+		// Free Channel Marker
+		// farme[] 9 to 11 should be 0xf2 & frame[] 12 to 17 should all be the same
 		if ((frame[9]==0xf2)&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]==frame[17])&&(frame[17]!=0xff))	{
 			StringBuffer lo=new StringBuffer();
 			lo.append(theApp.getTimeStamp());
-			lo.append(" Free Channel Marker from Station 0x"+Integer.toHexString(frame[12])+" ("+stationName(frame[12])+")");
-			//lo.append(" ("+dataBitSet.extractBitSetasHex()+")");
+			lo.append(" GW Free Channel Marker from Station 0x"+Integer.toHexString(frame[12])+" ("+stationName(frame[12])+")");
+			lo.append(" ("+dataBitSet.extractBitSetasHex()+")");
+			bitCount=0;
+			return lo.toString();
+		}
+		// Unknown
+		else if (frame[1]==0x33)	{
+			StringBuffer lo=new StringBuffer();
+			lo.append(theApp.getTimeStamp()+" GW UNID ");
+			int a;
+			for (a=0;a<8;a++)	{
+				lo.append(Integer.toHexString(frame[a])+" ");
+			}
+			
 			bitCount=0;
 			return lo.toString();
 		}
