@@ -75,6 +75,7 @@ public class Rivet {
 	private int soundCardInputLevel=0;
 	private boolean soundCardInputTemp;
 	private boolean bitStreamOut=false;
+	private boolean viewGWChannelMarkers=true;
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000","GW FSK"};
     
@@ -603,6 +604,10 @@ public class Rivet {
 			if (soundCardInput==true) line="<soundcard_input val='1'/>";
 			else line="<soundcard_input val='0'/>";
 			xmlfile.write(line);
+			// View GW Free Channel Markers
+			if (viewGWChannelMarkers==true) line="<view_gw_markers val='1'/>";
+			else line="<view_gw_markers val='0'/>";
+			xmlfile.write(line);
 			// All done so close the root item //
 			line="</settings>";
 			xmlfile.write(line);
@@ -673,6 +678,12 @@ public class Rivet {
 						if (Integer.parseInt(aval)==1) soundCardInputTemp=true;
 						else soundCardInputTemp=false;
 					}
+					// View GW Free Channel Markers
+					else if (qName.equals("view_gw_markers"))	{
+						if (Integer.parseInt(aval)==1) viewGWChannelMarkers=true;
+						else viewGWChannelMarkers=false;
+					}
+					
 					
 				}	
 				
@@ -710,6 +721,14 @@ public class Rivet {
 
 	public void setBitStreamOut(boolean bitStreamOut) {
 		this.bitStreamOut = bitStreamOut;
+	}
+
+	public boolean isViewGWChannelMarkers() {
+		return viewGWChannelMarkers;
+	}
+
+	public void setViewGWChannelMarkers(boolean viewGWChannelMarkers) {
+		this.viewGWChannelMarkers = viewGWChannelMarkers;
 	}
 	
 }

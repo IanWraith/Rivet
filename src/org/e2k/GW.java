@@ -220,7 +220,8 @@ public class GW extends FSK {
 			lo.append(" GW Free Channel Marker from Station 0x"+Integer.toHexString(frame[12])+" ("+stationName(frame[12])+")");
 			lo.append(" ("+dataBitSet.extractBitSetasHex()+")");
 			bitCount=0;
-			return lo.toString();
+			if (theApp.isViewGWChannelMarkers()==true) return lo.toString();
+			else return null;
 		}
 		// Unknown
 		else if (frame[1]==0x33)	{

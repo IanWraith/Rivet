@@ -29,8 +29,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item,bitstream_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item;
-	private JMenuItem FSK2001000_item;
-	private JMenuItem CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
+	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
+	private JMenuItem freeChannelMarkerGW_item;
 	
 	// Constructor
 	public DisplayFrame(String title,Rivet theApp) {
@@ -92,6 +92,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		optionsMenu.add(CROWD36_sync_item=new JMenuItem("Set the CROWD36 Sync High Tone"));
 		CROWD36_sync_item.addActionListener(this);
 		menuBar.add(optionsMenu);
+		// View
+		JMenu viewMenu=new JMenu("View");
+		viewMenu.add(freeChannelMarkerGW_item=new JRadioButtonMenuItem("View GW Free Channel Markers", theApp.isViewGWChannelMarkers()));
+		freeChannelMarkerGW_item.addActionListener(this);
+		menuBar.add(viewMenu);
 		// Help
 		JMenu helpMenu=new JMenu("Help");
 		helpMenu.add(about_item=new JMenuItem("About"));		
@@ -239,7 +244,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="Save the Current Settings")	{
 			theApp.saveSettings();
 		}
-		
+		// View GW Free Channel Markers
+		if (event_name=="View GW Free Channel Markers")	{
+			if (theApp.isViewGWChannelMarkers()==true) theApp.setViewGWChannelMarkers(false);
+			else theApp.setViewGWChannelMarkers(true);
+		}
 		// Exit 
 		if (event_name=="Exit") {
 			// If logging then close the log file
@@ -268,6 +277,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		soundcard_item.setSelected(theApp.isSoundCardInput());
 		invert_item.setSelected(theApp.isInvertSignal());
 		bitstream_item.setSelected(theApp.isBitStreamOut());
+		freeChannelMarkerGW_item.setSelected(theApp.isViewGWChannelMarkers());
 	}
 	
 	// Display a dialog box so the user can select a WAV file they wish to process
