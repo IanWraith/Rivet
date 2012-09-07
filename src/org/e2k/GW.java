@@ -19,6 +19,7 @@ public class GW extends FSK {
 	private CircularBitSet dataBitSet=new CircularBitSet();
 	private int characterCount=0;
 	private int bitCount;
+	private int scrambleValue=-1;
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
@@ -62,6 +63,7 @@ public class GW extends FSK {
 					setState(2);
 					bitCount=0;
 					dataBitSet.clear();
+					scrambleValue=-1;
 				}
 			}
 		}
@@ -214,22 +216,22 @@ public class GW extends FSK {
 	private String handleGWTraffic(int[] frame)	{
 		// Free Channel Marker
 		// farme[] 9 to 11 should be 0xf2 & frame[] 12 to 17 should all be the same
-		if ((frame[9]==0xf2)&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]==frame[17])&&(frame[17]!=0xff))	{
+		if ((frame[9]==frame[10])&&(frame[10]==frame[11])&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]==frame[17])&&(frame[17]!=0xff))	{
 			StringBuilder lo=new StringBuilder();
 			lo.append(theApp.getTimeStamp());
-			lo.append(" GW Free Channel Marker from Station 0x"+Integer.toHexString(frame[12])+" ("+stationName(frame[12])+")");
-			lo.append(" ("+dataBitSet.extractBitSetasHex()+")");
+			lo.append(" GW Free Channel Marker from Station Code 0x"+Integer.toHexString(frame[12])+" ("+stationName(frame[12])+") "+dataBitSet.extractBitSetasHex());
 			bitCount=0;
+			scrambleValue=frame[12];
 			if (theApp.isViewGWChannelMarkers()==true) return lo.toString();
 			else return null;
 		}
 		// Unknown
-		else if (frame[1]==0x33)	{
+		else if ((frame[1]==0x33)&&(scrambleValue!=-1))	{
 			StringBuilder lo=new StringBuilder();
 			lo.append(theApp.getTimeStamp()+" GW UNID ");
 			int a;
 			for (a=0;a<8;a++)	{
-				lo.append(Integer.toHexString(frame[a])+" ");
+				lo.append(Integer.toHexString(frame[a]^scrambleValue)+" ");
 			}
 			
 			bitCount=0;
