@@ -19,7 +19,6 @@ public class GW extends FSK {
 	private CircularBitSet dataBitSet=new CircularBitSet();
 	private int characterCount=0;
 	private int bitCount;
-	private int scrambleValue=-1;
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
@@ -63,7 +62,6 @@ public class GW extends FSK {
 					setState(2);
 					bitCount=0;
 					dataBitSet.clear();
-					scrambleValue=-1;
 				}
 			}
 		}
@@ -91,7 +89,7 @@ public class GW extends FSK {
 					if (bitCount>=dataBitSet.getTotalLength())	{
 						int data[]=dataBitSet.returnInts();
 						// Look for the sync word then handle any traffic detected
-						if ((data[0]&124)==36) outLines[0]=handleGWTraffic(data);									
+						if ((data[0]&63)==0x25) outLines[0]=handleGWTraffic(data);									
 					}
 					// If we have received more than 500 bits with no valid frame we have a problem
 					if (bitCount>500) setState(1);
@@ -215,28 +213,49 @@ public class GW extends FSK {
 	// Check if a free channel marker frame is OK
 	private String handleGWTraffic(int[] frame)	{
 		// Free Channel Marker
-		// farme[] 9 to 11 should be 0xf2 & frame[] 12 to 17 should all be the same
-		if ((frame[9]==frame[10])&&(frame[10]==frame[11])&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]==frame[17])&&(frame[17]!=0xff))	{
+		// frame[] 9 to 11 should be 0xf2 & frame[] 12 to 17 should all be the same
+		if ((frame[9]==0xf2)&&(frame[10]==0xf2)&&(frame[11]==0xf2)&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]==frame[17])&&(frame[17]!=0xff))	{
 			StringBuilder lo=new StringBuilder();
 			lo.append(theApp.getTimeStamp());
-			lo.append(" GW Free Channel Marker from Station Code 0x"+Integer.toHexString(frame[12])+" ("+stationName(frame[12])+") "+dataBitSet.extractBitSetasHex());
+			lo.append(" GW Free Channel Marker from Station Code 0x"+Integer.toHexString(frame[12])+" ("+stationName(frame[12])+") ");
+			int a;
+			for (a=0;a<19;a++)	{
+				lo.append(" "+Integer.toHexString(frame[a])+" ");
+			}
 			bitCount=0;
-			scrambleValue=frame[12];
 			if (theApp.isViewGWChannelMarkers()==true) return lo.toString();
 			else return null;
 		}
-		// Unknown
-		else if ((frame[1]==0x33)&&(scrambleValue!=-1))	{
+		else if (frame[1]==0x33)	{
 			StringBuilder lo=new StringBuilder();
-			lo.append(theApp.getTimeStamp()+" GW UNID ");
+			lo.append(theApp.getTimeStamp()+" GW UNID (0x33) ");
 			int a;
-			for (a=0;a<8;a++)	{
-				lo.append(Integer.toHexString(frame[a]^scrambleValue)+" ");
+			for (a=0;a<19;a++)	{
+				lo.append(" "+Integer.toHexString(frame[a])+" ");
 			}
-			
-			bitCount=0;
+			bitCount=48;
 			return lo.toString();
 		}
+		else if (frame[1]==0x3f)	{
+			StringBuilder lo=new StringBuilder();
+			lo.append(theApp.getTimeStamp()+" GW UNID (0x3f) ");
+			int a;
+			for (a=0;a<19;a++)	{
+				lo.append(" "+Integer.toHexString(frame[a])+" ");
+			}
+			bitCount=48;
+			return lo.toString();
+		}
+		else if (frame[1]==0x29)	{
+			StringBuilder lo=new StringBuilder();
+			lo.append(theApp.getTimeStamp()+" GW UNID (0x29) ");
+			int a;
+			for (a=0;a<19;a++)	{
+				lo.append(" "+Integer.toHexString(frame[a])+" ");
+			}
+			bitCount=48;
+			return lo.toString();
+		}		
 		else return null;	
 	}
 	
@@ -262,6 +281,7 @@ public class GW extends FSK {
 		else if (id==0xe3) return "8PO, Bridgetown, Barbados";
 		else return "Unknown";
 	}
+	
 	
 
 }
