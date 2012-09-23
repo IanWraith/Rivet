@@ -54,7 +54,7 @@ public class CircularBitSet extends BitSet {
 		int idata[]=returnInts();
 		for (a=0;a<idata.length;a++)	{
 			// Ensure the number consists of two characters
-			if (idata[a]<=16) out.append("0");
+			if (idata[a]<16) out.append("0");
 			out.append(Integer.toHexString(idata[a]));
 			if (a<idata.length-1) out.append(",");
 		}
