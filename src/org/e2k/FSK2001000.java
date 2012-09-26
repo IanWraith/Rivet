@@ -282,7 +282,7 @@ public class FSK2001000 extends FSK {
 		String linesOut[]=new String[2];
 		// Convert the block to an array of ints
 		int data[]=circularBitSet.returnInts();
-		// Elements 4 and 5 contain the line number
+		// Data[4] and [5] contain the line number (bits 32 to 41)
 		int lineNos=(data[4]<<3)+((data[5]&224)>>5);
 		// Count the number of missing blocks
 		if (bitCount>288) missingBlockCount=missingBlockCount+(bitCount/288);
@@ -293,7 +293,13 @@ public class FSK2001000 extends FSK {
 		}
 		else	{
 			// Display the block
-			linesOut[0]="Block Start ("+Integer.toString(bitCount)+" bits since last block) Line No "+Integer.toString(lineNos);
+			linesOut[0]="Block No "+Integer.toString(lineNos);
+			// If block 0 display the special information
+			if (lineNos==0)	{
+				// Display the total number of blocks which is encoded into block 0 bits 64,65,66,67,80,81,82
+				int totalBlockCount=(data[8]&240)+((data[10]&224)>>5)+1;
+				linesOut[0]=linesOut[0]+" : Total Message Size "+Integer.toString(totalBlockCount)+" blocks";
+			}
 			linesOut[1]=circularBitSet.extractBitSetasHex();
 		}
 		bitCount=0;
