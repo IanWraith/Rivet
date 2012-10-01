@@ -297,7 +297,7 @@ public class FSK2001000 extends FSK {
 			// If block 0 display the special information
 			if (lineNos==0)	{
 				// Display the total number of blocks which is encoded into block 0 bits 64,65,66,67,80,81,82
-				int totalBlockCount=(data[8]&240)+((data[10]&224)>>5)+1;
+				int totalBlockCount=((data[8]&240)>>1)+((data[10]&224)>>5)+1;
 				linesOut[0]=linesOut[0]+" : Total Message Size "+Integer.toString(totalBlockCount)+" blocks";
 			}
 			linesOut[1]=circularBitSet.extractBitSetasHex();
