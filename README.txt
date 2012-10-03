@@ -58,7 +58,9 @@ Build 31 Improved input level control which can attenuate,improved CIS36-50 deco
 Build 32 adds basic FSK200/1000 frame decoding
 Build 33 fixes an ITA3 character set bug , checks for 8 bit WAV files and enables bitstream outputs to be saved
 Build 34 Inverts the FSK200/1000 bit demodulation and extracts the block number from a block. Also add very basic
-GW 100 baud FSK support.
+         GW 100 baud FSK support.
+Build 35 Fixes a bug which calculated the total number of FSK200/1000 blocks in a message.
+
 
 Reported Bugs
 -------------
@@ -68,4 +70,4 @@ Still problems with CROWD36 decoding. Not a bug as such but more a lack of under
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (18th September 2012) 
+Ian Wraith (3rd October 2012) 
