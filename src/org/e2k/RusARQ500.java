@@ -212,9 +212,9 @@ public class RusARQ500 extends FSK {
 		int v;
 		int sp=(int)samplesPerSymbol/2;
 		// First half
-		double early[]=doRusARQ160HalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
+		double early[]=doRusARQ160HalfSymbolBinRequest (circBuf,pos,lowBin,highBin);
 		// Last half
-		double late[]=doRusARQ160HalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
+		double late[]=doRusARQ160HalfSymbolBinRequest (circBuf,(pos+sp),lowBin,highBin);
 		// Determine the symbol value
 		int high1,high2;
 		if (early[0]>early[1]) high1=0;
