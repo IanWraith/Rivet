@@ -254,6 +254,26 @@ public class FSK {
 		return vals;
 		}	
 	
+	
+	// Returns two bins from a 160 bin FFT covering half a symbol
+	public double[] doRusARQ160HalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
+		double vals[]=new double[2];
+		int a;
+		double datar[]=new double[FFT_160_SIZE];
+		// Get the data from the circular buffer
+		double samData[]=circBuf.extractDataDouble(start,80);
+		for (a=0;a<datar.length;a++)	{
+			if ((a>=40)&&(a<120)) datar[a]=samData[a-40];
+			else datar[a]=0.0;
+			datar[a]=windowBlackman(datar[a],a,datar.length);
+		}
+		fft160.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		vals[0]=spec[bin0];
+		vals[1]=spec[bin1];
+		return vals;
+		}		
+	
 	// Test for a specific tone
 	public boolean toneTest (int freq,int tone,int errorAllow)	{
 		if ((freq>(tone-errorAllow))&&(freq<(tone+errorAllow))) return true;
