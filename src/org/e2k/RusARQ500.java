@@ -128,15 +128,7 @@ public class RusARQ500 extends FSK {
 							characterCount++;
 						}
 					}
-					if (bcount!=7)	{
-						missingCharCounter++;
-				        errorPercentage=((double)missingCharCounter/(double)totalCharCounter)*100.0;
-						// If more than 50% of the received characters are bad we have a serious problem
-						if (errorPercentage>50)	{
-							outLines[0]=theApp.getTimeStamp()+" Rus-ARQ Sync Lost";
-							setState(1);
-						}
-					}
+					
 					bcount=0;
 				}
 				else	{

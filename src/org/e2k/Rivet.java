@@ -60,6 +60,7 @@ public class Rivet {
     public CIS3650 cis3650Handler=new CIS3650(this);
     public CCIR493 ccir493Handler=new CCIR493(this);
     public GW gwHandler=new GW(this);
+    public RusARQ500 rusARQHandler=new RusARQ500(this,50);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -201,6 +202,11 @@ public class Rivet {
 		else return false;
 	}
 	
+	public boolean isRusARQ()	{
+		if (system==10) return true;
+		else return false;
+	}
+	
 	// Tell the input thread to start to load a .WAV file
 	public void loadWAVfile(String fileName)	{
 		String disp;
@@ -228,6 +234,8 @@ public class Rivet {
 		else if (system==8) fsk2001000Handler.setState(0);	
 		// GW
 		else if (system==9) gwHandler.setState(0);
+		// Rus-ARQ
+		else if (system==10) rusARQHandler.setState(0);
 		// Ensure the program knows we have a WAV file load ongoing
 		wavFileLoadOngoing=true;
 	}
@@ -317,6 +325,8 @@ public class Rivet {
 			else if (system==8)	outLines=fsk2001000Handler.decode(circBuffer,waveData);
 			// GW
 			else if (system==9) outLines=gwHandler.decode(circBuffer,waveData);
+			// Rus-ARQ
+			else if (system==10) outLines=rusARQHandler.decode(circBuffer,waveData);
 			// Return if nothing at all has been returned
 			if (outLines==null) return;
 			// Display the decode objects output
@@ -509,7 +519,19 @@ public class Rivet {
 				waveData=waveSetting;
 				this.soundCardInput=true;	
 			}				
-			
+			// Rus-ARQ
+			else if (system==10)	{
+				WaveData waveSetting=new WaveData();
+				waveSetting.setChannels(1);
+				waveSetting.setEndian(true);
+				waveSetting.setSampleSizeInBits(16);
+				waveSetting.setFromFile(false);
+				waveSetting.setSampleRate(8000.0);
+				waveSetting.setBytesPerFrame(2);
+				inputThread.setupAudio(waveSetting); 
+				waveData=waveSetting;
+				this.soundCardInput=true;	
+			}				
 			
 		}
 	}
@@ -536,6 +558,8 @@ public class Rivet {
 		else if (system==8)	fsk2001000Handler.setState(0);
 		// GW
 		else if (system==9) gwHandler.setState(0);
+		// Rus-ARQ
+		else if (system==10) rusARQHandler.setState(0);
 	}
 	
 	// Gets all the text on the screen and returns it as a string
