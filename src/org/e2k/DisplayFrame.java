@@ -28,9 +28,9 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item,bitstream_item;
-	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item;
+	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
-	private JMenuItem freeChannelMarkerGW_item;
+	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item;
 	
 	// Constructor
 	public DisplayFrame(String title,Rivet theApp) {
@@ -61,6 +61,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		menuBar.add(mainMenu);
 		// Modes
 		JMenu modeMenu=new JMenu("Modes");
+		modeMenu.add(RTTY_item=new JRadioButtonMenuItem(theApp.MODENAMES[10],theApp.isRTTY()));
+		RTTY_item.addActionListener(this);
 		modeMenu.add(CCIR493_item=new JRadioButtonMenuItem(theApp.MODENAMES[7],theApp.isCCIR493()));
 		CCIR493_item.addActionListener(this);
 		modeMenu.add(CIS3650_item=new JRadioButtonMenuItem(theApp.MODENAMES[5],theApp.isCIS3650()));
@@ -85,6 +87,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		menuBar.add(modeMenu);
 		// Options
 		JMenu optionsMenu=new JMenu("Options");
+		optionsMenu.add(RTTYOptions_item=new JMenuItem("Baudot Options"));		
+		RTTYOptions_item.addActionListener(this);
 		optionsMenu.add(debug_item=new JRadioButtonMenuItem("Debug Mode",theApp.isDebug()));		
 		debug_item.addActionListener(this);
 		optionsMenu.add(invert_item=new JRadioButtonMenuItem("Invert",theApp.isInvertSignal()));
@@ -235,6 +239,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="Set the CROWD36 Sync High Tone")	{
 			theApp.getCROWD36SyncHighTone();
 		}
+		// Baudot Options
+		if (event_name=="Baudot Options")	{
+			theApp.setRTTYOptions();
+		}
 		// Invert the input signal
 		if (event_name=="Invert")	{
 			if (theApp.isInvertSignal()==true) theApp.setInvertSignal(false);
@@ -278,6 +286,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		invert_item.setSelected(theApp.isInvertSignal());
 		bitstream_item.setSelected(theApp.isBitStreamOut());
 		freeChannelMarkerGW_item.setSelected(theApp.isViewGWChannelMarkers());
+		RTTY_item.setSelected(theApp.isRTTY());
 	}
 	
 	// Display a dialog box so the user can select a WAV file they wish to process

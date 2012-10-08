@@ -59,6 +59,7 @@ public class Rivet {
     public FSK2001000 fsk2001000Handler=new FSK2001000(this,200);
     public CIS3650 cis3650Handler=new CIS3650(this);
     public CCIR493 ccir493Handler=new CCIR493(this);
+    public RTTY rttyHandler=new RTTY(this);
     public GW gwHandler=new GW(this);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
@@ -77,7 +78,7 @@ public class Rivet {
 	private boolean bitStreamOut=false;
 	private boolean viewGWChannelMarkers=true;
 	
-	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000","GW FSK (100 Baud)"};
+	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000","GW FSK (100 Baud)","Baudot"};
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
@@ -201,6 +202,11 @@ public class Rivet {
 		else return false;
 	}
 	
+	public boolean isRTTY()	{
+		if (system==10) return true;
+		else return false;
+	}
+	
 	// Tell the input thread to start to load a .WAV file
 	public void loadWAVfile(String fileName)	{
 		String disp;
@@ -228,6 +234,8 @@ public class Rivet {
 		else if (system==8) fsk2001000Handler.setState(0);	
 		// GW
 		else if (system==9) gwHandler.setState(0);
+		// RTTY
+		else if (system==10) rttyHandler.setState(0);
 		// Ensure the program knows we have a WAV file load ongoing
 		wavFileLoadOngoing=true;
 	}
@@ -317,6 +325,8 @@ public class Rivet {
 			else if (system==8)	outLines=fsk2001000Handler.decode(circBuffer,waveData);
 			// GW
 			else if (system==9) outLines=gwHandler.decode(circBuffer,waveData);
+			// RTTY
+			else if (system==10) outLines=rttyHandler.decode(circBuffer,waveData);
 			// Return if nothing at all has been returned
 			if (outLines==null) return;
 			// Display the decode objects output
@@ -508,8 +518,20 @@ public class Rivet {
 				inputThread.setupAudio(waveSetting); 
 				waveData=waveSetting;
 				this.soundCardInput=true;	
+			}	
+			// RTTY
+			else if (system==10)	{
+				WaveData waveSetting=new WaveData();
+				waveSetting.setChannels(1);
+				waveSetting.setEndian(true);
+				waveSetting.setSampleSizeInBits(16);
+				waveSetting.setFromFile(false);
+				waveSetting.setSampleRate(8000.0);
+				waveSetting.setBytesPerFrame(2);
+				inputThread.setupAudio(waveSetting); 
+				waveData=waveSetting;
+				this.soundCardInput=true;	
 			}				
-			
 			
 		}
 	}
@@ -536,6 +558,8 @@ public class Rivet {
 		else if (system==8)	fsk2001000Handler.setState(0);
 		// GW
 		else if (system==9) gwHandler.setState(0);
+		// RTTY
+		else if (system==10) rttyHandler.setState(0);
 	}
 	
 	// Gets all the text on the screen and returns it as a string
@@ -564,6 +588,13 @@ public class Rivet {
 		 String sval=new String (toneField.getText());
 		 crowd36Handler.setSyncHighTone(Integer.parseInt(sval));
 		 }	
+	}
+	
+	// A dialog box to allow the user to set the RTTY options
+	public void setRTTYOptions()	{
+		
+		// TODO : Create a dialog box to allow the RTTY options to be set
+		
 	}
 
 	public boolean isInvertSignal() {

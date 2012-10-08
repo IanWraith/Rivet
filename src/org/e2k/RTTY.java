@@ -24,10 +24,10 @@ public class RTTY extends FSK {
 	private int adjCounter=0;
 	private double errorPercentage;
 	private int shift;
+	private double stopBits=1.5;
 	
-	public RTTY (Rivet tapp,int baud)	{
+	public RTTY (Rivet tapp)	{
 		theApp=tapp;
-		setBaudRate(baud);
 	}
 	
 	public void setBaudRate(int br) {
@@ -353,6 +353,14 @@ public class RTTY extends FSK {
 		}
 		
 	return v;
+	}
+
+	public double getStopBits() {
+		return stopBits;
+	}
+
+	public void setStopBits(double stopBits) {
+		this.stopBits = stopBits;
 	}
 
 }
