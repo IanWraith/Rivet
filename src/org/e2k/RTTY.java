@@ -23,11 +23,12 @@ public class RTTY extends FSK {
 	private double adjBuffer[]=new double[2];
 	private int adjCounter=0;
 	private double errorPercentage;
-	private int shift;
+	private int shift=450;
 	private double stopBits=1.5;
 	
 	public RTTY (Rivet tapp)	{
 		theApp=tapp;
+		samplesPerSymbol=samplesPerSymbol(baudRate,8000);
 	}
 	
 	public void setBaudRate(int br) {
@@ -172,7 +173,7 @@ public class RTTY extends FSK {
 	private int rttyFreq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 		// 8 KHz sampling
 		if (waveData.getSampleRate()==8000.0)	{
-			int freq=doFSK200500_8000FFT(circBuf,waveData,pos,(int)samplesPerSymbol);
+			int freq=doRTTY_8000FFT(circBuf,waveData,pos,(int)samplesPerSymbol,baudRate);
 			return freq;
 		}
 		return -1;
@@ -310,9 +311,9 @@ public class RTTY extends FSK {
 		int v;
 		int sp=(int)samplesPerSymbol/2;
 		// First half
-		double early[]=do64FFTHalfSymbolBinRequest (circBuf,pos,sp,lowBin,highBin);
+		double early[]=doRTTYHalfSymbolBinRequest(baudRate,circBuf,pos,lowBin,highBin);
 		// Last half
-		double late[]=do64FFTHalfSymbolBinRequest (circBuf,(pos+sp),sp,lowBin,highBin);
+		double late[]=doRTTYHalfSymbolBinRequest(baudRate,circBuf,(pos+sp),lowBin,highBin);
 		// Determine the symbol value
 		int high1,high2;
 		if (early[0]>early[1]) high1=0;

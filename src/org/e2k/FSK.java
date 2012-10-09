@@ -3,6 +3,8 @@ package org.e2k;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 public class FSK {
@@ -20,10 +22,12 @@ public class FSK {
 	private double highestValue;
 	public final int FFT_64_SIZE=64;
 	public final int FFT_80_SIZE=80;
+	public final int FFT_106_SIZE=106;
 	public final int FFT_160_SIZE=160;
 	private int freqBin;
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
 	private DoubleFFT_1D fft80=new DoubleFFT_1D(FFT_80_SIZE);
+	private DoubleFFT_1D fft106=new DoubleFFT_1D(FFT_106_SIZE);
 	private DoubleFFT_1D fft160=new DoubleFFT_1D(FFT_160_SIZE);
 	private double componentDC;
 	private List<Double>spectrumVals=new ArrayList<Double>();
@@ -129,6 +133,29 @@ public class FSK {
 		return freq;
 	}
 	
+	// Determines a frequency for the RTTY class
+	public int doRTTY_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start,int ss,int baud)	{
+	    // 50 baud
+	    if (baud==50)	{
+	    	// Get the data from the circular buffer
+		    double datar[]=circBuf.extractDataDouble(start,FFT_160_SIZE);
+	    	fft160.realForward(datar);
+	    	double spec[]=getSpectrum(datar);
+	    	int freq=getFFTFreq (spec,waveData.getSampleRate());  
+	    	return freq;
+	    }
+	    // 75 baud
+	    else if (baud==75)	{
+	    	// Get the data from the circular buffer
+		    double datar[]=circBuf.extractDataDouble(start,FFT_106_SIZE);
+	    	fft106.realForward(datar);
+	    	double spec[]=getSpectrum(datar);
+	    	int freq=getFFTFreq (spec,waveData.getSampleRate());  
+	    	return freq;	    	
+	    }
+	    else return 0;
+	}	
+	
 	// 64 point FFT 
 	public int do64FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
@@ -187,6 +214,52 @@ public class FSK {
 		vals[1]=spec[bin1];
 		return vals;
 		}
+	
+	
+	// Calculates the half symbol bin values for the RTTY code
+	public double[] doRTTYHalfSymbolBinRequest (int baud,CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
+		int a;
+		double vals[]=new double[2];
+		// 50 baud
+		if (baud==50)	{
+			// Get the data from the circular buffer
+			double samData[]=circBuf.extractDataDouble(start,80);
+			double datar[]=new double[FFT_160_SIZE];
+			// Run the data through a Blackman window
+			for (a=0;a<datar.length;a++)	{
+				if ((a>=40)&&(a<120)) datar[a]=samData[a-40];
+				else datar[a]=0.0;
+				datar[a]=windowBlackman(datar[a],a,datar.length);
+				}
+			fft160.realForward(datar);
+			double spec[]=getSpectrum(datar);
+			vals[0]=spec[bin0];
+			vals[1]=spec[bin1];
+			return vals;
+		}
+		// 75 baud
+		if (baud==75)	{
+			// Get the data from the circular buffer
+			double samData[]=circBuf.extractDataDouble(start,53);
+			double datar[]=new double[FFT_106_SIZE];
+			// Run the data through a Blackman window
+			for (a=0;a<datar.length;a++)	{
+				if ((a>=26)&&(a<79)) datar[a]=samData[a-26];
+				else datar[a]=0.0;
+				datar[a]=windowBlackman(datar[a],a,datar.length);
+				}
+			fft106.realForward(datar);
+			double spec[]=getSpectrum(datar);
+			vals[0]=spec[bin0];
+			vals[1]=spec[bin1];
+			return vals;
+		}
+		else	{
+			// We have a problem here !
+			JOptionPane.showMessageDialog(null,"Unsupported Baud Rate","Rivet", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+	}
 	
 	public int do80FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
