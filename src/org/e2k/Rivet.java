@@ -25,9 +25,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.util.Date;
+import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.xml.parsers.ParserConfigurationException;
@@ -570,13 +572,13 @@ public class Rivet {
 	
 	// Allows the user to set the CROWD36 high sync tone number
 	public void getCROWD36SyncHighTone ()	{
-		 //Create a panel that will contain the sync number
+		 // Create a panel that will contain the sync number
 		 JPanel panel=new JPanel();
-		 //Set JPanel layout using GridLayout
+		 // Set JPanel layout using GridLayout
 		 panel.setLayout(new GridLayout(2,1));
-		 //Create a label with text (Username)
+		 // Create a label with text (Username)
 		 JLabel label=new JLabel("High Sync Tone Number (0 to 33)");
-		//Create text field that will use to enter the high sync tone
+		// Create text field that will use to enter the high sync tone
 		 JTextField toneField=new JTextField(2);
 		 toneField.setText(Integer.toString(crowd36Handler.getSyncHighTone()));
 		 panel.add(label);
@@ -585,16 +587,89 @@ public class Rivet {
 		 // Show JOptionPane that will ask user for this information
 		 int resp=JOptionPane.showConfirmDialog(window,panel,"Enter the CROWD36 High Sync Tone Number",JOptionPane.OK_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE);
 		 if (resp==JOptionPane.OK_OPTION)	{
-		 String sval=new String (toneField.getText());
-		 crowd36Handler.setSyncHighTone(Integer.parseInt(sval));
+			 String sval=new String (toneField.getText());
+			 crowd36Handler.setSyncHighTone(Integer.parseInt(sval));
 		 }	
 	}
 	
 	// A dialog box to allow the user to set the RTTY options
 	public void setRTTYOptions()	{
-		
-		// TODO : Create a dialog box to allow the RTTY options to be set
-		
+		 // Create a panel that contains the RTTY options
+		 JPanel panel=new JPanel();
+		 // Set JPanel layout using GridLayout
+		 panel.setLayout(new GridLayout(12,1));
+		 // Baud Rate
+		 boolean baud50=false,baud75=false;
+		 JLabel labelBaud=new JLabel("Baud Rate");		
+		 if (rttyHandler.getBaudRate()==50) baud50=true;
+		 else if (rttyHandler.getBaudRate()==75) baud75=true;
+		 JRadioButton button50=new JRadioButton("50 Baud",baud50);
+		 JRadioButton button75=new JRadioButton("75 Baud",baud75);
+		 ButtonGroup baudGroup=new ButtonGroup();
+		 baudGroup.add(button50);
+		 baudGroup.add(button75);
+		 // Shift 
+		 boolean shift170=false,shift425=false,shift450=false,shift850=false;
+		 JLabel labelShift=new JLabel("Shift");		
+		 if (rttyHandler.getShift()==170) shift170=true;
+		 else if (rttyHandler.getShift()==425) shift425=true;
+		 else if (rttyHandler.getShift()==450) shift450=true;
+		 else if (rttyHandler.getShift()==850) shift850=true;
+		 JRadioButton button170=new JRadioButton("170 Hz",shift170);
+		 JRadioButton button425=new JRadioButton("425 Hz",shift425);
+		 JRadioButton button450=new JRadioButton("450 Hz",shift450);
+		 JRadioButton button850=new JRadioButton("850 Hz",shift850);
+		 ButtonGroup shiftGroup=new ButtonGroup();
+		 shiftGroup.add(button170);
+		 shiftGroup.add(button425);
+		 shiftGroup.add(button450);
+		 shiftGroup.add(button850);
+		 // Stop Bits
+		 boolean stop1=false,stop15=false,stop2=false;
+		 JLabel labelStop=new JLabel("Stop Bits");
+		 if (rttyHandler.getStopBits()==1.0) stop1=true; 
+		 else if (rttyHandler.getStopBits()==1.5) stop15=true; 
+		 else if (rttyHandler.getStopBits()==2.0) stop2=true; 
+		 JRadioButton buttons1=new JRadioButton("1 Bit",stop1);
+		 JRadioButton buttons15=new JRadioButton("1.5 Bits",stop15);
+		 JRadioButton buttons2=new JRadioButton("2 Bits",stop2);
+		 ButtonGroup stopGroup=new ButtonGroup();
+		 stopGroup.add(buttons1);
+		 stopGroup.add(buttons15);
+		 stopGroup.add(buttons2);
+		 // Add the components to the panel
+		 // Baud Rate
+		 panel.add(labelBaud);
+		 panel.add(button50);
+		 panel.add(button75);
+		 // Shift
+		 panel.add(labelShift);
+		 panel.add(button170);
+		 panel.add(button425);
+		 panel.add(button450);
+		 panel.add(button850);
+		 // Stop Bits
+		 panel.add(labelStop);
+		 panel.add(buttons1);
+		 panel.add(buttons15);
+		 panel.add(buttons2);
+		// Show JOptionPane that will ask user for this information
+		int resp=JOptionPane.showConfirmDialog(window,panel,"Baudot Options",JOptionPane.OK_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE);
+		// If the user has clicked on the OK option then change values in the RTTY object
+		if (resp==JOptionPane.OK_OPTION)	{
+			// Baud Rate
+			if (button50.isSelected()==true) rttyHandler.setBaudRate(50);
+			if (button75.isSelected()==true) rttyHandler.setBaudRate(75);
+			// Shift
+			if (button170.isSelected()==true) rttyHandler.setShift(170);
+			if (button425.isSelected()==true) rttyHandler.setShift(425);
+			if (button450.isSelected()==true) rttyHandler.setShift(450);
+			if (button850.isSelected()==true) rttyHandler.setShift(850);
+			// Stop Bits
+			if (buttons1.isSelected()==true) rttyHandler.setStopBits(1.0);
+			if (buttons15.isSelected()==true) rttyHandler.setStopBits(1.5);
+			if (buttons2.isSelected()==true) rttyHandler.setStopBits(2.0);
+		}
 	}
 
 	public boolean isInvertSignal() {
