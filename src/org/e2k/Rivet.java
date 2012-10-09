@@ -714,6 +714,9 @@ public class Rivet {
 			if (viewGWChannelMarkers==true) line="<view_gw_markers val='1'/>";
 			else line="<view_gw_markers val='0'/>";
 			xmlfile.write(line);
+			
+			// TODO : Save the RTTY options in the XML file
+			
 			// All done so close the root item //
 			line="</settings>";
 			xmlfile.write(line);
@@ -790,6 +793,7 @@ public class Rivet {
 						else viewGWChannelMarkers=false;
 					}
 					
+					// TODO : Set the RTTY options from the XML file
 					
 				}	
 				

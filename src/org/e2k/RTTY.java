@@ -326,6 +326,9 @@ public class RTTY extends FSK {
 			else v=0;
 		}
 		else	{
+			
+			// TODO : Handle 1 and 2 stop bits not just 1.5 bits
+			
 			// Test if this really could be a half bit
 			if (checkValid()==true)	{
 				// Is this a stop bit
