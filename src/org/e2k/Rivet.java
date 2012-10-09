@@ -714,9 +714,16 @@ public class Rivet {
 			if (viewGWChannelMarkers==true) line="<view_gw_markers val='1'/>";
 			else line="<view_gw_markers val='0'/>";
 			xmlfile.write(line);
-			
-			// TODO : Save the RTTY options in the XML file
-			
+			// RTTY
+			// Baud
+			line="<rttybaud val='"+Integer.toString(rttyHandler.getBaudRate())+"'/>";
+			xmlfile.write(line);
+			// Shift
+			line="<rttyshift val='"+Integer.toString(rttyHandler.getShift())+"'/>";
+			xmlfile.write(line);
+			// Stop bits
+			line="<rttystop val='"+Double.toString(rttyHandler.getStopBits())+"'/>";
+			xmlfile.write(line);			
 			// All done so close the root item //
 			line="</settings>";
 			xmlfile.write(line);
@@ -792,9 +799,13 @@ public class Rivet {
 						if (Integer.parseInt(aval)==1) viewGWChannelMarkers=true;
 						else viewGWChannelMarkers=false;
 					}
-					
-					// TODO : Set the RTTY options from the XML file
-					
+					// RTTY Options
+					// Baud rate
+					else if (qName.equals("rttybaud"))	rttyHandler.setBaudRate(Integer.parseInt(aval));
+					// Shift
+					else if (qName.equals("rttyshift"))	rttyHandler.setShift(Integer.parseInt(aval));
+					// Stop bits
+					else if (qName.equals("rttystop"))	rttyHandler.setStopBits(Double.parseDouble(aval));
 				}	
 				
 			}
