@@ -102,10 +102,16 @@ public class FSK200500 extends FSK {
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
 				int ibit=fsk200500FreqHalf(circBuf,waveData,0);
-				// TODO : Get the invert feature working with FSK200/500
 				if (theApp.isInvertSignal()==true)	{
 					if (ibit==0) ibit=1;
-					else ibit=1;
+					else if (ibit==1) ibit=0;
+				}
+				// Is the bit stream being recorded ?
+				if (theApp.isBitStreamOut()==true)	{
+					if (ibit==1) theApp.bitStreamWrite("1");
+					else if (ibit==0) theApp.bitStreamWrite("0");
+					else if (ibit==2) theApp.bitStreamWrite("2");
+					else if (ibit==3) theApp.bitStreamWrite("3");
 				}
 				// If this is a full bit add it to the character buffer
 				// If it is a half bit it signals the end of a character
