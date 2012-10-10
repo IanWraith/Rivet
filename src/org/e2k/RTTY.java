@@ -15,7 +15,8 @@ public class RTTY extends FSK {
 	private int characterCount=0;
 	private int highBin;
 	private int lowBin;
-	private boolean inChar[]=new boolean[7];
+	private boolean inChar7[]=new boolean[7];
+	private boolean inChar8[]=new boolean[8];
 	private final int MAXCHARLENGTH=80;
 	private int bcount;
 	private long missingCharCounter=0;
@@ -104,14 +105,31 @@ public class RTTY extends FSK {
 		if (state==2)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
+				boolean cend=false;
 				int ibit=rttyFreqHalf(circBuf,waveData,0);
 				if (theApp.isInvertSignal()==true)	{
 					if (ibit==0) ibit=1;
-					else ibit=1;
+					else if (ibit==1) ibit=0;
 				}
-				// If this is a full bit add it to the character buffer
-				// If it is a half bit it signals the end of a character
-				if (ibit==2)	{
+				// Is the bit stream being recorded ?
+				if (theApp.isBitStreamOut()==true)	{
+					if (ibit==1) theApp.bitStreamWrite("1");
+					else if (ibit==0) theApp.bitStreamWrite("0");
+					else if (ibit==2) theApp.bitStreamWrite("2");
+					else if (ibit==3) theApp.bitStreamWrite("3");
+				}
+				// Is this the end of a character
+				if (((stopBits==1.5)||(stopBits==2.5))&&(ibit==2))	{
+					cend=true;
+				}
+				else if (stopBits==1)	{
+					if (checkValid15()==true) cend=true;
+				}
+				else if (stopBits==2)	{
+					if (checkValid20()==true) cend=true;
+				}
+				if (bcount<7) cend=false;
+				if (cend==true)	{
 					totalCharCounter++;
 					symbolCounter=(int)samplesPerSymbol/2;
 					// If debugging display the character buffer in binary form + the number of bits since the last character and this baudot character
@@ -131,13 +149,15 @@ public class RTTY extends FSK {
 							characterCount++;
 						}
 					}
+					
+					// was !=7
 					if (bcount!=7)	{
 						missingCharCounter++;
 				        errorPercentage=((double)missingCharCounter/(double)totalCharCounter)*100.0;
 						// If more than 50% of the received characters are bad we have a serious problem
 						if (errorPercentage>50)	{
-							outLines[0]=theApp.getTimeStamp()+" RTTY Sync Lost";
-							setState(1);
+							//outLines[0]=theApp.getTimeStamp()+" RTTY Sync Lost";
+							//setState(1);
 						}
 					}
 					bcount=0;
@@ -191,7 +211,7 @@ public class RTTY extends FSK {
 		int bin2=getFreqBin();
 		// Check we have a high low
 		if (freq2>freq1) return null;
-		// Check there is around 500 Hz of difference between the tones
+		// Check there is around shift (+25 and -25 Hz) of difference between the tones
 		difference=freq1-freq2;
 		if ((difference<(shift-25))||(difference>(shift+25))) return null;
 		int freq3=rttyFreq(circBuf,waveData,(int)samplesPerSymbol*2);
@@ -220,11 +240,18 @@ public class RTTY extends FSK {
 	// Add incoming data to the character buffer
 	private void addToCharBuffer (int in)	{
 		int a;
-		for (a=1;a<inChar.length;a++)	{
-			inChar[a-1]=inChar[a];
+		// 7 bit buffer
+		for (a=1;a<inChar7.length;a++)	{
+			inChar7[a-1]=inChar7[a];
 		}
-		if (in==0) inChar[6]=false;
-		else inChar[6]=true;
+		if (in==0) inChar7[6]=false;
+		else inChar7[6]=true;
+		// 8 bit buffer
+		for (a=1;a<inChar8.length;a++)	{
+			inChar8[a-1]=inChar8[a];
+		}
+		if (in==0) inChar8[7]=false;
+		else inChar8[7]=true;
 		// Increment the bit counter
 		bcount++;
 	}
@@ -234,7 +261,7 @@ public class RTTY extends FSK {
 		StringBuilder lb=new StringBuilder();
 		int a;
 		for (a=0;a<7;a++)	{
-			if (inChar[a]==true) lb.append("1");
+			if (inChar7[a]==true) lb.append("1");
 			else lb.append("0");
 			if ((a==0)||(a==5)) lb.append(" ");
 		}
@@ -244,11 +271,22 @@ public class RTTY extends FSK {
 	// Returns the baudot character in the character buffer
 	private String getBaudotChar()	{
 		int a=0;
-		if (inChar[5]==true) a=16;
-		if (inChar[4]==true) a=a+8;
-		if (inChar[3]==true) a=a+4;
-		if (inChar[2]==true) a=a+2;
-		if (inChar[1]==true) a++;
+		// 1 or 1.5 stop bits
+		if (stopBits<2)	{
+			if (inChar7[5]==true) a=16;
+			if (inChar7[4]==true) a=a+8;
+			if (inChar7[3]==true) a=a+4;
+			if (inChar7[2]==true) a=a+2;
+			if (inChar7[1]==true) a++;
+		}
+		// 2 or 2.5 stop bits
+		else	{
+			if (inChar8[5]==true) a=16;
+			if (inChar8[4]==true) a=a+8;
+			if (inChar8[3]==true) a=a+4;
+			if (inChar8[2]==true) a=a+2;
+			if (inChar8[1]==true) a++;
+		}
 		// Look out for figures or letters shift characters
 		if (a==0)	{
 			return "";
@@ -261,13 +299,19 @@ public class RTTY extends FSK {
 			lettersMode=true;
 			return "";
 		}
-		else if (lettersMode==true) return getBAUDOT_LETTERS(a);
+		if (lettersMode==true) return getBAUDOT_LETTERS(a);
 		else return getBAUDOT_NUMBERS(a);
 	}
 	
 	// Check if this a valid Baudot character this a start and a stop
-	private boolean checkValid()	{
-		if ((inChar[0]==false)&&(inChar[6]==true)&&(bcount>=7)) return true;
+	private boolean checkValid15()	{
+		if ((inChar7[0]==false)&&(inChar7[6]==true)&&(bcount>=7)) return true;
+		else return false;
+	}
+	
+	// Look for 2 stop bits
+	private boolean checkValid20()	{
+		if ((inChar8[0]==false)&&(inChar8[6]==true)&&(inChar8[7]==true)&&(bcount>=8)) return true;
 		else return false;
 	}
 	
@@ -308,7 +352,7 @@ public class RTTY extends FSK {
 	// is to do two FFTs of the first and last halves of the symbol
 	// that allows us to use the data for the early/late gate and to detect a half bit (which is used as a stop bit)
 	private int rttyFreqHalf (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
-		int v;
+		int v=0;
 		int sp=(int)samplesPerSymbol/2;
 		// First half
 		double early[]=doRTTYHalfSymbolBinRequest(baudRate,circBuf,pos,lowBin,highBin);
@@ -326,24 +370,36 @@ public class RTTY extends FSK {
 			else v=0;
 		}
 		else	{
-			
-			// TODO : Handle 1 and 2 stop bits not just 1.5 bits
-			
-			// Test if this really could be a half bit
-			if (checkValid()==true)	{
-				// Is this a stop bit
-				if (high2>high1) v=2;
-				// No this must be a normal full bit
-				else if ((early[0]+late[0])>(early[1]+late[1])) v=1;
-				else v=0;
+			// 1.5 stop bits
+			if (stopBits==1.5)	{
+				// Test if this really could be a half bit
+				if (checkValid15()==true)	{
+					// Is this a stop bit
+					if (high2>high1) v=2;
+					else v=3;
+					// No this must be a normal full bit
+					//else if ((early[0]+late[0])>(early[1]+late[1])) v=1;
+					//else v=0;
+				}
+			}
+			// 2.5 stop bits
+			else if (stopBits==2.5)	{
+				if (checkValid20()==true)	{
+					// Is this a stop bit
+					if (high2>high1) v=2;
+					else v=3;
+					// No this must be a normal full bit
+					//else if ((early[0]+late[0])>(early[1]+late[1])) v=1;
+					//else v=0;
+				}
 			}
 			else	{
 				// If there isn't a vaid baudot character in the buffer this can't be a half bit and must be a full bit
 				if ((early[0]+late[0])>(early[1]+late[1])) v=1;
 				else v=0;
 			}
+			
 		}
-		
 		// Early/Late gate code
 		// was <2
 		if (v<2)	{

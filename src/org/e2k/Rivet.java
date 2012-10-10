@@ -46,7 +46,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 35) by Ian Wraith";
+	public String program_version="Rivet (Build 36) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -597,7 +597,7 @@ public class Rivet {
 		 // Create a panel that contains the RTTY options
 		 JPanel panel=new JPanel();
 		 // Set JPanel layout using GridLayout
-		 panel.setLayout(new GridLayout(12,1));
+		 panel.setLayout(new GridLayout(15,1));
 		 // Baud Rate
 		 boolean baud50=false,baud75=false;
 		 JLabel labelBaud=new JLabel("Baud Rate");		
@@ -609,34 +609,40 @@ public class Rivet {
 		 baudGroup.add(button50);
 		 baudGroup.add(button75);
 		 // Shift 
-		 boolean shift170=false,shift425=false,shift450=false,shift850=false;
+		 boolean shift170=false,shift425=false,shift450=false,shift500=false,shift850=false;
 		 JLabel labelShift=new JLabel("Shift");		
 		 if (rttyHandler.getShift()==170) shift170=true;
 		 else if (rttyHandler.getShift()==425) shift425=true;
 		 else if (rttyHandler.getShift()==450) shift450=true;
+		 else if (rttyHandler.getShift()==500) shift500=true;
 		 else if (rttyHandler.getShift()==850) shift850=true;
 		 JRadioButton button170=new JRadioButton("170 Hz",shift170);
 		 JRadioButton button425=new JRadioButton("425 Hz",shift425);
 		 JRadioButton button450=new JRadioButton("450 Hz",shift450);
+		 JRadioButton button500=new JRadioButton("500 Hz",shift500);
 		 JRadioButton button850=new JRadioButton("850 Hz",shift850);
 		 ButtonGroup shiftGroup=new ButtonGroup();
 		 shiftGroup.add(button170);
 		 shiftGroup.add(button425);
 		 shiftGroup.add(button450);
+		 shiftGroup.add(button500);
 		 shiftGroup.add(button850);
 		 // Stop Bits
-		 boolean stop1=false,stop15=false,stop2=false;
+		 boolean stop1=false,stop15=false,stop2=false,stop25=false;
 		 JLabel labelStop=new JLabel("Stop Bits");
 		 if (rttyHandler.getStopBits()==1.0) stop1=true; 
 		 else if (rttyHandler.getStopBits()==1.5) stop15=true; 
 		 else if (rttyHandler.getStopBits()==2.0) stop2=true; 
+		 else if (rttyHandler.getStopBits()==2.5) stop25=true; 
 		 JRadioButton buttons1=new JRadioButton("1 Bit",stop1);
 		 JRadioButton buttons15=new JRadioButton("1.5 Bits",stop15);
 		 JRadioButton buttons2=new JRadioButton("2 Bits",stop2);
+		 JRadioButton buttons25=new JRadioButton("2.5 Bits",stop25);
 		 ButtonGroup stopGroup=new ButtonGroup();
 		 stopGroup.add(buttons1);
 		 stopGroup.add(buttons15);
 		 stopGroup.add(buttons2);
+		 stopGroup.add(buttons25);
 		 // Add the components to the panel
 		 // Baud Rate
 		 panel.add(labelBaud);
@@ -647,16 +653,18 @@ public class Rivet {
 		 panel.add(button170);
 		 panel.add(button425);
 		 panel.add(button450);
+		 panel.add(button500);
 		 panel.add(button850);
 		 // Stop Bits
 		 panel.add(labelStop);
 		 panel.add(buttons1);
 		 panel.add(buttons15);
 		 panel.add(buttons2);
-		// Show JOptionPane that will ask user for this information
-		int resp=JOptionPane.showConfirmDialog(window,panel,"Baudot Options",JOptionPane.OK_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE);
-		// If the user has clicked on the OK option then change values in the RTTY object
-		if (resp==JOptionPane.OK_OPTION)	{
+		 panel.add(buttons25);
+		 // Show JOptionPane that will ask user for this information
+		 int resp=JOptionPane.showConfirmDialog(window,panel,"Baudot Options",JOptionPane.OK_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE);
+		 // If the user has clicked on the OK option then change values in the RTTY object
+		 if (resp==JOptionPane.OK_OPTION)	{
 			// Baud Rate
 			if (button50.isSelected()==true) rttyHandler.setBaudRate(50);
 			if (button75.isSelected()==true) rttyHandler.setBaudRate(75);
@@ -664,11 +672,13 @@ public class Rivet {
 			if (button170.isSelected()==true) rttyHandler.setShift(170);
 			if (button425.isSelected()==true) rttyHandler.setShift(425);
 			if (button450.isSelected()==true) rttyHandler.setShift(450);
+			if (button500.isSelected()==true) rttyHandler.setShift(500);
 			if (button850.isSelected()==true) rttyHandler.setShift(850);
 			// Stop Bits
 			if (buttons1.isSelected()==true) rttyHandler.setStopBits(1.0);
 			if (buttons15.isSelected()==true) rttyHandler.setStopBits(1.5);
 			if (buttons2.isSelected()==true) rttyHandler.setStopBits(2.0);
+			if (buttons25.isSelected()==true) rttyHandler.setStopBits(2.5);
 		}
 	}
 
