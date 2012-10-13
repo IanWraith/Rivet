@@ -597,17 +597,23 @@ public class Rivet {
 		 // Create a panel that contains the RTTY options
 		 JPanel panel=new JPanel();
 		 // Set JPanel layout using GridLayout
-		 panel.setLayout(new GridLayout(15,1));
+		 panel.setLayout(new GridLayout(17,1));
 		 // Baud Rate
-		 boolean baud50=false,baud75=false;
-		 JLabel labelBaud=new JLabel("Baud Rate");		
-		 if (rttyHandler.getBaudRate()==50) baud50=true;
+		 boolean baud45=false,baud50=false,baud75=false,baud100=false;
+		 JLabel labelBaud=new JLabel("Baud Rate");	
+		 if (rttyHandler.getBaudRate()==45.45) baud45=true;
+		 else if (rttyHandler.getBaudRate()==50) baud50=true;
 		 else if (rttyHandler.getBaudRate()==75) baud75=true;
+		 else if (rttyHandler.getBaudRate()==100) baud100=true;
+		 JRadioButton button45=new JRadioButton("45.45 Baud",baud45);
 		 JRadioButton button50=new JRadioButton("50 Baud",baud50);
 		 JRadioButton button75=new JRadioButton("75 Baud",baud75);
+		 JRadioButton button100=new JRadioButton("100 Baud",baud100);
 		 ButtonGroup baudGroup=new ButtonGroup();
+		 baudGroup.add(button45);
 		 baudGroup.add(button50);
 		 baudGroup.add(button75);
+		 baudGroup.add(button100);
 		 // Shift 
 		 boolean shift170=false,shift425=false,shift450=false,shift500=false,shift850=false;
 		 JLabel labelShift=new JLabel("Shift");		
@@ -646,8 +652,10 @@ public class Rivet {
 		 // Add the components to the panel
 		 // Baud Rate
 		 panel.add(labelBaud);
+		 panel.add(button45);
 		 panel.add(button50);
 		 panel.add(button75);
+		 panel.add(button100);
 		 // Shift
 		 panel.add(labelShift);
 		 panel.add(button170);
@@ -666,7 +674,9 @@ public class Rivet {
 		 // If the user has clicked on the OK option then change values in the RTTY object
 		 if (resp==JOptionPane.OK_OPTION)	{
 			// Baud Rate
+			if (button45.isSelected()==true) rttyHandler.setBaudRate(45.45);
 			if (button50.isSelected()==true) rttyHandler.setBaudRate(50);
+			if (button100.isSelected()==true) rttyHandler.setBaudRate(100);
 			if (button75.isSelected()==true) rttyHandler.setBaudRate(75);
 			// Shift
 			if (button170.isSelected()==true) rttyHandler.setShift(170);
@@ -726,7 +736,7 @@ public class Rivet {
 			xmlfile.write(line);
 			// RTTY
 			// Baud
-			line="<rttybaud val='"+Integer.toString(rttyHandler.getBaudRate())+"'/>";
+			line="<rttybaud val='"+Double.toString(rttyHandler.getBaudRate())+"'/>";
 			xmlfile.write(line);
 			// Shift
 			line="<rttyshift val='"+Integer.toString(rttyHandler.getShift())+"'/>";
@@ -811,7 +821,7 @@ public class Rivet {
 					}
 					// RTTY Options
 					// Baud rate
-					else if (qName.equals("rttybaud"))	rttyHandler.setBaudRate(Integer.parseInt(aval));
+					else if (qName.equals("rttybaud"))	rttyHandler.setBaudRate(Double.parseDouble(aval));
 					// Shift
 					else if (qName.equals("rttyshift"))	rttyHandler.setShift(Integer.parseInt(aval));
 					// Stop bits

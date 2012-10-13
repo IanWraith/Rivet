@@ -4,7 +4,7 @@ import javax.swing.JOptionPane;
 
 public class RTTY extends FSK {
 	
-	private int baudRate=50;
+	private double baudRate=50;
 	private int state=0;
 	private double samplesPerSymbol;
 	private Rivet theApp;
@@ -32,13 +32,13 @@ public class RTTY extends FSK {
 		samplesPerSymbol=samplesPerSymbol(baudRate,8000);
 	}
 	
-	public void setBaudRate(int br) {
+	public void setBaudRate(double br) {
 		if (br!=this.baudRate) setState(0);
 		this.baudRate=br;
 		samplesPerSymbol=samplesPerSymbol(baudRate,8000);
 	}
 
-	public int getBaudRate() {
+	public double getBaudRate() {
 		return baudRate;
 	}
 

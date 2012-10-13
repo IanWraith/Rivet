@@ -134,7 +134,7 @@ public class FSK {
 	}
 	
 	// Determines a frequency for the RTTY class
-	public int doRTTY_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start,int ss,int baud)	{
+	public int doRTTY_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start,int ss,double baud)	{
 	    // 50 baud
 	    if (baud==50)	{
 	    	// Get the data from the circular buffer
@@ -217,7 +217,7 @@ public class FSK {
 	
 	
 	// Calculates the half symbol bin values for the RTTY code
-	public double[] doRTTYHalfSymbolBinRequest (int baud,CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
+	public double[] doRTTYHalfSymbolBinRequest (double baud,CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
 		int a;
 		double vals[]=new double[2];
 		// 50 baud
