@@ -24,11 +24,13 @@ public class FSK {
 	public final int FFT_80_SIZE=80;
 	public final int FFT_106_SIZE=106;
 	public final int FFT_160_SIZE=160;
+	public final int FFT_176_SIZE=176;
 	private int freqBin;
 	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
 	private DoubleFFT_1D fft80=new DoubleFFT_1D(FFT_80_SIZE);
 	private DoubleFFT_1D fft106=new DoubleFFT_1D(FFT_106_SIZE);
 	private DoubleFFT_1D fft160=new DoubleFFT_1D(FFT_160_SIZE);
+	private DoubleFFT_1D fft176=new DoubleFFT_1D(FFT_176_SIZE);
 	private double componentDC;
 	private List<Double>spectrumVals=new ArrayList<Double>();
 	private boolean spectrumRecord=false;
@@ -135,8 +137,17 @@ public class FSK {
 	
 	// Determines a frequency for the RTTY class
 	public int doRTTY_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start,int ss,double baud)	{
+		// 45.45 baud
+	    if (baud==45.45)	{
+	    	// Get the data from the circular buffer
+		    double datar[]=circBuf.extractDataDouble(start,FFT_176_SIZE);
+	    	fft176.realForward(datar);
+	    	double spec[]=getSpectrum(datar);
+	    	int freq=getFFTFreq (spec,waveData.getSampleRate());  
+	    	return freq;
+	    }	
 	    // 50 baud
-	    if (baud==50)	{
+	    else if (baud==50)	{
 	    	// Get the data from the circular buffer
 		    double datar[]=circBuf.extractDataDouble(start,FFT_160_SIZE);
 	    	fft160.realForward(datar);
@@ -153,6 +164,8 @@ public class FSK {
 	    	int freq=getFFTFreq (spec,waveData.getSampleRate());  
 	    	return freq;	    	
 	    }
+	    // 100 baud
+	    else if (baud==100)	return (do160FFT(circBuf,waveData,start));
 	    else return 0;
 	}	
 	
@@ -196,7 +209,7 @@ public class FSK {
 		}
 	
 	// Does a 80 point FFT on 40 samples (a half symbol) then returns the values of two specific bins
-	public double[] doGWHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
+	public double[] do100baudFSKHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
 		double vals[]=new double[2];
 		// Get the data from the circular buffer
 		double samData[]=circBuf.extractDataDouble(start,40);
@@ -220,8 +233,25 @@ public class FSK {
 	public double[] doRTTYHalfSymbolBinRequest (double baud,CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
 		int a;
 		double vals[]=new double[2];
+		// 45.45 baud
+		if (baud==45.45)	{
+			// Get the data from the circular buffer
+			double samData[]=circBuf.extractDataDouble(start,88);
+			double datar[]=new double[FFT_176_SIZE];
+			// Run the data through a Blackman window
+			for (a=0;a<datar.length;a++)	{
+				if ((a>=44)&&(a<132)) datar[a]=samData[a-44];
+				else datar[a]=0.0;
+				datar[a]=windowBlackman(datar[a],a,datar.length);
+				}
+			fft176.realForward(datar);
+			double spec[]=getSpectrum(datar);
+			vals[0]=spec[bin0];
+			vals[1]=spec[bin1];
+			return vals;
+		}
 		// 50 baud
-		if (baud==50)	{
+		else if (baud==50)	{
 			// Get the data from the circular buffer
 			double samData[]=circBuf.extractDataDouble(start,80);
 			double datar[]=new double[FFT_160_SIZE];
@@ -238,7 +268,7 @@ public class FSK {
 			return vals;
 		}
 		// 75 baud
-		if (baud==75)	{
+		else if (baud==75)	{
 			// Get the data from the circular buffer
 			double samData[]=circBuf.extractDataDouble(start,53);
 			double datar[]=new double[FFT_106_SIZE];
@@ -254,6 +284,8 @@ public class FSK {
 			vals[1]=spec[bin1];
 			return vals;
 		}
+		// 100 baud
+		else if (baud==100) return (do100baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
 		else	{
 			// We have a problem here !
 			JOptionPane.showMessageDialog(null,"Unsupported Baud Rate","Rivet", JOptionPane.ERROR_MESSAGE);

@@ -698,7 +698,6 @@ public class Rivet {
 
 	public void setInvertSignal(boolean invertSignal) {
 		this.invertSignal = invertSignal;
-		window.menuItemUpdate();
 	}
 	
 	// Save the programs settings in the rivet_settings.xml file
@@ -710,6 +709,12 @@ public class Rivet {
 			xmlfile=new FileWriter("rivet_settings.xml");
 			// Start the XML file //
 			line="<?xml version='1.0' encoding='utf-8' standalone='yes'?><settings>";
+			xmlfile.write(line);
+			// Invert
+			line="<invert val='";
+			if (invertSignal==true) line=line+"TRUE";
+			else line=line+"FALSE";
+			line=line+"'/>";
 			xmlfile.write(line);
 			// Debug mode
 			line="<debug val='";
@@ -794,6 +799,11 @@ public class Rivet {
 						if (aval.equals("TRUE")) setDebug(true);
 						else setDebug(false);	
 					}
+					// Invert
+					else if (qName.equals("invert")) {
+						if (aval.equals("TRUE")) setInvertSignal(true);
+						else setInvertSignal(false);	
+					}
 					// Mode
 					else if (qName.equals("mode"))	{
 						system=Integer.parseInt(aval);
@@ -835,9 +845,6 @@ public class Rivet {
 	public void changeInvertSetting ()	{
 		if (invertSignal==true) invertSignal=false;
 		else invertSignal=true;
-		// TODO : Fix the menu not updating when the invert signal option is changed
-		// Update the menu to show this
-		//window.repaint();
 	}
 	
 	// Set the soundcard input level in the input thread

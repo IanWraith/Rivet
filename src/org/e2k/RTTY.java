@@ -151,14 +151,11 @@ public class RTTY extends FSK {
 					}
 					
 					// was !=7
-					if (bcount!=7)	{
+					// TODO : Need to improve the missing signal detector
+					if (bcount>8)	{
 						missingCharCounter++;
 				        errorPercentage=((double)missingCharCounter/(double)totalCharCounter)*100.0;
-						// If more than 50% of the received characters are bad we have a serious problem
-						if (errorPercentage>50)	{
-							//outLines[0]=theApp.getTimeStamp()+" RTTY Sync Lost";
-							//setState(1);
-						}
+						if (missingCharCounter>25) state=1;
 					}
 					bcount=0;
 				}
@@ -260,10 +257,21 @@ public class RTTY extends FSK {
 	private String getCharBuffer()	{
 		StringBuilder lb=new StringBuilder();
 		int a;
-		for (a=0;a<7;a++)	{
-			if (inChar7[a]==true) lb.append("1");
-			else lb.append("0");
-			if ((a==0)||(a==5)) lb.append(" ");
+		// 1 or 1.5 stop bits
+		if (stopBits<2)	{
+			for (a=0;a<7;a++)	{
+				if (inChar7[a]==true) lb.append("1");
+				else lb.append("0");
+				if ((a==0)||(a==5)) lb.append(" ");
+			}
+		}
+		// 2 or more stop bits
+		else	{
+			for (a=0;a<8;a++)	{
+				if (inChar8[a]==true) lb.append("1");
+				else lb.append("0");
+				if ((a==0)||(a==5)) lb.append(" ");
+			}				
 		}
 		return lb.toString();
 	}
