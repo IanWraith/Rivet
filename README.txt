@@ -60,7 +60,7 @@ Build 33 fixes an ITA3 character set bug , checks for 8 bit WAV files and enable
 Build 34 Inverts the FSK200/1000 bit demodulation and extracts the block number from a block. Also add very basic
          GW 100 baud FSK support.
 Build 35 Fixes a bug which calculated the total number of FSK200/1000 blocks in a message.
-Build 36 Adds baudot decoding and limites bitsream out lines to 80 characters.
+Build 36 Adds baudot decoding and limits bitstream out lines to 80 characters.
 
 
 Reported Bugs
