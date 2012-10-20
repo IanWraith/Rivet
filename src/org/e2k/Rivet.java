@@ -79,6 +79,7 @@ public class Rivet {
 	private boolean soundCardInputTemp;
 	private boolean bitStreamOut=false;
 	private boolean viewGWChannelMarkers=true;
+	private int bitStreamOutCount=0;
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)","Experimental","CIS 36-50","FSK200/500","CCIR493-4","FSK200/1000","GW FSK (100 Baud)","Baudot"};
     
@@ -406,6 +407,12 @@ public class Rivet {
 	// Write a string to the bit stream file
 	public boolean bitStreamWrite(String fline) {
 		try {
+			// Have only 80 bits per line
+			bitStreamOutCount++;
+			if (bitStreamOutCount==80)	{
+				fline=fline+"\n";
+				bitStreamOutCount=0;
+			}
 			bitStreamFile.write(fline);
 		} catch (Exception e) {
 			// We have a problem
@@ -877,6 +884,10 @@ public class Rivet {
 
 	public void setViewGWChannelMarkers(boolean viewGWChannelMarkers) {
 		this.viewGWChannelMarkers = viewGWChannelMarkers;
+	}
+	
+	public void clearBitStreamCountOut()	{
+		bitStreamOutCount=0;
 	}
 	
 }

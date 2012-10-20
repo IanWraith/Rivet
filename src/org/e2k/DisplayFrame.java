@@ -219,7 +219,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 					menuItemUpdate();
 					return;
 				}
-				theApp.setBitStreamOut(true);				
+				theApp.setBitStreamOut(true);	
+				theApp.clearBitStreamCountOut();
 			}
 			else	{
 				closeBitStreamFile();
