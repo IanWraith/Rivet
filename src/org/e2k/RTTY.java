@@ -1,5 +1,6 @@
 package org.e2k;
 
+import java.awt.Color;
 import javax.swing.JOptionPane;
 
 public class RTTY extends FSK {
@@ -10,22 +11,20 @@ public class RTTY extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	private StringBuilder lineBuffer=new StringBuilder();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int characterCount=0;
 	private int highBin;
 	private int lowBin;
 	private boolean inChar7[]=new boolean[7];
 	private boolean inChar8[]=new boolean[8];
-	private final int MAXCHARLENGTH=80;
+	private final int MAXCHARLENGTH=100;
 	private int bcount;
 	private long missingCharCounter=0;
-	private long totalCharCounter=0;
 	private double adjBuffer[]=new double[2];
 	private int adjCounter=0;
-	private double errorPercentage;
 	private int shift=450;
 	private double stopBits=1.5;
+	private int previousbcount=0;
 	
 	public RTTY (Rivet tapp)	{
 		theApp=tapp;
@@ -53,28 +52,27 @@ public class RTTY extends FSK {
 		return state;
 	}
 	
-	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
-		String outLines[]=new String[2];
-		
+	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nRTTY recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			setState(1);
 			// sampleCount must start negative to account for the buffer gradually filling
@@ -85,19 +83,21 @@ public class RTTY extends FSK {
 			// Clear the display side of things
 			characterCount=0;
 			lettersMode=true;
-			lineBuffer.delete(0,lineBuffer.length());
-			return null;
+			return;
 		}
 		
 		// Hunt for the sync sequence
 		if (state==1)	{
-			if (sampleCount>0) outLines[0]=syncSequenceHunt(circBuf,waveData);
-			if (outLines[0]!=null)	{
-				setState(2);
-				energyBuffer.setBufferCounter(0);
-				bcount=0;
-				totalCharCounter=0;
-				missingCharCounter=0;
+			String sRet;
+			if (sampleCount>0)	{
+				sRet=syncSequenceHunt(circBuf,waveData);
+				if (sRet!=null)	{
+					theApp.writeLine(sRet,Color.BLACK,theApp.italicFont);
+					setState(2);
+					energyBuffer.setBufferCounter(0);
+					bcount=0;
+					missingCharCounter=0;
+				}
 			}
 		}
 				
@@ -130,50 +130,56 @@ public class RTTY extends FSK {
 				}
 				if (bcount<7) cend=false;
 				if (cend==true)	{
-					totalCharCounter++;
 					symbolCounter=(int)samplesPerSymbol/2;
 					// If debugging display the character buffer in binary form + the number of bits since the last character and this baudot character
 					if (theApp.isDebug()==true)	{
-						lineBuffer.append(getCharBuffer()+" ("+Integer.toString(bcount)+")  "+getBaudotChar());
-						characterCount=MAXCHARLENGTH;
+						theApp.writeLine((getCharBuffer()+" ("+Integer.toString(bcount)+")  "+getBaudotChar()),Color.BLACK,theApp.italicFont);
 					}
 					else	{
 						// Display the character in the standard way
 						String ch=getBaudotChar();
 						// LF
-						if (ch.equals(getBAUDOT_LETTERS(2))) characterCount=MAXCHARLENGTH;
+						if (ch.equals(getBAUDOT_LETTERS(2)))	{
+							characterCount=0;
+							theApp.newLineWrite(); 
+						}
 						// CR
-						else if (ch.equals(getBAUDOT_LETTERS(8))) characterCount=MAXCHARLENGTH;
+						else if (ch.equals(getBAUDOT_LETTERS(8)))	{
+							characterCount=0;
+							theApp.newLineWrite(); 
+						}
 						else	{
-							lineBuffer.append(ch);
+							theApp.writeChar(ch,Color.BLACK,theApp.boldFont);
 							characterCount++;
 						}
 					}
-					
-					// was !=7
-					// TODO : Need to improve the missing signal detector
+					// If more than 8 bits have gone still no character we have a problem
 					if (bcount>8)	{
 						missingCharCounter++;
-				        errorPercentage=((double)missingCharCounter/(double)totalCharCounter)*100.0;
-						if (missingCharCounter>25) state=1;
+						// If more than 10 characters are missing we have a serious problem so reset
+						if (missingCharCounter>10) state=1;
 					}
+					// If this character and the last character arrived on time clear the mising char counter
+					if ((bcount<9)&&(previousbcount<9)) missingCharCounter=0;
+					// Store this bcount before it is cleared
+					previousbcount=bcount;
+				    // Clear the bit counter
 					bcount=0;
 				}
 				else	{
 					addToCharBuffer(ibit);
 					symbolCounter=adjAdjust();
 				}
-				// If the character count has reached MAXCHARLENGTH then display this line
+				// If the character count has reached MAXCHARLENGTH then display this line and write a newline to the screen
 				if (characterCount>=MAXCHARLENGTH)	{
-					outLines[0]=lineBuffer.toString();
-					lineBuffer.delete(0,lineBuffer.length());
 					characterCount=0;
+					theApp.newLineWrite();
 				}
 			}
 		}
 		sampleCount++;
 		symbolCounter++;
-		return outLines;				
+		return;				
 	}
 
 	public int getShift() {
@@ -350,11 +356,6 @@ public class RTTY extends FSK {
 		return (int)r;
 	}	
 
-	// Return a quality indicator
-	public String getQuailty()	{
-		String line="Missing characters made up "+String.format("%.2f",errorPercentage)+"% of this message ("+Long.toString(missingCharCounter)+" characters missing)";
-		return line;
-	}
 	
 	// The "normal" way of determining the frequency of a RTTY symbol
 	// is to do two FFTs of the first and last halves of the symbol
