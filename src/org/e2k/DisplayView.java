@@ -25,7 +25,7 @@ public class DisplayView extends JComponent implements Observer {
 	
 	public static final long serialVersionUID=1;
 	private static final int DISPLAYCOUNT=130;
-	private String display_string[]=new String[DISPLAYCOUNT];
+	private String displayString[]=new String[DISPLAYCOUNT];
 	private Color displayColour[]=new Color[DISPLAYCOUNT];
 	private Font displayFont[]=new Font[DISPLAYCOUNT];
 	private int displayCounter=0;
@@ -49,10 +49,10 @@ public class DisplayView extends JComponent implements Observer {
 		// that point onwards
 		while(count<DISPLAYCOUNT)	{
 			// Only display info if something is stored in the display string
-			if (display_string[i]!=null)	{
+			if (displayString[i]!=null)	{
 				g.setColor(displayColour[i]);
 				g.setFont(displayFont[i]);
-				g2D.drawString(display_string[i],(5-theApp.horizontal_scrollbar_value),(pos-theApp.vertical_scrollbar_value));	
+				g2D.drawString(displayString[i].toString(),(5-theApp.horizontal_scrollbar_value),(pos-theApp.vertical_scrollbar_value));	
 				pos=pos+20;
 			}	
 			i++;
@@ -62,8 +62,8 @@ public class DisplayView extends JComponent implements Observer {
 	}
 	
 	// Add a line to the display circular buffer //
-	public void add_line (String line,Color tcol,Font tfont) {
-		display_string[displayCounter]=line;
+	public void addLine (String line,Color tcol,Font tfont) {		
+		displayString[displayCounter]=line;
 		displayColour[displayCounter]=tcol;
 		displayFont[displayCounter]=tfont;
 		// Increment the circular buffer
@@ -78,8 +78,8 @@ public class DisplayView extends JComponent implements Observer {
 		StringBuilder buffer=new StringBuilder();
 		int i=displayCounter,count=0;
 		while(count<DISPLAYCOUNT)	{
-			if (display_string[i]!=null)	{
-				buffer.append(display_string[i]);
+			if (displayString[i]!=null)	{
+				buffer.append(displayString[i]);
 				buffer.append("\n");
 			}	
 			i++;
@@ -88,5 +88,27 @@ public class DisplayView extends JComponent implements Observer {
 		}
 		return buffer.toString();
 	}
+	
+	// Adds a single character to the current line
+	public void addChar (String ch,Color col,Font font)	{
+		if (displayString[displayCounter]==null) displayString[displayCounter]="";
+		StringBuilder sb=new StringBuilder(displayString[displayCounter]);
+        sb.append(ch);
+		displayColour[displayCounter]=col;
+		displayFont[displayCounter]=font;
+		displayString[displayCounter]=sb.toString();
+		repaint();
+	}
+	
+	// Newline
+	public void newLine ()	{
+		// Increment the circular buffer
+		displayCounter++;
+		// Check it hasn't reached its maximum size
+		if (displayCounter==DISPLAYCOUNT) displayCounter=0;
+		displayString[displayCounter]="";
+		repaint();
+	}
+	
 
 }

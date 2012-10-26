@@ -46,7 +46,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 36) by Ian Wraith";
+	public String program_version="Rivet (Build 37) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -214,7 +214,7 @@ public class Rivet {
 	public void loadWAVfile(String fileName)	{
 		String disp;
 		disp=getTimeStamp()+" Loading file "+fileName;
-		addLine(disp,Color.BLACK,plainFont);
+		writeLine(disp,Color.BLACK,italicFont);
 		waveData=inputThread.startFileLoad(fileName);
 		// Make sure the program knows this data is coming from a file
 		waveData.setFromFile(true);
@@ -263,23 +263,23 @@ public class Rivet {
 				}
 				// Check if there is anything left to display
 				if (system==0)	{
-					if (crowd36Handler.getLineCount()>0) addLine(crowd36Handler.getLineBuffer(),Color.BLACK,plainFont);
-					addLine(crowd36Handler.lowHighFreqs(),Color.BLACK,plainFont);
-					addLine(crowd36Handler.toneResults(),Color.BLACK,plainFont);
+					if (crowd36Handler.getLineCount()>0) writeLine(crowd36Handler.getLineBuffer(),Color.BLACK,plainFont);
+					writeLine(crowd36Handler.lowHighFreqs(),Color.BLACK,plainFont);
+					writeLine(crowd36Handler.toneResults(),Color.BLACK,plainFont);
 				}
 				else if (system==5)	{
-					addLine(cis3650Handler.lineBuffer.toString(),Color.BLACK,plainFont);
+					writeLine(cis3650Handler.lineBuffer.toString(),Color.BLACK,plainFont);
 				}
 				else if (system==6)	{
-					addLine(fsk200500Handler.getQuailty(),Color.BLACK,plainFont);
+					writeLine(fsk200500Handler.getQuailty(),Color.BLACK,plainFont);
 				}
 				else if (system==8)	{
-					addLine(fsk2001000Handler.getQuailty(),Color.BLACK,plainFont);
+					writeLine(fsk2001000Handler.getQuailty(),Color.BLACK,plainFont);
 				}
 				
 				// Once the buffer data has been read we are done
 				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
-				addLine(disp,Color.BLACK,plainFont);		
+				writeLine(disp,Color.BLACK,italicFont);		
 				wavFileLoadOngoing=false;
 				}
 			}
@@ -310,33 +310,24 @@ public class Rivet {
 	// A central data processing class
 	private void processData ()	{		
 		try	{
-			int a;
-			String outLines[]=new String[2];
 			// CROWD36
-			if (system==0) outLines=crowd36Handler.decode(circBuffer,waveData);
+			if (system==0) crowd36Handler.decode(circBuffer,waveData);
 			// XPA
-			else if ((system==1)||(system==3)) outLines=xpaHandler.decode(circBuffer,waveData);
+			else if ((system==1)||(system==3)) xpaHandler.decode(circBuffer,waveData);
 			// XPA2
-			else if (system==2)	outLines=xpa2Handler.decode(circBuffer,waveData);
+			else if (system==2)	xpa2Handler.decode(circBuffer,waveData);
 			// Experimental
-			else if (system==5)	outLines=cis3650Handler.decode(circBuffer,waveData);
+			else if (system==5)	cis3650Handler.decode(circBuffer,waveData);
 			// FSK200/500
-			else if (system==6)	outLines=fsk200500Handler.decode(circBuffer,waveData);
+			else if (system==6)	fsk200500Handler.decode(circBuffer,waveData);
 			// CCIR493-4
-			else if (system==7)	outLines=ccir493Handler.decode(circBuffer,waveData);
+			else if (system==7)	ccir493Handler.decode(circBuffer,waveData);
 			// FSK200/1000
-			else if (system==8)	outLines=fsk2001000Handler.decode(circBuffer,waveData);
+			else if (system==8)	fsk2001000Handler.decode(circBuffer,waveData);
 			// GW
-			else if (system==9) outLines=gwHandler.decode(circBuffer,waveData);
+			else if (system==9) gwHandler.decode(circBuffer,waveData);
 			// RTTY
-			else if (system==10) outLines=rttyHandler.decode(circBuffer,waveData);
-			// Return if nothing at all has been returned
-			if (outLines==null) return;
-			// Display the decode objects output
-			for (a=0;a<outLines.length;a++)	{
-				// If there is a line to display then show it
-				if (outLines[a]!=null)	addLine(outLines[a],Color.BLACK,plainFont);
-			}
+			else if (system==10) rttyHandler.decode(circBuffer,waveData);
 		}
 		catch (Exception e){
 			StringWriter sw=new StringWriter();
@@ -389,11 +380,10 @@ public class Rivet {
 	}
 	
 	// Write to a string to the logging file
-	public boolean fileWrite(String fline) {
-		// Add a CR to the end of each line
-		fline=fline+"\r\n";
+	public boolean fileWriteLine(String fline) {
 		try {
 			file.write(fline);
+			file.write("\r\n");
 			file.flush();
 		} catch (Exception e) {
 			// Stop logging as we have a problem
@@ -404,6 +394,31 @@ public class Rivet {
 		return true;
 	}
 	
+	// Write a line char to the logging file
+	public boolean fileWriteChar(String ch) {
+		try {
+			file.write(ch);
+		} catch (Exception e) {
+			// Stop logging as we have a problem
+			logging=false;
+			JOptionPane.showMessageDialog(null,"Error writing to the log file.\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		return true;
+	}	
+	
+	// Write a newline to the logging file
+	public boolean fileWriteNewline() {
+		try {
+			file.write("\r\n");
+		} catch (Exception e) {
+			// Stop logging as we have a problem
+			logging=false;
+			JOptionPane.showMessageDialog(null,"Error writing to the log file.\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		return true;
+	}	
 	// Write a string to the bit stream file
 	public boolean bitStreamWrite(String fline) {
 		try {
@@ -423,11 +438,6 @@ public class Rivet {
 		return true;
 	}	
 	
-	// Adds a line to the display
-	public void addLine(String line,Color col,Font font) {
-		if (logging==true) fileWrite(line);
-		display_view.add_line(line,col,font);
-	}
 
 	public boolean isDebug() {
 		return debug;
@@ -888,6 +898,24 @@ public class Rivet {
 	
 	public void clearBitStreamCountOut()	{
 		bitStreamOutCount=0;
+	}
+	
+	// Adds a line to the display
+	public void writeLine(String line,Color col,Font font) {
+		if (logging==true) fileWriteLine(line);
+		display_view.addLine(line,col,font);
+	}
+	
+	// Adds a single char to the current line on the display
+	public void writeChar (String ct,Color col,Font font)	{
+		display_view.addChar(ct,col,font);
+		if (logging==true) fileWriteChar(ct);
+	}
+	
+	// Writes a new line to the screen
+	public void newLineWrite()	{
+		display_view.newLine();
+		if (logging==true) fileWriteNewline();
 	}
 	
 }
