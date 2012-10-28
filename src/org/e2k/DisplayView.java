@@ -40,8 +40,10 @@ public class DisplayView extends JComponent implements Observer {
 			
 	// Draw the main screen //
 	public void paint (Graphics g) {
-		int count=0,pos=20,i;
-		i=displayCounter;
+		// Oldest line first
+		int count=0,pos=20,i=displayCounter+1;
+		// Check it hasn't reached its maximum size
+		if (i>=DISPLAYCOUNT) i=0;
 		Graphics2D g2D=(Graphics2D)g;	
 		// Draw in the lines on the screen
 		// taking account of the fact that the data is stored in a circular buffer
@@ -56,9 +58,9 @@ public class DisplayView extends JComponent implements Observer {
 				pos=pos+20;
 			}	
 			i++;
-			if (i>=DISPLAYCOUNT) i=0;
+			if (i==DISPLAYCOUNT) i=0;
 			count++;
-		}
+		}	
 	}
 	
 	// Add a line to the display circular buffer //
@@ -76,7 +78,9 @@ public class DisplayView extends JComponent implements Observer {
 	// Gets all the text on the screen and returns it as a string
 	public String getText()	{
 		StringBuilder buffer=new StringBuilder();
-		int i=displayCounter,count=0;
+		int i=displayCounter+1,count=0;
+		// Check it hasn't reached its maximum size
+		if (i>=DISPLAYCOUNT) i=0;
 		while(count<DISPLAYCOUNT)	{
 			if (displayString[i]!=null)	{
 				buffer.append(displayString[i]);
