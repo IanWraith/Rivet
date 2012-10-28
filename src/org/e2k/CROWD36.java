@@ -200,9 +200,7 @@ public class CROWD36 extends MFSK {
 		final String C36A[]={"Q" , "X" , "W" , "V" , "E" , "K" , " " , "B" , "R" , "J" , "<*10>" , "G" , "T" ,"F" , "<fs>" , "M" , "Y" , "C" , "cr" , "Z" , "U" , "L" , "<*22>" , "D" , "I" , "H" , "<ls>" , "S" , "O" , "N" , "<*30>" , "A" , "P" , "<*33>"};
 		final String F36A[]={"1" , "\u0429" , "2" , "=" , "3" , "(" , " " , "?" , "4" , "\u042e" , "<*10>" , "8" , "5" ,"\u042d" , "<fs>" , "." , "6" , ":" , "cr" , "+" , "7" , ")" , "<*22>" , " " , "8" , "\u0449" , "<ls>" , ""  , "9" , "," , "<*30>" , "-"  , "0" , "<*33>"};
 		
-		
-		final String CRY36[]={"\u042f","\u044a","\u0412","\u04c1","\u0415","\u041a"," ","\u0411","\u0420","\u0419","<*10>","\u0490","\u0422","\u0424","<fs>","\u043c","\u042b","\u0426","cr","\u0417","\u0423",
-							  "\u043b","<*22>","\u0414","\u0418","\u0425","ls","\u0421","\u041e","\041d","<*30>","\u0410","\u041f","<*33>"};
+		//final String CRY36[]={"\u042f","\u044a","\u0412","\u04c1","\u0415","\u041a"," ","\u0411","\u0420","\u0419","<*10>","\u0490","\u0422","\u0424","<fs>","\u043c","\u042b","\u0426","cr","\u0417","\u0423","\u043b","<*22>","\u0414","\u0418","\u0425","ls","\u0421","\u041e","\041d","<*30>","\u0410","\u041f","<*33>"};
 		
 		//if (tone==16) figureShift=true;
 		//else if (tone==28) figureShift=false;
@@ -260,7 +258,7 @@ public class CROWD36 extends MFSK {
 	
 	// Hunt for known CROWD 36 tones
 	private String syncToneHunt (CircularDataBuffer circBuf,WaveData waveData)	{
-			int difference,sHigh;
+			int difference;
 			// Get 4 symbols
 			int freq1=crowd36Freq(circBuf,waveData,0);
 			// Check this first tone isn't just noise
