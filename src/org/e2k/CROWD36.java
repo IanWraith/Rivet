@@ -47,6 +47,8 @@ public class CROWD36 extends MFSK {
 		return state;
 	}
 	
+	// TODO : Fix the CROWD36 display code so it works on a character by character basis
+	
 	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		String outLines[]=new String[2];
 		

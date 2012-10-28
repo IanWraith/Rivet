@@ -40,6 +40,8 @@ public class CCIR493 extends FSK {
 		theApp=tapp;
 	}
 	
+	// TODO : Fix the CCIR493 display code so it works on a character by character basis
+	
 	// The main decode routine
 	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		String outLines[]=new String[3];

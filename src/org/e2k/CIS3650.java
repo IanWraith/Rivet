@@ -39,6 +39,8 @@ public class CIS3650 extends FSK {
 		theApp=tapp;
 	}
 	
+	// TODO : Fix the CIS36-50 display code so it works on a character by character basis
+	
 	// The main decode routine
 	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		String outLines[]=new String[3];

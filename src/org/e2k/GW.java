@@ -25,6 +25,8 @@ public class GW extends FSK {
 		dataBitSet.setTotalLength(152);
 	}
 	
+	// TODO : Fix the GW display code so it works on a character by character basis
+	
 	// The main decode routine
 	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		String outLines[]=new String[3];

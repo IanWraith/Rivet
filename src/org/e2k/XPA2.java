@@ -30,6 +30,8 @@ public class XPA2 extends MFSK {
 		return state;
 	}
 	
+	// TODO : Fix the XPA2 display code so it works on a character by character basis
+	
 	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		String outLines[]=new String[2];
 				

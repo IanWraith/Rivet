@@ -48,6 +48,8 @@ public class FSK200500 extends FSK {
 		return state;
 	}
 	
+	// TODO : Fix the FSK200/500 display code so it works on a character by character basis
+	
 	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		String outLines[]=new String[2];
 		
