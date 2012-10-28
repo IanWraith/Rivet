@@ -460,8 +460,8 @@ public class Rivet {
 			this.soundCardInput=false;
 		}
 		else	{
-			// CROWD36
-			if (system==0)	{
+			// CROWD36 , XPA , XPA2 , CIS36-50 , FSK200/500 , FSK200/1000 , CCIR493-4 , GW , RTTY
+			if ((system==0)||(system==1)||(system==2)||(system==3)||(system==5)||(system==6)||(system==8)||(system==7)||(system==9)||(system==10))	{
 				WaveData waveSetting=new WaveData();
 				waveSetting.setChannels(1);
 				waveSetting.setEndian(true);
@@ -473,84 +473,6 @@ public class Rivet {
 				waveData=waveSetting;
 				this.soundCardInput=true;	
 			}
-			// XPA or XPA2
-			else if ((system==1)||(system==2)||(system==3))	{
-				WaveData waveSetting=new WaveData();
-				waveSetting.setChannels(1);
-				waveSetting.setEndian(true);
-				waveSetting.setSampleSizeInBits(16);
-				waveSetting.setFromFile(false);
-				waveSetting.setSampleRate(11025.0);
-				waveSetting.setBytesPerFrame(2);
-				inputThread.setupAudio(waveSetting); 
-				waveData=waveSetting;
-				this.soundCardInput=true;	
-			}	
-			// CIS36-50
-			else if (system==5)	{
-				WaveData waveSetting=new WaveData();
-				waveSetting.setChannels(1);
-				waveSetting.setEndian(true);
-				waveSetting.setSampleSizeInBits(16);
-				waveSetting.setFromFile(false);
-				waveSetting.setSampleRate(8000.0);
-				waveSetting.setBytesPerFrame(2);
-				inputThread.setupAudio(waveSetting); 
-				waveData=waveSetting;
-				this.soundCardInput=true;	
-			}	
-			// FSK200/500 + FSK200/1000
-			else if ((system==6)||(system==8))	{
-				WaveData waveSetting=new WaveData();
-				waveSetting.setChannels(1);
-				waveSetting.setEndian(true);
-				waveSetting.setSampleSizeInBits(16);
-				waveSetting.setFromFile(false);
-				waveSetting.setSampleRate(8000.0);
-				waveSetting.setBytesPerFrame(2);
-				inputThread.setupAudio(waveSetting); 
-				waveData=waveSetting;
-				this.soundCardInput=true;	
-			}	
-			// CCIR493-4
-			else if (system==7)	{
-				WaveData waveSetting=new WaveData();
-				waveSetting.setChannels(1);
-				waveSetting.setEndian(true);
-				waveSetting.setSampleSizeInBits(16);
-				waveSetting.setFromFile(false);
-				waveSetting.setSampleRate(8000.0);
-				waveSetting.setBytesPerFrame(2);
-				inputThread.setupAudio(waveSetting); 
-				waveData=waveSetting;
-				this.soundCardInput=true;	
-			}	
-			// GW
-			else if (system==9)	{
-				WaveData waveSetting=new WaveData();
-				waveSetting.setChannels(1);
-				waveSetting.setEndian(true);
-				waveSetting.setSampleSizeInBits(16);
-				waveSetting.setFromFile(false);
-				waveSetting.setSampleRate(8000.0);
-				waveSetting.setBytesPerFrame(2);
-				inputThread.setupAudio(waveSetting); 
-				waveData=waveSetting;
-				this.soundCardInput=true;	
-			}	
-			// RTTY
-			else if (system==10)	{
-				WaveData waveSetting=new WaveData();
-				waveSetting.setChannels(1);
-				waveSetting.setEndian(true);
-				waveSetting.setSampleSizeInBits(16);
-				waveSetting.setFromFile(false);
-				waveSetting.setSampleRate(8000.0);
-				waveSetting.setBytesPerFrame(2);
-				inputThread.setupAudio(waveSetting); 
-				waveData=waveSetting;
-				this.soundCardInput=true;	
-			}				
 			
 		}
 	}
