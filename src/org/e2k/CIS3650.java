@@ -1,5 +1,7 @@
 package org.e2k;
 
+import java.awt.Color;
+
 import javax.swing.JOptionPane;
 
 // From info received (which I'm very grateful for) it appears CIS36-50 (BEE) messages have the following format
@@ -16,7 +18,6 @@ public class CIS3650 extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	public StringBuilder lineBuffer=new StringBuilder();
 	private int highTone;
 	private int lowTone;
 	private int syncState;
@@ -39,49 +40,45 @@ public class CIS3650 extends FSK {
 		theApp=tapp;
 	}
 	
-	// TODO : Fix the CIS36-50 display code so it works on a character by character basis
-	
 	// The main decode routine
-	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
-		String outLines[]=new String[3];
-		
+	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+		// Initial startup
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nCIS 36-50 recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			samplesPerSymbol50=samplesPerSymbol(50.0,waveData.getSampleRate());
 			setState(1);
-			lineBuffer.delete(0,lineBuffer.length());
 			syncState=0;
 			buffer7=0;
 			buffer21=0;
 			characterCount=0;
-			return null;
+			return;
 		}
 		
 		
 		// Look for a 36 baud or a 50 baud alternating sequence
 		else if (state==1)	{
 			sampleCount++;
-			if (sampleCount<0) return null;
+			if (sampleCount<0) return;
 			// Look for a 50 baud alternating sync sequence
 			if (detect50Sync(circBuf,waveData)==true)	{
 				totalErrorCount=0;
@@ -90,7 +87,7 @@ public class CIS3650 extends FSK {
 				setState(2);
 				buffer7=0;
 				b7Count=0;
-				return outLines;
+				return;
 			}
 		}
 		
@@ -106,13 +103,19 @@ public class CIS3650 extends FSK {
 					// Look for 101 (5) or 010 (2)
 					if ((buffer7==5)||(buffer7==2))	{
 						setState(3);
-						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found : lowBin="+Integer.toString(lowBin)+" highBin="+Integer.toString(highBin);
+						if (theApp.isDebug()==true)	{
+							String dout=theApp.getTimeStamp()+" CIS 36-50 50 baud sync sequence found : lowBin="+Integer.toString(lowBin)+" highBin="+Integer.toString(highBin);
+							theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
+						}
 						b7Count=0;
 						countSinceSync=0;
 						clearStartBuffer();
 					}	
 					else	{
-						if (theApp.isDebug()==true)  outLines[0]=theApp.getTimeStamp()+" Unable to obtain CIS 36-50 50 baud alternating sequence";
+						if (theApp.isDebug()==true) 	{
+							String dout=theApp.getTimeStamp()+" Unable to obtain CIS 36-50 50 baud alternating sequence";
+							theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
+						}
 						state=1;
 					}
 				}
@@ -135,7 +138,10 @@ public class CIS3650 extends FSK {
 					// If no sync work has been found in 250 bits then go back to hunting
 					if (countSinceSync>=250)	{
 						setState(1);
-						if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
+						if (theApp.isDebug()==true)	{
+							String dout=theApp.getTimeStamp()+" CIS 36-50 50 baud sync timeout";
+							theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
+						}
 					}
 				}
 				if (theApp.isDebug()==false)	{
@@ -145,10 +151,12 @@ public class CIS3650 extends FSK {
 						if (checkStartBuffer()==true)	{
 							syncState=2;
 							setState(state);
-							outLines[0]=theApp.getTimeStamp()+" Message Start";
-							long header=extractSyncAsLong();
-							outLines[1]="Sync 0x"+Long.toHexString(header);
-							outLines[2]=extractSessionKey();
+							String d1=theApp.getTimeStamp()+" Message Start";
+							theApp.writeLine(d1,Color.BLACK,theApp.boldFont);
+							String d2="Sync 0x"+Long.toHexString(extractSyncAsLong());
+							theApp.writeLine(d2,Color.BLACK,theApp.boldFont);
+							String d3=extractSessionKey();
+							theApp.writeLine(d3,Color.BLACK,theApp.boldFont);
 							buffer21=0;
 							buffer7=0;
 							startCount=0;			
@@ -163,8 +171,6 @@ public class CIS3650 extends FSK {
 						startCount++;
 						// Look for the end of message sequence
 						if (buffer21==0x1DFBF7)	{
-							outLines[0]=lineBuffer.toString();
-							lineBuffer.delete(0,lineBuffer.length());
 							characterCount=0;
 							syncState=4;
 						}
@@ -172,17 +178,15 @@ public class CIS3650 extends FSK {
 						if (startCount==7)	{
 							if (checkITA3Char(buffer7)==true)	{
 								int c=retITA3Val(buffer7);
-								lineBuffer.append(ITA3LETS[c]);
+								theApp.writeChar(ITA3LETS[c],Color.BLACK,theApp.boldFont);
 							}
 							else	{
 								// Display 0x77 characters as signalling the end of a message
 								if (buffer7==0x77)	{
-									lineBuffer.append("<EOM>");
+									theApp.writeChar("<EOM>",Color.BLACK,theApp.boldFont);
 								}
 								else	{
-									lineBuffer.append("<ERROR ");
-									lineBuffer.append(Integer.toString(buffer7));
-									lineBuffer.append("> ");
+									theApp.writeChar(("<ERROR "+Integer.toString(buffer7)+"> "),Color.BLACK,theApp.boldFont);
 									totalErrorCount++;
 								}
 							}
@@ -196,14 +200,14 @@ public class CIS3650 extends FSK {
 						} 
 						// Display 50 characters on a line
 						if (characterCount==50)	{
-							outLines[0]=lineBuffer.toString();
-							lineBuffer.delete(0,lineBuffer.length());
+							theApp.newLineWrite();
 							characterCount=0;
 						}
 					}
 					// The message must have ended
 					else if (syncState==4)	{
-						outLines[0]="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message "+Integer.toString(totalErrorCount)+" of these contained errors)";
+						String dout="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message "+Integer.toString(totalErrorCount)+" of these contained errors)";
+						theApp.writeLine(dout,Color.BLACK,theApp.boldFont);
 						countSinceSync=0;
 						syncState=1;
 						clearStartBuffer();
@@ -212,11 +216,11 @@ public class CIS3650 extends FSK {
 				}
 				else	{
 					// Debug mode so just display raw binary
-					if (bit==true)	lineBuffer.append("1");
-					else lineBuffer.append("0");
-					if (characterCount==60)	{
-						outLines[0]=lineBuffer.toString();
-						lineBuffer.delete(0,lineBuffer.length());
+					if (bit==true)	theApp.writeChar("1",Color.BLACK,theApp.boldFont);
+					else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
+					// 100 binary characters per line
+					if (characterCount==100)	{
+						theApp.newLineWrite();
 						characterCount=0;
 					}
 					else characterCount++;
@@ -225,7 +229,7 @@ public class CIS3650 extends FSK {
 		}
 		sampleCount++;
 		symbolCounter++;
-		return outLines;
+		return;
 	}
 	
 	// Set the decoder state and update the status label
