@@ -263,12 +263,12 @@ public class Rivet {
 				}
 				// Check if there is anything left to display
 				if (system==0)	{
-					if (crowd36Handler.getLineCount()>0) writeLine(crowd36Handler.getLineBuffer(),Color.BLACK,plainFont);
+					//if (crowd36Handler.getLineCount()>0) writeLine(crowd36Handler.getLineBuffer(),Color.BLACK,plainFont);
 					writeLine(crowd36Handler.lowHighFreqs(),Color.BLACK,plainFont);
 					writeLine(crowd36Handler.toneResults(),Color.BLACK,plainFont);
 				}
 				else if (system==5)	{
-					writeLine(cis3650Handler.lineBuffer.toString(),Color.BLACK,plainFont);
+					//writeLine(cis3650Handler.lineBuffer.toString(),Color.BLACK,plainFont);
 				}
 				else if (system==6)	{
 					writeLine(fsk200500Handler.getQuailty(),Color.BLACK,plainFont);
