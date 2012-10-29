@@ -13,6 +13,8 @@
 
 package org.e2k;
 
+import java.awt.Color;
+
 import javax.swing.JOptionPane;
 
 public class XPA extends MFSK {
@@ -52,30 +54,27 @@ public class XPA extends MFSK {
 		return state;
 	}
 	
-	// TODO : Fix the XPA display code so it works on a character by character basis
-	
-	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
-		String outLines[]=new String[2];
-				
+	// The main decode routine
+	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()>11025)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nXPA recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
@@ -88,16 +87,19 @@ public class XPA extends MFSK {
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
 			theApp.setStatusLabel("Start Tone Hunt");
-			return null;
+			return;
 		}
 		// Hunting for a start tone
 		if (state==1)	{
-			if (sampleCount>=0) outLines[0]=startToneHunt(circBuf,waveData);
-			if (outLines[0]!=null)	{
+			String dout;
+			if (sampleCount>=0) dout=startToneHunt(circBuf,waveData);
+			else dout=null;
+			if (dout!=null)	{
 				// Have start tone
 				state=2;
 				theApp.setStatusLabel("Sync Hunt");
-				return outLines;
+				theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
+				return;
 			}
 		}
 		// Look for a sync high (1120 Hz) 
@@ -109,7 +111,7 @@ public class XPA extends MFSK {
 			if (toneTest(sfft1,1120,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
-				return null;
+				return;
 			}
 			// If that passes to a proper long FFT to ensure the tone is really there
 			int lfft=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
@@ -117,15 +119,15 @@ public class XPA extends MFSK {
 			if (toneTest(lfft,1120,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
-				return null;
+				return;
 			}
 			// Now set the symbol timing
 			state=3;
 			// Remember this value as it is the start of the energy values
 			syncFoundPoint=sampleCount;
 			theApp.setStatusLabel("Sync Found");
-			outLines[0]=theApp.getTimeStamp()+" High sync tone found";
-			return outLines;
+			theApp.writeLine((theApp.getTimeStamp()+" High sync tone found"),Color.BLACK,theApp.italicFont);
+			return;
 		}
 		
 		// Set the symbol timing
@@ -135,15 +137,15 @@ public class XPA extends MFSK {
 			sampleCount++;
 			symbolCounter++;
 			// Gather 3 symbols worth of energy values
-			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*3)) return null;
+			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*3)) return;
 			// Now find the highest energy value
 			long perfectPoint=energyBuffer.returnHighestBin()+syncFoundPoint;
 			// Calculate what the value of the symbol counter should be
 			symbolCounter=symbolCounter-perfectPoint;
 			state=4;
 			theApp.setStatusLabel("Symbol Timing Achieved");
-			outLines[0]=theApp.getTimeStamp()+" Symbol timing found";
-			return outLines;
+			theApp.writeLine((theApp.getTimeStamp()+" Symbol timing found"),Color.BLACK,theApp.italicFont);
+			return;
 		}
 		
 		// Get valid data
@@ -153,13 +155,13 @@ public class XPA extends MFSK {
 				symbolCounter=0;				
 				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
 				freq=freq+longCorrectionFactor;
-				outLines=displayMessage(freq,waveData.isFromFile());
+				displayMessage(freq,waveData.isFromFile());
 			}
 		}
 		
 		sampleCount++;
 		symbolCounter++;
-		return outLines;
+		return;
 	}
 	
 	// Hunt for an XPA start tone
@@ -223,36 +225,35 @@ public class XPA extends MFSK {
 	    else return ("UNID");
 	  }
 	
-	private String[] displayMessage (int freq,boolean isFile)	{
+	private void displayMessage (int freq,boolean isFile)	{
 		String tChar=getChar(freq,previousCharacter);
-		String outLines[]=new String[2];
 		int tlength=0,llength=0;
 		// If we get two End Tones in a row then stop decoding
 		if ((tChar=="R")&&(previousCharacter=="End Tone")) {
-			outLines[0]=theApp.getTimeStamp()+" XPA Decode Complete";
+			theApp.writeLine((theApp.getTimeStamp()+" XPA Decode Complete"),Color.BLACK,theApp.italicFont);
 			lineBuffer.delete(0,lineBuffer.length());
 			// If this is a file don't keep trying to decode
 			// Also stop reading from the file
 			if (isFile==true) state=5;
 			else state=0;
-			return outLines;
+			return;
 		}
 		if (tChar=="R") tChar=previousCharacter;
 		
 		if ((tChar=="Message Start")&&(previousCharacter=="Message Start"))	{
 			previousCharacter=tChar;
-			return null;
+			return;
 		}
 		
 		if ((tChar==" ")&&(previousCharacter==" "))	{
 			previousCharacter=tChar;
-			return null;
+			return;
 		}
 		
 		// Don't add a space at the start of a line
 		if ((tChar==" ")&&(lineBuffer.length()==0))	{
 			previousCharacter=tChar;
-			return null;
+			return;
 		}
 		
 		if ((tChar!="Sync High")&&(tChar!="Sync Low")&&(tChar!="Start High")&&(tChar!="Start Low"))	{
@@ -267,18 +268,18 @@ public class XPA extends MFSK {
 		if (tChar=="Message Start")	{
 			groupCount=0;
 			lineBuffer.delete((llength-tlength),llength);
-			outLines[0]=lineBuffer.toString();
-			outLines[1]="Message Start";
+			theApp.writeLine((lineBuffer.toString()),Color.BLACK,theApp.boldFont);
+			theApp.writeLine("Message Start",Color.BLACK,theApp.boldFont);
         	lineBuffer.delete(0,lineBuffer.length());
-        	return outLines;
+        	return;
 			}
 		// Write to a new line after an End Tone
 		if (tChar=="End Tone")	{
         	groupCount=0;
 			lineBuffer.delete((llength-tlength),llength);
-			outLines[0]=lineBuffer.toString();
+			theApp.writeLine((lineBuffer.toString()),Color.BLACK,theApp.boldFont);
         	lineBuffer.delete(0,lineBuffer.length());
-        	return outLines;
+        	return;
 			}
 		// Hunt for 666662266262
 		final String blockSync="6666622662626";
@@ -286,11 +287,10 @@ public class XPA extends MFSK {
         	groupCount=0;
         	tlength=blockSync.length();
 			lineBuffer.delete((llength-tlength),llength);
-			outLines[0]=lineBuffer.toString();
-			if (outLines[0].length()<1) outLines[0]="Block Sync";
-			else outLines[1]="Block Sync";
+			if (lineBuffer.length()>0) theApp.writeLine((lineBuffer.toString()),Color.BLACK,theApp.boldFont);
+			theApp.writeLine("Block Sync",Color.BLACK,theApp.boldFont);
         	lineBuffer.delete(0,lineBuffer.length());
-        	return outLines;
+        	return;
         	}
         // Hunt for 4444444444
         final String sbreak="4444444444";
@@ -298,33 +298,30 @@ public class XPA extends MFSK {
         	groupCount=0;
         	tlength=sbreak.length();
 			lineBuffer.delete((llength-tlength),llength);
-			outLines[0]=lineBuffer.toString();
-			if (outLines[0].length()<1) outLines[0]=sbreak;
-			else outLines[1]=sbreak;
+			if (lineBuffer.length()>0) theApp.writeLine((lineBuffer.toString()),Color.BLACK,theApp.boldFont);
+			theApp.writeLine(sbreak,Color.BLACK,theApp.boldFont);
         	lineBuffer.delete(0,lineBuffer.length());
-        	return outLines;
+        	return;
         	}
-        
         // Hunt for UNID
         if (lineBuffer.indexOf("UNID")!=-1)	{
         	groupCount=0;
 			lineBuffer.delete((llength-tlength),llength);
-			outLines[0]=lineBuffer.toString();
-			outLines[1]="UNID "+freq+" Hz";
+			theApp.writeLine((lineBuffer.toString()),Color.BLACK,theApp.boldFont);
+			theApp.writeLine(("UNID "+freq+" Hz"),Color.BLACK,theApp.boldFont);
         	lineBuffer.delete(0,lineBuffer.length());
-        	return outLines;
+        	return;
         	}
-        
         // Count the group spaces
         if (tChar==" ") groupCount++;
         // After 15 group spaces add a line break
         if (groupCount==15)	{
         	groupCount=0;
-        	outLines[0]=lineBuffer.toString();
-        	lineBuffer.delete(0,lineBuffer.length());
-        	return outLines;
+        	theApp.writeLine((lineBuffer.toString()),Color.BLACK,theApp.boldFont);
+         	lineBuffer.delete(0,lineBuffer.length());
+        	return;
         	}
-		return null;
+		return;
 	}
 	
 
