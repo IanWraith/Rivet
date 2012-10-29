@@ -1,5 +1,7 @@
 package org.e2k;
 
+import java.awt.Color;
+
 import javax.swing.JOptionPane;
 
 public class FSK200500 extends FSK {
@@ -47,31 +49,27 @@ public class FSK200500 extends FSK {
 	public int getState() {
 		return state;
 	}
-	
-	// TODO : Fix the FSK200/500 display code so it works on a character by character basis
-	
-	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
-		String outLines[]=new String[2];
 		
+	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nFSK200/500 recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			setState(1);
@@ -82,16 +80,19 @@ public class FSK200500 extends FSK {
 			energyBuffer.setBufferCounter(0);
 			// Clear the display side of things
 			characterCount=0;
-			lettersMode=true;
 			lineBuffer.delete(0,lineBuffer.length());
-			return null;
+			lettersMode=true;
+			return;
 		}
 		
 		// Hunt for the sync sequence
 		if (state==1)	{
-			if (sampleCount>0) outLines[0]=syncSequenceHunt(circBuf,waveData);
-			if (outLines[0]!=null)	{
+			String dout;
+			if (sampleCount>0) dout=syncSequenceHunt(circBuf,waveData);
+			else dout=null;
+			if (dout!=null)	{
 				setState(2);
+				theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
 				energyBuffer.setBufferCounter(0);
 				bcount=0;
 				totalCharCounter=0;
@@ -122,18 +123,19 @@ public class FSK200500 extends FSK {
 					symbolCounter=(int)samplesPerSymbol/2;
 					// If debugging display the character buffer in binary form + the number of bits since the last character and this baudot character
 					if (theApp.isDebug()==true)	{
-						lineBuffer.append(getCharBuffer()+" ("+Integer.toString(bcount)+")  "+getBaudotChar());
-						characterCount=MAXCHARLENGTH;
+						String dout=getCharBuffer()+" ("+Integer.toString(bcount)+")  "+getBaudotChar();
+						theApp.writeLine(dout,Color.BLACK,theApp.boldFont);
 					}
 					else	{
 						// Display the character in the standard way
 						String ch=getBaudotChar();
 						// LF
-						if (ch.equals(getBAUDOT_LETTERS(2))) characterCount=MAXCHARLENGTH;
+						if (ch.equals(getBAUDOT_LETTERS(2))) theApp.newLineWrite();
 						// CR
-						else if (ch.equals(getBAUDOT_LETTERS(8))) characterCount=MAXCHARLENGTH;
+						else if (ch.equals(getBAUDOT_LETTERS(8))) theApp.newLineWrite();
 						else	{
 							lineBuffer.append(ch);
+							theApp.writeChar(ch,Color.BLACK,theApp.boldFont);
 							characterCount++;
 							// Does the line buffer end with "162)5761" if so start a new line
 							if (lineBuffer.lastIndexOf("162)5761")!=-1) characterCount=MAXCHARLENGTH;
@@ -147,7 +149,8 @@ public class FSK200500 extends FSK {
 				        errorPercentage=((double)missingCharCounter/(double)totalCharCounter)*100.0;
 						// If more than 50% of the received characters are bad we have a serious problem
 						if (errorPercentage>50)	{
-							outLines[0]=theApp.getTimeStamp()+" FSK200/500 Sync Lost";
+							String dout=theApp.getTimeStamp()+" FSK200/500 Sync Lost";
+							theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
 							setState(1);
 						}
 					}
@@ -159,7 +162,7 @@ public class FSK200500 extends FSK {
 				}
 				// If the character count has reached MAXCHARLENGTH then display this line
 				if (characterCount>=MAXCHARLENGTH)	{
-					outLines[0]=lineBuffer.toString();
+					theApp.newLineWrite();
 					lineBuffer.delete(0,lineBuffer.length());
 					characterCount=0;
 				}
@@ -167,7 +170,7 @@ public class FSK200500 extends FSK {
 		}
 		sampleCount++;
 		symbolCounter++;
-		return outLines;				
+		return;				
 	}
 	
 	// Look for a sequence of 4 alternating tones with 500 Hz difference
