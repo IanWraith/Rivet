@@ -1,5 +1,7 @@
 package org.e2k;
 
+import java.awt.Color;
+
 import javax.swing.JOptionPane;
 
 public class GW extends FSK {
@@ -9,7 +11,6 @@ public class GW extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	public StringBuilder lineBuffer=new StringBuilder();
 	private int highTone;
 	private int lowTone;
 	private int highBin;
@@ -25,38 +26,34 @@ public class GW extends FSK {
 		dataBitSet.setTotalLength(152);
 	}
 	
-	// TODO : Fix the GW display code so it works on a character by character basis
-	
 	// The main decode routine
-	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
-		String outLines[]=new String[3];
-		
+	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+		// Initial startup
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nGW FSK recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			samplesPerSymbol100=samplesPerSymbol(100.0,waveData.getSampleRate());
 			setState(1);
-			lineBuffer.delete(0,lineBuffer.length());
-			return null;
+			return;
 		}
 		else if (state==1)	{
 			if (sampleCount>0)	{
@@ -76,14 +73,13 @@ public class GW extends FSK {
 				bitCount++;
 				// Debug only
 				if (theApp.isDebug()==true)	{
-					if (ibit==true) lineBuffer.append("1");
-					else lineBuffer.append("0");
+					if (ibit==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
+					else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
 					characterCount++;
 					// Have we reached the end of a line
 					if (characterCount==80)	{
 						characterCount=0;
-						outLines[0]=lineBuffer.toString();
-						lineBuffer.delete(0,lineBuffer.length());
+						theApp.newLineWrite();
 					}
 				}
 				else	{
@@ -91,7 +87,7 @@ public class GW extends FSK {
 					if (bitCount>=dataBitSet.getTotalLength())	{
 						int data[]=dataBitSet.returnInts();
 						// Look for the sync word then handle any traffic detected
-						if ((data[0]&63)==0x25) outLines[0]=handleGWTraffic(data);									
+						if ((data[0]&63)==0x25) handleGWTraffic(data);									
 					}
 					// If we have received more than 500 bits with no valid frame we have a problem
 					if (bitCount>500) setState(1);
@@ -101,7 +97,7 @@ public class GW extends FSK {
 		}
 		sampleCount++;
 		symbolCounter++;
-		return outLines;
+		return;
 	}	
 
 	public int getState() {
@@ -213,7 +209,7 @@ public class GW extends FSK {
 	}	
 	
 	// Check if a free channel marker frame is OK
-	private String handleGWTraffic(int[] frame)	{
+	private void handleGWTraffic(int[] frame)	{
 		// Free Channel Marker
 		// frame[] 9 to 11 should be 0xf2 & frame[] 12 to 17 should all be the same
 		if ((frame[9]==0xf2)&&(frame[10]==0xf2)&&(frame[11]==0xf2)&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]==frame[17])&&(frame[17]!=0xff))	{
@@ -225,8 +221,8 @@ public class GW extends FSK {
 				lo.append(" "+Integer.toHexString(frame[a])+" ");
 			}
 			bitCount=0;
-			if (theApp.isViewGWChannelMarkers()==true) return lo.toString();
-			else return null;
+			if (theApp.isViewGWChannelMarkers()==true) theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			return;
 		}
 		else if (frame[1]==0x33)	{
 			StringBuilder lo=new StringBuilder();
@@ -236,7 +232,8 @@ public class GW extends FSK {
 				lo.append(" "+Integer.toHexString(frame[a])+" ");
 			}
 			bitCount=48;
-			return lo.toString();
+			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			return;
 		}
 		else if (frame[1]==0x3f)	{
 			StringBuilder lo=new StringBuilder();
@@ -246,7 +243,8 @@ public class GW extends FSK {
 				lo.append(" "+Integer.toHexString(frame[a])+" ");
 			}
 			bitCount=48;
-			return lo.toString();
+			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			return;
 		}
 		else if (frame[1]==0x29)	{
 			StringBuilder lo=new StringBuilder();
@@ -256,9 +254,10 @@ public class GW extends FSK {
 				lo.append(" "+Integer.toHexString(frame[a])+" ");
 			}
 			bitCount=48;
-			return lo.toString();
+			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			return;
 		}		
-		else return null;	
+		else return;	
 	}
 	
 	// Return the GW station name
