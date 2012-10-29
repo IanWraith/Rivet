@@ -1,5 +1,7 @@
 package org.e2k;
 
+import java.awt.Color;
+
 import javax.swing.JOptionPane;
 
 public class CCIR493 extends FSK {
@@ -39,31 +41,28 @@ public class CCIR493 extends FSK {
 	public CCIR493 (Rivet tapp)	{
 		theApp=tapp;
 	}
-	
-	// TODO : Fix the CCIR493 display code so it works on a character by character basis
-	
+		
 	// The main decode routine
-	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
-		String outLines[]=new String[3];
-			
+	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+		// Initial startup
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nCCIR493-4 recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
@@ -73,12 +72,12 @@ public class CCIR493 extends FSK {
 			lineBuffer.delete(0,lineBuffer.length());
 			messageState=0;
 			theApp.setStatusLabel("Sync Hunt");
-			return null;
+			return;
 		}
 		// Look for a 100 baud alternating sequence
 		if (state==1)	{
 			sampleCount++;
-			if (sampleCount<0) return null;
+			if (sampleCount<0) return;
 			// Look for a 100 baud alternating sync sequence
 			if (detectSync(circBuf,waveData)==true)	{
 				state=2;
@@ -89,9 +88,12 @@ public class CCIR493 extends FSK {
 				buffer20=0;
 				bitCount=0;
 				invertedPDXCounter=0;
-				if (theApp.isDebug()==true) outLines[0]=theApp.getTimeStamp()+" CCIR493-4 Sync Found";
+				if (theApp.isDebug()==true)	{
+					String dout=theApp.getTimeStamp()+" CCIR493-4 Sync Found";
+					theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
+				}
 				clearMessageBuffer();
-				return outLines;
+				return;
 			}
 		}		
 		// Receive and decode the message
@@ -100,12 +102,12 @@ public class CCIR493 extends FSK {
 				// Demodulate a single bit
 				boolean bit=getSymbolFreqBin(circBuf,waveData,0);
 				// Decode this
-				outLines=handleTraffic(bit);
+				handleTraffic(bit);
 			}
 		}
 		sampleCount++;
 		symbolCounter++;
-		return outLines;
+		return;
 		}
 	
 
@@ -206,7 +208,7 @@ public class CCIR493 extends FSK {
 	}		
 	
 	// The main function for handling incoming bits
-	private String[] handleTraffic (boolean b)	{
+	private void handleTraffic (boolean b)	{
 		String outLines[]=new String[3];
 		addTo10BitBuffer(b);
 		addTo20BitBuffer(b);
@@ -298,7 +300,12 @@ public class CCIR493 extends FSK {
 			messageState=0;
 			state=1;
 			}
-		return outLines;
+		// Display the decode
+		int a;
+		for (a=0;a<outLines.length;a++)	{
+			if (outLines[a]!=null) theApp.writeLine(outLines[a],Color.BLACK,theApp.boldFont);
+		}
+		return;
 	}
 	
 	// Add a bit to the 10 bit buffer
