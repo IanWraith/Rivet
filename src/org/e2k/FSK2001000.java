@@ -1,5 +1,7 @@
 package org.e2k;
 
+import java.awt.Color;
+
 import javax.swing.JOptionPane;
 
 public class FSK2001000 extends FSK {
@@ -10,7 +12,6 @@ public class FSK2001000 extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	private StringBuilder lineBuffer=new StringBuilder();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int characterCount=0;
 	private int highBin;
@@ -48,31 +49,27 @@ public class FSK2001000 extends FSK {
 	public int getState() {
 		return state;
 	}
-	
-	// TODO : Fix the FSK200/1000 display code so it works on a character by character basis
-	
-	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
-		String outLines[]=new String[2];
 		
+	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nFSK200/1000 recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			setState(1);
@@ -84,14 +81,16 @@ public class FSK2001000 extends FSK {
 			// Clear the display side of things
 			characterCount=0;
 			lettersMode=true;
-			lineBuffer.delete(0,lineBuffer.length());
-			return null;
+			return;
 		}
 		
 		// Hunt for the sync sequence
 		else if (state==1)	{
-			if (sampleCount>0) outLines[0]=syncSequenceHunt(circBuf,waveData);
-			if (outLines[0]!=null)	{
+			String dout;
+			if (sampleCount>0) dout=syncSequenceHunt(circBuf,waveData);
+			else dout=null;
+			if (dout!=null)	{
+				theApp.writeLine(dout,Color.BLACK,theApp.boldFont);
 				if (theApp.isDebug()==true) setState(3);
 				else setState(2);
 				energyBuffer.setBufferCounter(0);
@@ -111,7 +110,7 @@ public class FSK2001000 extends FSK {
 				// Compare the first 32 bits of the circular buffer to the known FSK200/1000 header
 				int difSync=compareSync(circularBitSet.extractSection(0,32));
 				// If there are no or just 1 differences this is a valid block so process it
-				if (difSync<2) outLines=processBlock();
+				if (difSync<2) processBlock();
 				// If there have been more than 2880 bits with a header (i.e 10 blocks) we have a serious problem
 				if (bitsSinceLastBlockHeader>2880) setState(1);
 			}		
@@ -121,24 +120,19 @@ public class FSK2001000 extends FSK {
 			if (symbolCounter>=samplesPerSymbol)	{
 				symbolCounter=0;
 				boolean ibit=fsk2001000FreqHalf(circBuf,waveData,0);
-				if (ibit==true) lineBuffer.append("1");
-				else lineBuffer.append("0");
+				if (ibit==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
+				else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
 				characterCount++;
 				// Display MAXCHARLENGTH characters on a line
 				if (characterCount==MAXCHARLENGTH)	{
-					outLines[0]=lineBuffer.toString();
-					lineBuffer.delete(0,lineBuffer.length());
+					theApp.newLineWrite();
 					characterCount=0;
 				}
-				
 			}
-			
 		}
-		
-		
 		sampleCount++;
 		symbolCounter++;
-		return outLines;			
+		return;			
 	}
 	
 	// Look for a sequence of 4 alternating tones with 1000 Hz difference
@@ -280,7 +274,7 @@ public class FSK2001000 extends FSK {
 	}
 	
 	// Process a FSK200/1000 block
-	private String[] processBlock()	{
+	private void processBlock()	{
 		String linesOut[]=new String[2];
 		// Convert the block to an array of ints
 		int data[]=circularBitSet.returnInts();
@@ -307,7 +301,10 @@ public class FSK2001000 extends FSK {
 		bitCount=0;
 		bitsSinceLastBlockHeader=0;
 		blockCount++;
-		return linesOut;
+		// Display the decoded info
+		theApp.writeLine(linesOut[0],Color.BLACK,theApp.boldFont);
+		theApp.writeLine(linesOut[1],Color.BLACK,theApp.boldFont);
+		return;
 	}
 	
 	// Check if this is a divider block
