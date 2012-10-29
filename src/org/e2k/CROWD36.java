@@ -1,5 +1,7 @@
 package org.e2k;
 
+import java.awt.Color;
+
 import javax.swing.JOptionPane;
 
 public class CROWD36 extends MFSK {
@@ -11,7 +13,6 @@ public class CROWD36 extends MFSK {
 	public long sampleCount=0;
 	private long symbolCounter=0;
 	private long energyStartPoint;
-	private StringBuilder lineBuffer=new StringBuilder();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private boolean figureShift=false; 
 	private int lineCount=0;
@@ -23,9 +24,7 @@ public class CROWD36 extends MFSK {
 	private int toneLowCount;
 	private int toneHighCount;
 	private int syncHighTone=24;
-	
-	// Update to test new PC setup
-	
+		
 	public CROWD36 (Rivet tapp,int baud)	{
 		baudRate=baud;
 		theApp=tapp;
@@ -46,32 +45,27 @@ public class CROWD36 extends MFSK {
 	public int getState() {
 		return state;
 	}
-	
-	// TODO : Fix the CROWD36 display code so it works on a character by character basis
-	
-	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
-		String outLines[]=new String[2];
 		
-
+	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()>11025)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nCROWD36 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
@@ -87,24 +81,23 @@ public class CROWD36 extends MFSK {
 			energyBuffer.setBufferCounter(0);
 			// Clear the display side of things
 			lineCount=0;
-			lineBuffer.delete(0,lineBuffer.length());
 			theApp.setStatusLabel("Known Tone Hunt");
-			return null;
+			return;
 		}
-		
 		// Hunting for known tones
-		if (state==1)	{
-			outLines[0]=syncToneHunt(circBuf,waveData);
-			if (outLines[0]!=null)	{
+		else if (state==1)	{
+			String dout=syncToneHunt(circBuf,waveData);
+			if (dout!=null)	{
 				state=2;
 				energyStartPoint=sampleCount;
 				energyBuffer.setBufferCounter(0);
 				theApp.setStatusLabel("Calculating Symbol Timing");
+				theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
 			}
 		}
 		
 		// Set the symbol timing
-		if (state==2)	{
+		else if (state==2)	{
 			final int lookAHEAD=1;
 			// Obtain an average of the last few samples put through ABS
 			double no=samplesPerSymbol/20.0;
@@ -117,26 +110,23 @@ public class CROWD36 extends MFSK {
 				symbolCounter=(int)samplesPerSymbol-(perfectPoint-sampleCount);
 				state=3;
 				theApp.setStatusLabel("Symbol Timing Achieved");
-				if (theApp.isSoundCardInput()==true) outLines[0]=theApp.getTimeStamp()+" Symbol timing found";
-				else outLines[0]=theApp.getTimeStamp()+" Symbol timing found at position "+Long.toString(perfectPoint);
 				sampleCount++;
 				symbolCounter++;
-				return outLines;
+				return;
 			}
 		}
-		
 		// Decode traffic
-		if (state==3)	{
+		else if (state==3)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
 				symbolCounter=0;				
 				int freq=crowd36Freq(circBuf,waveData,0);
-				outLines=displayMessage(freq,waveData.isFromFile());
+				displayMessage(freq,waveData.isFromFile());
 			}
 		}
 		sampleCount++;
 		symbolCounter++;
-		return outLines;				
+		return;				
 	}
 	
 	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
@@ -156,42 +146,35 @@ public class CROWD36 extends MFSK {
 		return -1;
 	}
 	
-	private String[] displayMessage (int freq,boolean isFile)	{
-		String outLines[]=new String[2];
+	private void displayMessage (int freq,boolean isFile)	{
 		int tone=getTone(freq);
-		
-		//tone=34-tone;
-		
 		String ch=getChar(tone);
-		
-		
+		// Normal operation
 		if (theApp.isDebug()==false)	{
 			
-			if (ch.equals("ls")) return null;
-			else if (ch.equals("fs")) return null;
+			if (ch.equals("ls")) return;
+			else if (ch.equals("fs")) return;
 			
 			if (ch.equals("cr"))	{
 				lineCount=50;
 			}
 			else 	{
-				lineBuffer.append(ch);
+				theApp.writeChar(ch,Color.BLACK,theApp.boldFont);
 				if (ch.length()>0) lineCount++;
 			}	
 			if (lineCount==50)	{
-				outLines[0]=lineBuffer.toString();
-				lineBuffer.delete(0,lineBuffer.length());
+				theApp.newLineWrite();
 				lineCount=0;
-				return outLines;
+				return;
 			}
-			return null;
+			return;
 		}
 		else	{
-			outLines[0]=lineBuffer.toString();
-			lineBuffer.delete(0,lineBuffer.length());
+			// Debug
 			lineCount=0;
-			outLines[0]=freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol)+" tone "+Long.toString(tone)+" "+ch;	
-	        return outLines;
-			
+			String dout=freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol)+" tone "+Long.toString(tone)+" "+ch;	
+			theApp.writeLine(dout,Color.BLACK,theApp.boldFont);
+	        return;
 		}
 	}
 	
@@ -288,11 +271,6 @@ public class CROWD36 extends MFSK {
 		return this.lineCount;
 	}
 	
-	public String getLineBuffer ()	{
-		return this.lineBuffer.toString();
-	}
-	
-
 	public String lowHighFreqs ()	{
 		String line;
 		line="Lowest frequency "+Integer.toString(lowFreq)+" Hz : Highest Frequency "+Integer.toString(highFreq)+" Hz";
