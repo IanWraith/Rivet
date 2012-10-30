@@ -3,10 +3,21 @@ of the Enigma 2000 group.
 
 http://groups.yahoo.com/group/enigma2000/
 
-Currently the program decodes the modes XPA , XPA2 , CCIR493-4 ,CROWD36 (partially) and CIS36-50 (BEE) but more modes will be added soon.
-The program can decode directly from your PCs soundcard or from a WAV file.
+Currently the program decodes the modes ..
 
-The program is written in Java so it should run on any PC which has Java installed.
+Baudot (various speeds) : Used by amateurs , weather stations and other users.
+CCIR493-4 : A HF selective calling mode
+CIS36-50 (50 baud only currently) : Used by the Russian Navy.
+CROWD36 : Used for Russian diplomatic and intelligence messages
+FSK200/500 : Used for Russian diplomatic and intelligence messages
+FSK200/1000 : Used for Russian diplomatic and intelligence messages
+GW FSK (100 baud) : A commercial ship to shore data system.
+XPA (10 and 20 baud) : Believed used for Russian intelligence messages.
+XPA2 : Believed used for Russian intelligence messages.
+
+but more modes will be added soon. The program can decode directly from your PCs soundcard or from a WAV file.
+
+Rivet is written in Java so it should run on any PC which has Java installed.
 If you haven't got Java then you can download it for free from ..
 
 http://www.java.com
@@ -60,15 +71,22 @@ Build 33 fixes an ITA3 character set bug , checks for 8 bit WAV files and enable
 Build 34 Inverts the FSK200/1000 bit demodulation and extracts the block number from a block. Also add very basic
          GW 100 baud FSK support.
 Build 35 Fixes a bug which calculated the total number of FSK200/1000 blocks in a message.
+
+         From build 36 onwards Java 7 is required to run Rivet.
+
 Build 36 Adds baudot decoding and limits bitstream out lines to 80 characters.
+Build 37 Improves the display so that as characters are received they are displayed rather than waiting until
+         an entire line was received then displaying it. Also now display received messages in bold and display
+         other information in italic. 
 
 
 Reported Bugs
 -------------
 
-Still problems with CROWD36 decoding. Not a bug as such but more a lack of understanding of this mode.
+Still problems with CROWD36 , GW 100 baud and FSK200/1000 decoding. Not a bug as such but more a lack of understanding of 
+these modes.
 
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (20th October 2012) 
+Ian Wraith (30th October 2012) 
