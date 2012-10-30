@@ -23,9 +23,18 @@ public class XPA2 extends MFSK {
 		theApp=tapp;
 	}
 	
+
+	// Chage the state and update the status label
 	public void setState(int state) {
 		this.state=state;
+		// Change the status label
+		if (state==1) theApp.setStatusLabel("Start Tone Hunt");
+		else if (state==2) theApp.setStatusLabel("Sync Hunt");
+		else if (state==3) theApp.setStatusLabel("Sync Found");
+		else if (state==4) theApp.setStatusLabel("Decoding");
+		else if (state==5) theApp.setStatusLabel("Complete");
 	}
+
 
 	public int getState() {
 		return state;
@@ -62,9 +71,8 @@ public class XPA2 extends MFSK {
 			theApp.setInvertSignal(false);
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
-			state=1;
+			setState(1);
 			characterCount=0;
-			theApp.setStatusLabel("Start Tone Hunt");
 			return;
 		}
 		// Hunting for a start tone
@@ -74,8 +82,7 @@ public class XPA2 extends MFSK {
 			else dout=null;
 			if (dout!=null)	{
 				// Have start tone
-				state=2;
-				theApp.setStatusLabel("Sync Hunt");
+				setState(2);
 				theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
 				return;
 			}
@@ -90,7 +97,7 @@ public class XPA2 extends MFSK {
 				symbolCounter++;
 				return;
 			}
-			state=3;
+			setState(3);
 			// Remember this value as it is the start of the energy values
 			syncFoundPoint=symbolCounter;
 			theApp.setStatusLabel("Sync Found");
@@ -110,7 +117,7 @@ public class XPA2 extends MFSK {
 			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint+(int)samplesPerSymbol;
 			// Calculate what the value of the symbol counter should be
 			symbolCounter=(int)samplesPerSymbol-(perfectPoint-sampleCount);
-			state=4;
+			setState(4);
 			theApp.setStatusLabel("Symbol Timing Achieved");
 			theApp.writeLine((theApp.getTimeStamp()+" Symbol timing found"),Color.BLACK,theApp.italicFont);
 			return;
@@ -158,7 +165,7 @@ public class XPA2 extends MFSK {
 		// If we get two End Tones in a row then stop decoding
 		if ((tChar=="R")&&(previousCharacter=="End Tone")) {
 			theApp.writeLine((theApp.getTimeStamp()+" XPA2 Decode Complete"),Color.BLACK,theApp.italicFont);
-			state=0;
+			setState(1);
 			return;
 		}
 		// Repeat character
