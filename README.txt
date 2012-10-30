@@ -78,7 +78,8 @@ Build 36 Adds baudot decoding and limits bitstream out lines to 80 characters.
 Build 37 Improves the display so that as characters are received they are displayed rather than waiting until
          an entire line was received then displaying it. Also now display received messages in bold and display
          other information in italic. 
-
+Build 38 Fix a null pointer exception in the log file code.         
+ 
 
 Reported Bugs
 -------------

@@ -46,7 +46,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 37) by Ian Wraith";
+	public String program_version="Rivet (Build 38) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -388,7 +388,7 @@ public class Rivet {
 		} catch (Exception e) {
 			// Stop logging as we have a problem
 			logging=false;
-			JOptionPane.showMessageDialog(null,"Error writing to the log file.\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null,"Error writing to the log file in fileWriteLine().\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		return true;
@@ -401,7 +401,7 @@ public class Rivet {
 		} catch (Exception e) {
 			// Stop logging as we have a problem
 			logging=false;
-			JOptionPane.showMessageDialog(null,"Error writing to the log file.\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null,"Error writing to the log file in fileWriteChar().\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		return true;
@@ -414,7 +414,7 @@ public class Rivet {
 		} catch (Exception e) {
 			// Stop logging as we have a problem
 			logging=false;
-			JOptionPane.showMessageDialog(null,"Error writing to the log file.\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null,"Error writing to the log file in fileWriteNewline().\n"+e.toString(),"Rivet", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		return true;
@@ -824,14 +824,18 @@ public class Rivet {
 	
 	// Adds a line to the display
 	public void writeLine(String line,Color col,Font font) {
-		if (logging==true) fileWriteLine(line);
-		display_view.addLine(line,col,font);
+		if (line!=null)	{
+			if (logging==true) fileWriteLine(line);
+			display_view.addLine(line,col,font);
+		}
 	}
 	
 	// Adds a single char to the current line on the display
 	public void writeChar (String ct,Color col,Font font)	{
-		display_view.addChar(ct,col,font);
-		if (logging==true) fileWriteChar(ct);
+		if (ct!=null)	{
+			display_view.addChar(ct,col,font);
+			if (logging==true) fileWriteChar(ct);
+		}
 	}
 	
 	// Writes a new line to the screen
