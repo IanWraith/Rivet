@@ -14,7 +14,6 @@
 package org.e2k;
 
 import java.awt.Color;
-
 import javax.swing.JOptionPane;
 
 public class XPA extends MFSK {
@@ -46,8 +45,15 @@ public class XPA extends MFSK {
 		return baudRate;
 	}
 
+	// Chage the state and update the status label
 	public void setState(int state) {
-		this.state = state;
+		this.state=state;
+		// Change the status label
+		if (state==1) theApp.setStatusLabel("Start Tone Hunt");
+		else if (state==2) theApp.setStatusLabel("Sync Hunt");
+		else if (state==3) theApp.setStatusLabel("Sync Found");
+		else if (state==4) theApp.setStatusLabel("Decoding");
+		else if (state==5) theApp.setStatusLabel("Complete");
 	}
 
 	public int getState() {
@@ -77,7 +83,7 @@ public class XPA extends MFSK {
 				return;
 			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
-			state=1;
+			setState(1);
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
@@ -86,7 +92,6 @@ public class XPA extends MFSK {
 			previousCharacter=null;
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
-			theApp.setStatusLabel("Start Tone Hunt");
 			return;
 		}
 		// Hunting for a start tone
@@ -96,8 +101,7 @@ public class XPA extends MFSK {
 			else dout=null;
 			if (dout!=null)	{
 				// Have start tone
-				state=2;
-				theApp.setStatusLabel("Sync Hunt");
+				setState(2);
 				theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
 				return;
 			}
@@ -122,10 +126,9 @@ public class XPA extends MFSK {
 				return;
 			}
 			// Now set the symbol timing
-			state=3;
+			setState(3);
 			// Remember this value as it is the start of the energy values
 			syncFoundPoint=sampleCount;
-			theApp.setStatusLabel("Sync Found");
 			theApp.writeLine((theApp.getTimeStamp()+" High sync tone found"),Color.BLACK,theApp.italicFont);
 			return;
 		}
@@ -142,8 +145,7 @@ public class XPA extends MFSK {
 			long perfectPoint=energyBuffer.returnHighestBin()+syncFoundPoint;
 			// Calculate what the value of the symbol counter should be
 			symbolCounter=symbolCounter-perfectPoint;
-			state=4;
-			theApp.setStatusLabel("Symbol Timing Achieved");
+			setState(4);
 			theApp.writeLine((theApp.getTimeStamp()+" Symbol timing found"),Color.BLACK,theApp.italicFont);
 			return;
 		}
@@ -234,8 +236,8 @@ public class XPA extends MFSK {
 			lineBuffer.delete(0,lineBuffer.length());
 			// If this is a file don't keep trying to decode
 			// Also stop reading from the file
-			if (isFile==true) state=5;
-			else state=0;
+			if (isFile==true) setState(5);
+			else setState(0);
 			return;
 		}
 		if (tChar=="R") tChar=previousCharacter;
@@ -279,6 +281,8 @@ public class XPA extends MFSK {
 			lineBuffer.delete((llength-tlength),llength);
 			theApp.writeLine((lineBuffer.toString()),Color.BLACK,theApp.boldFont);
         	lineBuffer.delete(0,lineBuffer.length());
+        	// All done look for another message
+        	setState(1);
         	return;
 			}
 		// Hunt for 666662266262
@@ -323,6 +327,8 @@ public class XPA extends MFSK {
         	}
 		return;
 	}
+	
+	
 	
 
 }
