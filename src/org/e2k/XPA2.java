@@ -1,5 +1,6 @@
 package org.e2k;
 
+import java.awt.Color;
 import javax.swing.JOptionPane;
 
 public class XPA2 extends MFSK {
@@ -13,11 +14,11 @@ public class XPA2 extends MFSK {
 	private long syncFoundPoint;
 	private String previousCharacter;
 	private int groupCount=0;
-	private StringBuilder lineBuffer=new StringBuilder();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int correctionFactor;
 	private final int PIVOT=5000;
-		
+	private int characterCount;	
+	
 	public XPA2 (Rivet tapp)	{
 		theApp=tapp;
 	}
@@ -30,30 +31,27 @@ public class XPA2 extends MFSK {
 		return state;
 	}
 	
-	// TODO : Fix the XPA2 display code so it works on a character by character basis
-	
-	public String[] decode (CircularDataBuffer circBuf,WaveData waveData)	{
-		String outLines[]=new String[2];
-				
+	// The main decode function
+	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()>11025.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nXPA2 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return null;
+				return;
 			}
 			samplesPerSymbol=samplesPerSymbol(BAUDRATE,waveData.getSampleRate());
 			// sampleCount must start negative to account for the buffer gradually filling
@@ -65,17 +63,21 @@ public class XPA2 extends MFSK {
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
 			state=1;
+			characterCount=0;
 			theApp.setStatusLabel("Start Tone Hunt");
-			return null;
+			return;
 		}
 		// Hunting for a start tone
 		if (state==1)	{
-			if (sampleCount>=0) outLines[0]=startToneHunt(circBuf,waveData);
-			if (outLines[0]!=null)	{
+			String dout;
+			if (sampleCount>=0) dout=startToneHunt(circBuf,waveData);
+			else dout=null;
+			if (dout!=null)	{
 				// Have start tone
 				state=2;
 				theApp.setStatusLabel("Sync Hunt");
-				return outLines;
+				theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
+				return;
 			}
 		}
 		// Look for a sync (1037 Hz)
@@ -86,21 +88,13 @@ public class XPA2 extends MFSK {
 			if (toneTest(freq,SYNCLOW,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
-				return null;
+				return;
 			}
-			
-			int a;
-			int data[]=circBuf.extractData(0,(int)samplesPerSymbol);
-			for (a=0;a<data.length;a++)	{
-				String line=Integer.toString(data[a]);
-				theApp.debugDump(line);
-			}
-			
 			state=3;
 			// Remember this value as it is the start of the energy values
 			syncFoundPoint=symbolCounter;
 			theApp.setStatusLabel("Sync Found");
-			outLines[0]=theApp.getTimeStamp()+" Sync tone found";
+			theApp.writeLine((theApp.getTimeStamp()+" Sync tone found"),Color.BLACK,theApp.italicFont);
 		}	
 		// Set the symbol timing
 		if (state==3)	{
@@ -111,22 +105,15 @@ public class XPA2 extends MFSK {
 			sampleCount++;
 			symbolCounter++;
 			// Gather a symbols worth of energy values
-			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*lookAHEAD)) return null;
-			
-			//int a;
-			//for (a=0;a<(int)(samplesPerSymbol*lookAHEAD);a++)	{
-				//String line=Integer.toString(energyBuffer.directAccess(a));
-				//theApp.debugDump(line);
-			//}
-			
+			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*lookAHEAD)) return;
 			// Now find the lowest energy value
 			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint+(int)samplesPerSymbol;
 			// Calculate what the value of the symbol counter should be
 			symbolCounter=(int)samplesPerSymbol-(perfectPoint-sampleCount);
 			state=4;
 			theApp.setStatusLabel("Symbol Timing Achieved");
-			outLines[0]=theApp.getTimeStamp()+" Symbol timing found"; 
-			return outLines;
+			theApp.writeLine((theApp.getTimeStamp()+" Symbol timing found"),Color.BLACK,theApp.italicFont);
+			return;
 		}
 		// Get valid data
 		if (state==4)	{			
@@ -134,13 +121,12 @@ public class XPA2 extends MFSK {
 			if (symbolCounter>=(int)samplesPerSymbol)	{
 				symbolCounter=0;					
 				int freq=xpa2Freq(circBuf,waveData,0);
-				outLines=displayMessage(freq);
+				displayMessage(freq);
 			}
 		}
-		
 		sampleCount++;
 		symbolCounter++;
-		return outLines;
+		return;
 	}
 	
 	// Return a String for a tone
@@ -167,74 +153,64 @@ public class XPA2 extends MFSK {
 	    else return ("UNID");
 	  }
 
-	private String[] displayMessage (int freq)	{
+	private void displayMessage (int freq)	{
 		String tChar=getChar(freq,previousCharacter);
-		String outLines[]=new String[2];
-		int tlength=0,llength=0;
 		// If we get two End Tones in a row then stop decoding
 		if ((tChar=="R")&&(previousCharacter=="End Tone")) {
-			outLines[0]=theApp.getTimeStamp()+" XPA2 Decode Complete";
-			lineBuffer.delete(0,lineBuffer.length());
+			theApp.writeLine((theApp.getTimeStamp()+" XPA2 Decode Complete"),Color.BLACK,theApp.italicFont);
 			state=0;
-			return outLines;
+			return;
 		}
+		// Repeat character
 		if (tChar=="R")	{
 			if (previousCharacter==null) tChar="";
 			 else tChar=previousCharacter;
 		}
-		
+		// Message start
 		if ((tChar=="Message Start")&&(previousCharacter=="Message Start"))	{
 			previousCharacter=tChar;
-			return null;
+			return;
 		}
-		
+		// Two spaces
 		if ((tChar==" ")&&(previousCharacter==" "))	{
 			previousCharacter=tChar;
-			return null;
+			return;
 		}
-		
 		// Don't add a space at the start of a line
-		if ((tChar==" ")&&(lineBuffer.length()==0))	{
+		if ((tChar==" ")&&(characterCount==0))	{
 			previousCharacter=tChar;
-			return null;
+			return;
 		}
-		
-		if ((tChar!="Sync High")&&(tChar!="Sync Low"))	{
-			tlength=tChar.length();
-			lineBuffer.append(tChar);
-			llength=lineBuffer.length();
+		// Write normal characters to the screen
+		if ((tChar!="Sync High")&&(tChar!="Sync Low")&&(tChar!="End Tone")&&(tChar!="UNID")&&(tChar!=""))	{
+			theApp.writeChar(tChar,Color.BLACK,theApp.boldFont);
+			characterCount++;
 		}
-	
+		// Remember the current character
 		previousCharacter=tChar;
-			
 		// Write to a new line after an End Tone
 		if (tChar=="End Tone")	{
         	groupCount=0;
-			lineBuffer.delete((llength-tlength),llength);
-			outLines[0]=lineBuffer.toString();
-			//outLines[1]="End Tone "+freq+" Hz at pos "+sampleCount;
-        	lineBuffer.delete(0,lineBuffer.length());
-        	return outLines;
+        	theApp.writeLine("End Tone",Color.BLACK,theApp.boldFont);
+        	return;
 			}
-        // Hunt for UNID
-        if (lineBuffer.indexOf("UNID")!=-1)	{
+		
+        // Display UNID info
+        if (tChar=="UNID")	{
         	groupCount=0;
-			lineBuffer.delete((llength-tlength),llength);
-			outLines[0]=lineBuffer.toString();
-			outLines[1]="UNID "+freq+" Hz at "+Long.toString(sampleCount);
-        	lineBuffer.delete(0,lineBuffer.length());
-        	return outLines;
+        	theApp.writeLine(("UNID "+freq+" Hz"),Color.BLACK,theApp.boldFont);
+        	return;
         	}
         // Count the group spaces
         if (tChar==" ") groupCount++;
         // After 15 group spaces add a line break
         if (groupCount==15)	{
         	groupCount=0;
-        	outLines[0]=lineBuffer.toString();
-        	lineBuffer.delete(0,lineBuffer.length());
-        	return outLines;
+        	characterCount=0;
+        	theApp.newLineWrite();
+        	return;
         	}
-		return null;
+		return;
 	}
 	
 		// Hunt for an XPA2 start tone
@@ -295,6 +271,5 @@ public class XPA2 extends MFSK {
 			}
 			return -1;
 		}
-	
-	
+
 }
