@@ -65,6 +65,12 @@ public class DisplayView extends JComponent implements Observer {
 	
 	// Add a line to the display circular buffer //
 	public void addLine (String line,Color tcol,Font tfont) {		
+		// There may be data on the current line which was added by addChar() so we need to move to the next line
+		// Increment the circular buffer
+		displayCounter++;
+		// Check it hasn't reached its maximum size
+		if (displayCounter==DISPLAYCOUNT) displayCounter=0;
+		// Add this line
 		displayString[displayCounter]=line;
 		displayColour[displayCounter]=tcol;
 		displayFont[displayCounter]=tfont;
