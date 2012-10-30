@@ -152,7 +152,7 @@ public class CIS3650 extends FSK {
 							syncState=2;
 							setState(state);
 							String d1=theApp.getTimeStamp()+" Message Start";
-							theApp.writeLine(d1,Color.BLACK,theApp.boldFont);
+							theApp.writeLine(d1,Color.BLACK,theApp.italicFont);
 							String d2="Sync 0x"+Long.toHexString(extractSyncAsLong());
 							theApp.writeLine(d2,Color.BLACK,theApp.boldFont);
 							String d3=extractSessionKey();
@@ -207,7 +207,7 @@ public class CIS3650 extends FSK {
 					// The message must have ended
 					else if (syncState==4)	{
 						String dout="End of Message ("+Integer.toString(totalCharacterCount)+" characters in this message "+Integer.toString(totalErrorCount)+" of these contained errors)";
-						theApp.writeLine(dout,Color.BLACK,theApp.boldFont);
+						theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
 						countSinceSync=0;
 						syncState=1;
 						clearStartBuffer();
