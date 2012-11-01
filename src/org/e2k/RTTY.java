@@ -25,6 +25,9 @@ public class RTTY extends FSK {
 	private int shift=450;
 	private double stopBits=1.5;
 	private int previousbcount=0;
+	private double symbolTotal;
+	private double previousSymbolTotal;
+	private double oldSymbolPercentage[]=new double[4];
 	
 	public RTTY (Rivet tapp)	{
 		theApp=tapp;
@@ -118,6 +121,19 @@ public class RTTY extends FSK {
 					else if (ibit==2) theApp.bitStreamWrite("2");
 					else if (ibit==3) theApp.bitStreamWrite("3");
 				}
+				
+				
+				// Shuffle the old stored percentage values
+				oldSymbolPercentage[3]=oldSymbolPercentage[2];
+				oldSymbolPercentage[2]=oldSymbolPercentage[1];
+				oldSymbolPercentage[1]=oldSymbolPercentage[0];
+				// Calculate the current percentage value
+				if (symbolTotal<previousSymbolTotal) oldSymbolPercentage[0]=100.0-((symbolTotal/previousSymbolTotal)*100.0);
+				else oldSymbolPercentage[0]=100.0-((previousSymbolTotal/symbolTotal)*100.0);
+				double av=(oldSymbolPercentage[0]+oldSymbolPercentage[1]+oldSymbolPercentage[2]+oldSymbolPercentage[3])/4;
+				// If the percentage different is over 40% and more than two characters are missing then the signal has been lost
+				if ((av>40.0)&&(missingCharCounter>2)) setState(1);
+					
 				// Is this the end of a character
 				if (((stopBits==1.5)||(stopBits==2.5))&&(ibit==2))	{
 					cend=true;
@@ -154,11 +170,7 @@ public class RTTY extends FSK {
 						}
 					}
 					// If more than 8 bits have gone still no character we have a problem
-					if (bcount>8)	{
-						missingCharCounter++;
-						// If more than 10 characters are missing we have a serious problem so reset
-						if (missingCharCounter>10) state=1;
-					}
+					if (bcount>8) missingCharCounter++;
 					// If this character and the last character arrived on time clear the mising char counter
 					if ((bcount<9)&&(previousbcount<9)) missingCharCounter=0;
 					// Store this bcount before it is cleared
@@ -367,12 +379,15 @@ public class RTTY extends FSK {
 		double early[]=doRTTYHalfSymbolBinRequest(baudRate,circBuf,pos,lowBin,highBin);
 		// Last half
 		double late[]=doRTTYHalfSymbolBinRequest(baudRate,circBuf,(pos+sp),lowBin,highBin);
+		// Store the previous symbol energy total
+		previousSymbolTotal=symbolTotal;
+		symbolTotal=early[0]+late[0]+early[1]+late[1];
 		// Determine the symbol value
 		int high1,high2;
 		if (early[0]>early[1]) high1=0;
 		else high1=1;
 		if (late[0]>late[1]) high2=0;
-		else high2=1;
+		else high2=1;		
 		// Both the same
 		if (high1==high2)	{
 			if (high1==0) v=1;
@@ -431,5 +446,5 @@ public class RTTY extends FSK {
 	public void setStopBits(double stopBits) {
 		this.stopBits = stopBits;
 	}
-
+	
 }
