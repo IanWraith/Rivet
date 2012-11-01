@@ -20,10 +20,14 @@ public class GW extends FSK {
 	private CircularBitSet dataBitSet=new CircularBitSet();
 	private int characterCount=0;
 	private int bitCount;
+	private double symbolTotal;
+	private double previousSymbolTotal;
+	private double oldSymbolPercentage[]=new double[4];
 	
+
 	public GW (Rivet tapp)	{
 		theApp=tapp;
-		dataBitSet.setTotalLength(152);
+		dataBitSet.setTotalLength(200);
 	}
 	
 	// The main decode routine
@@ -60,7 +64,7 @@ public class GW extends FSK {
 				if (syncSequenceHunt(circBuf,waveData)==true)	{
 					setState(2);
 					bitCount=0;
-					dataBitSet.clear();
+					dataBitSet.totalClear();
 				}
 			}
 		}
@@ -70,7 +74,6 @@ public class GW extends FSK {
 				symbolCounter=0;
 				boolean ibit=gwFreqHalf(circBuf,waveData,0);
 				dataBitSet.add(ibit);
-				bitCount++;
 				// Debug only
 				if (theApp.isDebug()==true)	{
 					if (ibit==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
@@ -82,17 +85,25 @@ public class GW extends FSK {
 						theApp.newLineWrite();
 					}
 				}
-				else	{
-					// Have we enough data bits to start looking for the sync sequence
-					if (bitCount>=dataBitSet.getTotalLength())	{
-						int data[]=dataBitSet.returnInts();
-						// Look for the sync word then handle any traffic detected
-						if ((data[0]&63)==0x25) handleGWTraffic(data);									
-					}
-					// If we have received more than 500 bits with no valid frame we have a problem
-					if (bitCount>500) setState(1);
+				
+				// Shuffle the old stored percentage values
+				oldSymbolPercentage[3]=oldSymbolPercentage[2];
+				oldSymbolPercentage[2]=oldSymbolPercentage[1];
+				oldSymbolPercentage[1]=oldSymbolPercentage[0];
+				// Calculate the current percentage value
+				if (symbolTotal<previousSymbolTotal) oldSymbolPercentage[0]=100.0-((symbolTotal/previousSymbolTotal)*100.0);
+				else oldSymbolPercentage[0]=100.0-((previousSymbolTotal/symbolTotal)*100.0);
+				double av=(oldSymbolPercentage[0]+oldSymbolPercentage[1]+oldSymbolPercentage[2]+oldSymbolPercentage[3])/4;
+				// If the percentage different is over 30% and more than 3 bits have been received then the signal has been lost
+				if ((av>30.0)&&(bitCount>3))	{
 					
-				}	
+					theApp.writeLine(dataBitSet.extractSectionFromStart(bitCount),Color.BLACK,theApp.boldFont);
+					
+					theApp.writeLine("Signal loss after "+Integer.toString(bitCount)+" bits",Color.BLACK,theApp.boldFont);
+					setState(1);
+				}
+				// Increment the bit counter
+				bitCount++;	
 			}	
 		}
 		sampleCount++;
@@ -134,6 +145,10 @@ public class GW extends FSK {
 		// Now work out the binary state represented by this symbol
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
+		// Store the previous symbol energy total
+		previousSymbolTotal=symbolTotal;
+		symbolTotal=lowTotal+highTotal;
+		// Calculate the bit value
 		if (theApp.isInvertSignal()==false)	{
 			if (lowTotal>highTotal) out=true;
 			else out=false;
@@ -147,7 +162,7 @@ public class GW extends FSK {
 		if (theApp.isBitStreamOut()==true)	{
 			if (out==true) theApp.bitStreamWrite("1");
 			else theApp.bitStreamWrite("0");
-		}
+		}		
 		return out;
 	}
 
@@ -187,7 +202,7 @@ public class GW extends FSK {
 		int f1=getSymbolFreq(circBuf,waveData,pos);
 		b1=getFreqBin();
 		// Check this second tone isn't just noise the highest bin must make up 10% of the total
-		//if (getPercentageOfTotal()<10.0) return false;
+		if (getPercentageOfTotal()<10.0) return false;
 		if (f0==f1) return false;
 		if (f0>f1)	{
 			highTone=f0;
@@ -283,6 +298,4 @@ public class GW extends FSK {
 		else return "Unknown";
 	}
 	
-	
-
 }

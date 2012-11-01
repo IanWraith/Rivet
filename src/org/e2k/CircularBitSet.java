@@ -36,6 +36,18 @@ public class CircularBitSet extends BitSet {
 		}
 		return out.toString();
 	}
+	
+	
+	// Extract a section of the circular BitSet as binary encoded as a String
+	public String extractSectionFromStart (int end)	{
+		StringBuilder out=new StringBuilder();
+		int a;
+		for (a=0;a<end;a++)	{
+			if (this.get(a)==true) out.append("1");
+			else out.append("0");
+		}
+		return out.toString();
+	}
 
 	// Returns the total length of the circular BitSet 
 	public int getTotalLength() {
