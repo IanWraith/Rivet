@@ -1,6 +1,8 @@
 package org.e2k;
 
 import java.awt.Color;
+import java.util.BitSet;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
@@ -96,10 +98,7 @@ public class GW extends FSK {
 				double av=(oldSymbolPercentage[0]+oldSymbolPercentage[1]+oldSymbolPercentage[2]+oldSymbolPercentage[3])/4;
 				// If the percentage different is over 30% and more than 3 bits have been received then the signal has been lost
 				if ((av>30.0)&&(bitCount>3))	{
-					
-					theApp.writeLine(dataBitSet.extractSectionFromStart(bitCount),Color.BLACK,theApp.boldFont);
-					
-					theApp.writeLine("Signal loss after "+Integer.toString(bitCount)+" bits",Color.BLACK,theApp.boldFont);
+					processGWData();
 					setState(1);
 				}
 				// Increment the bit counter
@@ -223,58 +222,7 @@ public class GW extends FSK {
 		else return true;
 	}	
 	
-	// Check if a free channel marker frame is OK
-	private void handleGWTraffic(int[] frame)	{
-		// Free Channel Marker
-		// frame[] 9 to 11 should be 0xf2 & frame[] 12 to 17 should all be the same
-		if ((frame[9]==0xf2)&&(frame[10]==0xf2)&&(frame[11]==0xf2)&&(frame[12]==frame[13])&&(frame[13]==frame[14])&&(frame[14]==frame[15])&&(frame[15]==frame[16])&&(frame[16]==frame[17])&&(frame[17]!=0xff))	{
-			StringBuilder lo=new StringBuilder();
-			lo.append(theApp.getTimeStamp());
-			lo.append(" GW Free Channel Marker from Station Code 0x"+Integer.toHexString(frame[12])+" ("+stationName(frame[12])+") ");
-			int a;
-			for (a=0;a<19;a++)	{
-				lo.append(" "+Integer.toHexString(frame[a])+" ");
-			}
-			bitCount=0;
-			if (theApp.isViewGWChannelMarkers()==true) theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
-			return;
-		}
-		else if (frame[1]==0x33)	{
-			StringBuilder lo=new StringBuilder();
-			lo.append(theApp.getTimeStamp()+" GW UNID (0x33) ");
-			int a;
-			for (a=0;a<19;a++)	{
-				lo.append(" "+Integer.toHexString(frame[a])+" ");
-			}
-			bitCount=48;
-			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
-			return;
-		}
-		else if (frame[1]==0x3f)	{
-			StringBuilder lo=new StringBuilder();
-			lo.append(theApp.getTimeStamp()+" GW UNID (0x3f) ");
-			int a;
-			for (a=0;a<19;a++)	{
-				lo.append(" "+Integer.toHexString(frame[a])+" ");
-			}
-			bitCount=48;
-			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
-			return;
-		}
-		else if (frame[1]==0x29)	{
-			StringBuilder lo=new StringBuilder();
-			lo.append(theApp.getTimeStamp()+" GW UNID (0x29) ");
-			int a;
-			for (a=0;a<19;a++)	{
-				lo.append(" "+Integer.toHexString(frame[a])+" ");
-			}
-			bitCount=48;
-			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
-			return;
-		}		
-		else return;	
-	}
-	
+
 	// Return the GW station name
 	private String stationName (int id)	{
 		if (id==0x33) return "LFI, Rogaland, Norway";
@@ -296,6 +244,42 @@ public class GW extends FSK {
 		else if (id==0xde) return "SAB, Goeteborg, Sweden";
 		else if (id==0xe3) return "8PO, Bridgetown, Barbados";
 		else return "Unknown";
+	}
+	
+	// The main method to process GW traffic
+	private void processGWData ()	{
+		// Turn the data into a string
+		String sData=dataBitSet.extractSectionFromStart(bitCount);
+		// Possible channel free marker
+		if (bitCount>144)	{
+			// Hunt for 0x38A3 or 0011100010100011
+			int pos=sData.indexOf("0011100010100011");
+			if (pos<8) return;
+			pos=pos-8;
+			List<Integer> frame=dataBitSet.returnIntsFromStart(pos);			
+			// Free Channel Marker
+			// frame[] 8 to 10 should be 0xf2 & frame[] 11 to 16 should all be the same
+			if ((frame.get(8).equals(0xf2))&&(frame.get(9).equals(0xf2))&&(frame.get(10).equals(0xf2))&&(frame.get(11).equals(frame.get(12)))&&(frame.get(12).equals(frame.get(13)))&&(frame.get(13).equals(frame.get(14)))&&(frame.get(14).equals(frame.get(15)))&&(frame.get(15).equals(frame.get(16)))&&(frame.get(17).equals(0xff)))	{
+					StringBuilder lo=new StringBuilder();
+					lo.append(theApp.getTimeStamp());
+					lo.append(" GW Free Channel Marker from Station Code 0x"+Integer.toHexString(frame.get(12))+" ("+stationName(frame.get(12))+") ");
+					int a;
+					for (a=0;a<18;a++)	{
+						lo.append(" "+Integer.toHexString(frame.get(a))+" ");
+					}
+					if (theApp.isViewGWChannelMarkers()==true) theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+					return;
+			}
+		}
+		else if ((bitCount>88)&&(bitCount<95))	{
+			StringBuilder lo=new StringBuilder();
+			lo.append(theApp.getTimeStamp()+" GW ");
+			lo.append(dataBitSet.extractSectionFromStart(bitCount));
+			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			return;
+		}
+		
+		
 	}
 	
 }

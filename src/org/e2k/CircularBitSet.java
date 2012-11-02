@@ -1,6 +1,8 @@
 package org.e2k;
 
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 
 public class CircularBitSet extends BitSet {
 
@@ -48,7 +50,7 @@ public class CircularBitSet extends BitSet {
 		}
 		return out.toString();
 	}
-
+	
 	// Returns the total length of the circular BitSet 
 	public int getTotalLength() {
 		return totalLength;
@@ -93,6 +95,24 @@ public class CircularBitSet extends BitSet {
 			if (tc==totalLength) tc=0;
 		}
 		return out;
+	}
+	
+	// Returns the circular BitSet as a list of ints
+	public List<Integer> returnIntsFromStart (int start)	{
+		List<Integer> listI=new ArrayList<Integer>();
+		BitSet bset=new BitSet();
+		int a,bcount=0;
+		for (a=start;a<totalLength;a++)	{
+			if (this.get(a)==true) bset.set(bcount);
+			else bset.clear(bcount);
+			bcount++;
+			if (bcount==8)	{
+				listI.add(binaryToInt8(bset));
+				bset.clear();
+				bcount=0;
+			}
+		}
+		return listI;
 	}
 	
 	// Converts an 8 bit BitSet into an int
