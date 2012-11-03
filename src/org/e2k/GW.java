@@ -1,9 +1,7 @@
 package org.e2k;
 
 import java.awt.Color;
-import java.util.BitSet;
 import java.util.List;
-
 import javax.swing.JOptionPane;
 
 public class GW extends FSK {
