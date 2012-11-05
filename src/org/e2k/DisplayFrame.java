@@ -89,7 +89,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		menuBar.add(modeMenu);
 		// Options
 		JMenu optionsMenu=new JMenu("Options");
-		optionsMenu.add(RTTYOptions_item=new JMenuItem("Baudot Options"));		
+		optionsMenu.add(RTTYOptions_item=new JMenuItem("Baudot & FSK Options"));		
 		RTTYOptions_item.addActionListener(this);
 		optionsMenu.add(debug_item=new JRadioButtonMenuItem("Debug Mode",theApp.isDebug()));		
 		debug_item.addActionListener(this);
@@ -243,7 +243,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			theApp.getCROWD36SyncHighTone();
 		}
 		// Baudot Options
-		if (event_name=="Baudot Options")	{
+		if (event_name=="Baudot & FSK Options")	{
 			theApp.setRTTYOptions();
 		}
 		// Invert the input signal

@@ -63,6 +63,7 @@ public class Rivet {
     public CCIR493 ccir493Handler=new CCIR493(this);
     public RTTY rttyHandler=new RTTY(this);
     public GW gwHandler=new GW(this);
+    public FSKraw fskHandler=new FSKraw(this);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -246,6 +247,8 @@ public class Rivet {
 		else if (system==9) gwHandler.setState(0);
 		// RTTY
 		else if (system==10) rttyHandler.setState(0);
+		// FSK (raw)
+		else if (system==11) fskHandler.setState(0);
 		// Ensure the program knows we have a WAV file load ongoing
 		wavFileLoadOngoing=true;
 	}
@@ -335,6 +338,8 @@ public class Rivet {
 			else if (system==9) gwHandler.decode(circBuffer,waveData);
 			// RTTY
 			else if (system==10) rttyHandler.decode(circBuffer,waveData);
+			// FSK (raw)
+			else if (system==11) fskHandler.decode(circBuffer,waveData);
 		}
 		catch (Exception e){
 			StringWriter sw=new StringWriter();
@@ -468,7 +473,7 @@ public class Rivet {
 		}
 		else	{
 			// CROWD36 , XPA , XPA2 , CIS36-50 , FSK200/500 , FSK200/1000 , CCIR493-4 , GW , RTTY
-			if ((system==0)||(system==1)||(system==2)||(system==3)||(system==5)||(system==6)||(system==8)||(system==7)||(system==9)||(system==10))	{
+			if ((system==0)||(system==1)||(system==2)||(system==3)||(system==5)||(system==6)||(system==8)||(system==7)||(system==9)||(system==10)||(system==11))	{
 				WaveData waveSetting=new WaveData();
 				waveSetting.setChannels(1);
 				waveSetting.setEndian(true);
@@ -508,6 +513,8 @@ public class Rivet {
 		else if (system==9) gwHandler.setState(0);
 		// RTTY
 		else if (system==10) rttyHandler.setState(0);
+		// FSK (raw)
+		else if (system==11) fskHandler.setState(0);
 	}
 	
 	// Gets all the text on the screen and returns it as a string
@@ -543,7 +550,7 @@ public class Rivet {
 		 // Create a panel that contains the FSK and RTTY options
 		 JPanel panel=new JPanel();
 		 // Set JPanel layout using GridLayout
-		 panel.setLayout(new GridLayout(21,1));
+		 panel.setLayout(new GridLayout(22,1));
 		 // Baud Rate
 		 boolean baud45=false,baud50=false,baud75=false,baud100=false;
 		 JLabel labelBaud=new JLabel("Baud Rate");	
@@ -562,11 +569,12 @@ public class Rivet {
 		 baudGroup.add(button100);
 		 // Shift 
 		 boolean shift170=false,shift425=false,shift450=false,shift500=false,shift850=false;
-		 boolean shift75=false,shift150=false,shift250=false,shift400=false,shift1000=false;
+		 boolean shift75=false,shift150=false,shift200=false,shift250=false,shift400=false,shift1000=false;
 		 JLabel labelShift=new JLabel("Shift");		
 		 if (rttyHandler.getShift()==75) shift75=true;
 		 else if (rttyHandler.getShift()==150) shift150=true;
 		 else if (rttyHandler.getShift()==170) shift170=true;
+		 else if (rttyHandler.getShift()==200) shift200=true;
 		 else if (rttyHandler.getShift()==250) shift250=true;
 		 else if (rttyHandler.getShift()==400) shift400=true;
 		 else if (rttyHandler.getShift()==425) shift425=true;
@@ -577,6 +585,7 @@ public class Rivet {
 		 JRadioButton buttons75=new JRadioButton("75 Hz",shift75);
 		 JRadioButton buttons150=new JRadioButton("150 Hz",shift150);
 		 JRadioButton buttons170=new JRadioButton("170 Hz",shift170);
+		 JRadioButton buttons200=new JRadioButton("200 Hz",shift200);
 		 JRadioButton buttons250=new JRadioButton("250 Hz",shift250);
 		 JRadioButton buttons400=new JRadioButton("400 Hz",shift400);
 		 JRadioButton buttons425=new JRadioButton("425 Hz",shift425);
@@ -588,6 +597,7 @@ public class Rivet {
 		 shiftGroup.add(buttons75);
 		 shiftGroup.add(buttons150);
 		 shiftGroup.add(buttons170);
+		 shiftGroup.add(buttons200);
 		 shiftGroup.add(buttons250);
 		 shiftGroup.add(buttons400);
 		 shiftGroup.add(buttons425);
@@ -623,6 +633,7 @@ public class Rivet {
 		 panel.add(buttons75);
 		 panel.add(buttons150);
 		 panel.add(buttons170);
+		 panel.add(buttons200);
 		 panel.add(buttons250);
 		 panel.add(buttons400);
 		 panel.add(buttons425);
@@ -643,46 +654,64 @@ public class Rivet {
 			// Baud Rate
 			if (button45.isSelected()==true)	{
 				rttyHandler.setBaudRate(45.45);
+				fskHandler.setBaudRate(45.45);
 			}
 			if (button50.isSelected()==true)	{
 				rttyHandler.setBaudRate(50);
+				fskHandler.setBaudRate(50);
 			}
 			if (button100.isSelected()==true)	{
 				rttyHandler.setBaudRate(100);
+				fskHandler.setBaudRate(100);
 			}
 			if (button75.isSelected()==true)	{
 				rttyHandler.setBaudRate(75);
+				fskHandler.setBaudRate(75);
 			}
 			// Shift
 			if (buttons75.isSelected()==true)	{
 				rttyHandler.setShift(75);
+				fskHandler.setShift(75);
 			}			
 			if (buttons150.isSelected()==true)	{
 				rttyHandler.setShift(150);
+				fskHandler.setShift(150);
 			}			
 			if (buttons170.isSelected()==true)	{
 				rttyHandler.setShift(170);
+				fskHandler.setShift(170);
 			}
+			if (buttons200.isSelected()==true)	{
+				rttyHandler.setShift(200);
+				fskHandler.setShift(200);
+			}			
 			if (buttons250.isSelected()==true)	{
 				rttyHandler.setShift(250);
+				fskHandler.setShift(250);
 			}			
 			if (buttons400.isSelected()==true)	{
 				rttyHandler.setShift(400);
+				fskHandler.setShift(400);
 			}			
 			if (buttons425.isSelected()==true)	{
 				rttyHandler.setShift(425);
+				fskHandler.setShift(425);
 			}
 			if (buttons450.isSelected()==true)	{
 				rttyHandler.setShift(450);
+				fskHandler.setShift(450);
 			}
 			if (buttons500.isSelected()==true)	{
 				rttyHandler.setShift(500);
+				fskHandler.setShift(500);
 			}
 			if (buttons850.isSelected()==true)	{
 				rttyHandler.setShift(850);
+				fskHandler.setShift(850);
 			}
 			if (buttons1000.isSelected()==true)	{
 				rttyHandler.setShift(1000);
+				fskHandler.setShift(1000);
 			}
 			// Stop Bits
 			if (buttons1.isSelected()==true) rttyHandler.setStopBits(1.0);
@@ -739,7 +768,7 @@ public class Rivet {
 			if (viewGWChannelMarkers==true) line="<view_gw_markers val='1'/>";
 			else line="<view_gw_markers val='0'/>";
 			xmlfile.write(line);
-			// RTTY
+			// RTTY & FSK
 			// Baud
 			line="<rttybaud val='"+Double.toString(rttyHandler.getBaudRate())+"'/>";
 			xmlfile.write(line);
@@ -829,11 +858,17 @@ public class Rivet {
 						if (Integer.parseInt(aval)==1) viewGWChannelMarkers=true;
 						else viewGWChannelMarkers=false;
 					}
-					// RTTY Options
+					// RTTY & FSK Options
 					// Baud rate
-					else if (qName.equals("rttybaud"))	rttyHandler.setBaudRate(Double.parseDouble(aval));
+					else if (qName.equals("rttybaud"))	{
+						rttyHandler.setBaudRate(Double.parseDouble(aval));
+						fskHandler.setBaudRate(Double.parseDouble(aval));
+					}
 					// Shift
-					else if (qName.equals("rttyshift"))	rttyHandler.setShift(Integer.parseInt(aval));
+					else if (qName.equals("rttyshift"))	{
+						rttyHandler.setShift(Integer.parseInt(aval));
+						fskHandler.setShift(Integer.parseInt(aval));
+					}
 					// Stop bits
 					else if (qName.equals("rttystop"))	rttyHandler.setStopBits(Double.parseDouble(aval));
 				}	

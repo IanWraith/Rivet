@@ -80,7 +80,8 @@ Build 37 Improves the display so that as characters are received they are displa
          other information in italic. 
 Build 38 Fix a null pointer exception in the log file code.    
 Build 39 Improve the detection of loss of baudot signals. Use the same code in the GW object to hopefully size
-         packets correctly.     
+         packets correctly.    
+Build 40 Add the FSK (Raw) decoding mode.
  
 
 Reported Bugs
@@ -92,4 +93,4 @@ these modes.
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (3rd November 2012) 
+Ian Wraith (5th November 2012) 
