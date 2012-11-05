@@ -3,6 +3,8 @@ package org.e2k;
 import java.awt.Color;
 import javax.swing.JOptionPane;
 
+//KG-84 Sync string 1111101111001110101100001011100011011010010001001100101010000001
+
 public class FSKraw extends FSK {
 	
 	private double baudRate=50;
