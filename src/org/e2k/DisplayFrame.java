@@ -139,6 +139,15 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			// Can't find the default settings file //
 			System.out.println("\nInformative : Unable to read the file rivet_settings.xml "+err);
 		}
+		// Read in the trigger.xml file
+		try	{
+			theApp.readTriggerSettings();
+		}
+		catch (Exception e)	{
+			String err=e.toString();
+			// Can't find the default settings file //
+			System.out.println("\nInformative : Unable to read the file trigger.xml "+err);
+		}		
 		
 		statusBarUpdate();
 		}

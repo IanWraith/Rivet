@@ -24,7 +24,10 @@ import java.io.PipedInputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -46,7 +49,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 40) by Ian Wraith";
+	public String program_version="Rivet (Build 41) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -81,6 +84,7 @@ public class Rivet {
 	private boolean bitStreamOut=false;
 	private boolean viewGWChannelMarkers=true;
 	private int bitStreamOutCount=0;
+	private List<Trigger> listTrigers=new ArrayList<Trigger>();
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)",
 			"Experimental","CIS 36-50","FSK200/500",
@@ -798,14 +802,14 @@ public class Rivet {
 			// This is the name of the file you're parsing
 			String filename="rivet_settings.xml";
 			// Instantiate a DefaultHandler subclass to handle events
-			saxHandler handler=new saxHandler();
+			DefaultXMLFileHandler handler=new DefaultXMLFileHandler();
 			// Start the parser. It reads the file and calls methods of the handler.
 			parser.parse(new File(filename),handler);
 		}
 
 	
-	// This class handles the SAX events
-	public class saxHandler extends DefaultHandler {
+	// This class handles the rivet_settings.xml SAX events
+	public class DefaultXMLFileHandler extends DefaultHandler {
 			String value;
 			
 			public void endElement(String namespaceURI,String localName,String qName) throws SAXException {	
@@ -876,6 +880,7 @@ public class Rivet {
 			}
 		}
 	
+	
 	// Change the invert setting
 	public void changeInvertSetting ()	{
 		if (invertSignal==true) invertSignal=false;
@@ -939,5 +944,65 @@ public class Rivet {
 		display_view.newLine();
 		if (logging==true) fileWriteNewline();
 	}
+
+	public List<Trigger> getListTrigers() {
+		return listTrigers;
+	}
+
+	public void setListTrigers(List<Trigger> listTrigers) {
+		this.listTrigers = listTrigers;
+	}
+	
+	// Read in the trigger.xml file //
+	public void readTriggerSettings() throws SAXException, IOException,ParserConfigurationException {
+			// Create a parser factory and use it to create a parser
+			SAXParserFactory parserFactory=SAXParserFactory.newInstance();
+			SAXParser parser=parserFactory.newSAXParser();
+			// This is the name of the file you're parsing
+			String filename="trigger.xml";
+			// Instantiate a DefaultHandler subclass to handle events
+			TriggerXMLFileHandler handler=new TriggerXMLFileHandler();
+			// Start the parser. It reads the file and calls methods of the handler.
+			parser.parse(new File(filename),handler);
+		}
+
+	
+	// This class handles the rivet_settings.xml SAX events
+	public class TriggerXMLFileHandler extends DefaultHandler {
+			String value;
+			
+			public void endElement(String namespaceURI,String localName,String qName) throws SAXException {	
+				
+				
+				
+			}
+
+			public void characters(char[] ch,int start,int length) throws SAXException {
+				// Extract the element value as a string //
+				String tval=new String(ch);
+				value=tval.substring(start,(start+length));
+			}
+			
+			// Handle an XML start element //
+			public void startElement(String uri, String localName, String qName,Attributes attributes) throws SAXException {
+				// Check an element has a value //
+				if (attributes.getLength()>0) {
+					// Get the elements value //
+					String aval=attributes.getValue(0);
+					// Debug mode //
+					if (qName.equals("debug")) {
+						if (aval.equals("TRUE")) setDebug(true);
+						else setDebug(false);	
+					}
+					
+					
+				}	
+				
+			}
+		}
+	
+	
+	
+	
 	
 }
