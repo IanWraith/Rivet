@@ -1,9 +1,9 @@
 package org.e2k;
 
 import java.awt.Color;
-import javax.swing.JOptionPane;
+import java.util.List;
 
-//KG-84 Sync string 1111101111001110101100001011100011011010010001001100101010000001
+import javax.swing.JOptionPane;
 
 public class FSKraw extends FSK {
 	
@@ -21,10 +21,12 @@ public class FSKraw extends FSK {
 	private double adjBuffer[]=new double[2];
 	private int adjCounter=0;
 	private int shift=450;
+	private CircularBitSet circularBitSet=new CircularBitSet();
 	
 	public FSKraw (Rivet tapp)	{
 		theApp=tapp;
 		samplesPerSymbol=samplesPerSymbol(baudRate,8000);
+		circularBitSet.setTotalLength(200);
 	}
 	
 	public void setBaudRate(double br) {
@@ -98,6 +100,9 @@ public class FSKraw extends FSK {
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
 				boolean ibit=fskFreqHalf(circBuf,waveData,0);
+				circularBitSet.add(ibit);
+				// Check triggers
+				triggerCheck();
 				// Display this
 				if (ibit==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
 				else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
@@ -237,5 +242,24 @@ public class FSKraw extends FSK {
 		return out;		
 	}
 
-
+	// Check if there have been any trigger activations
+	public void triggerCheck()	{
+		// Find the number of Triggers
+		List<Trigger> tList=theApp.getListTriggers();
+		// If no triggers return
+		if (tList==null) return;
+		int a;
+		for (a=0;a<tList.size();a++)	{
+			// Get each trigger in turn
+			Trigger trigger=tList.get(a);
+			// Do we have a match ?
+			if (trigger.triggerMatch(circularBitSet)==true)	{
+				
+				// TODO : Do stuff with the trigger
+				
+			}
+		}
+	}
+	
+	
 }
