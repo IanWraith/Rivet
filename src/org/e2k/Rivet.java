@@ -27,7 +27,6 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -84,7 +83,7 @@ public class Rivet {
 	private boolean bitStreamOut=false;
 	private boolean viewGWChannelMarkers=true;
 	private int bitStreamOutCount=0;
-	private List<Trigger> listTrigers=new ArrayList<Trigger>();
+	private List<Trigger> listTriggers=new ArrayList<Trigger>();
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)",
 			"Experimental","CIS 36-50","FSK200/500",
@@ -945,12 +944,12 @@ public class Rivet {
 		if (logging==true) fileWriteNewline();
 	}
 
-	public List<Trigger> getListTrigers() {
-		return listTrigers;
+	public List<Trigger> getListTriggers() {
+		return listTriggers;
 	}
 
-	public void setListTrigers(List<Trigger> listTrigers) {
-		this.listTrigers = listTrigers;
+	public void setListTriggers(List<Trigger> listTriggers) {
+		this.listTriggers = listTriggers;
 	}
 	
 	// Read in the trigger.xml file //
@@ -969,12 +968,20 @@ public class Rivet {
 	
 	// This class handles the rivet_settings.xml SAX events
 	public class TriggerXMLFileHandler extends DefaultHandler {
-			String value;
-			
+			String value,description,sequence;
+			int type;
+			// Handle an XML start element
 			public void endElement(String namespaceURI,String localName,String qName) throws SAXException {	
-				
-				
-				
+				// Look for a <trigger> end tag
+				if (qName.equals("trigger"))	{
+					// Put the values in a Trigger object
+					Trigger trigger=new Trigger();
+					trigger.setTriggerDescription(description);
+					trigger.setTriggerSequence(sequence);
+					trigger.setTriggerType(type);
+					// Add this to the Trigger list
+					listTriggers.add(trigger);
+				}
 			}
 
 			public void characters(char[] ch,int start,int length) throws SAXException {
@@ -989,12 +996,18 @@ public class Rivet {
 				if (attributes.getLength()>0) {
 					// Get the elements value //
 					String aval=attributes.getValue(0);
-					// Debug mode //
-					if (qName.equals("debug")) {
-						if (aval.equals("TRUE")) setDebug(true);
-						else setDebug(false);	
+					// Trigger Description //
+					if (qName.equals("description")) {
+						description=aval;
 					}
-					
+					// Trigger Sequence
+					if (qName.equals("sequence")) {
+						sequence=aval;
+					}					
+					// Trigger Type
+					if (qName.equals("type"))	{
+						type=Integer.parseInt(aval);
+					}
 					
 				}	
 				
