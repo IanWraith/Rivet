@@ -19,6 +19,8 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DisplayFrame extends JFrame implements ActionListener {
 	
@@ -31,6 +33,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
 	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item;
+	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
 	
 	// Constructor
 	public DisplayFrame(String title,Rivet theApp) {
@@ -38,6 +41,16 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		this.theApp=theApp;
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		getContentPane().setBackground(Color.WHITE);
+		// Read in the trigger.xml file
+		try	{
+			theApp.readTriggerSettings();
+		}
+		catch (Exception e)	{
+			String err=e.toString();
+			// Can't find the default settings file //
+			System.out.println("\nInformative : Unable to read the file trigger.xml "+err);
+		}		
+		
 		// Menu setup
 		setJMenuBar(menuBar);
 		// Main
@@ -98,6 +111,18 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		optionsMenu.add(CROWD36_sync_item=new JMenuItem("Set the CROWD36 Sync High Tone"));
 		CROWD36_sync_item.addActionListener(this);
 		menuBar.add(optionsMenu);
+		// Triggers
+		JMenu triggersMenu=new JMenu("Triggers");
+		// Get details of all the triggers
+		List<Trigger> trigList=theApp.getListTriggers();
+		int a;
+		for (a=0;a<trigList.size();a++)	{
+			JMenuItem tmenu=new JRadioButtonMenuItem(trigList.get(a).getTriggerDescription(),trigList.get(a).isActive());
+			tmenu.addActionListener(this);
+			trigger_items.add(tmenu);
+			triggersMenu.add(tmenu);
+		}
+		menuBar.add(triggersMenu);
 		// View
 		JMenu viewMenu=new JMenu("View");
 		viewMenu.add(freeChannelMarkerGW_item=new JRadioButtonMenuItem("View GW Free Channel Markers", theApp.isViewGWChannelMarkers()));
@@ -125,6 +150,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		statusBar.setLoggingStatus("Not Logging");
 		statusBar.setStatusLabel("Idle");
 		statusBar.setApp(theApp);
+
 		// Read in the default settings file
 		try	{
 			theApp.readDefaultSettings();
@@ -139,15 +165,6 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			// Can't find the default settings file //
 			System.out.println("\nInformative : Unable to read the file rivet_settings.xml "+err);
 		}
-		// Read in the trigger.xml file
-		try	{
-			theApp.readTriggerSettings();
-		}
-		catch (Exception e)	{
-			String err=e.toString();
-			// Can't find the default settings file //
-			System.out.println("\nInformative : Unable to read the file trigger.xml "+err);
-		}		
 		
 		statusBarUpdate();
 		}
@@ -276,6 +293,19 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			// Stop the program //
 			System.exit(0);	
 		}
+		// Has the user clicked on a Trigger ?
+		// Get details of all the triggers
+		List<Trigger> trigList=theApp.getListTriggers();
+		// Compare the event name with each triggers description
+		int a;
+		for (a=0;a<trigList.size();a++)	{
+			if (event_name.equals(trigList.get(a).getTriggerDescription()))	{
+				// Change the active status of the trigger
+				if (trigList.get(a).isActive()==true) trigList.get(a).setActive(false);
+				else trigList.get(a).setActive(true);
+				theApp.setListTriggers(trigList);
+			}
+		}
 		
 		menuItemUpdate();
 		statusBarUpdate();
@@ -300,6 +330,12 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		bitstream_item.setSelected(theApp.isBitStreamOut());
 		freeChannelMarkerGW_item.setSelected(theApp.isViewGWChannelMarkers());
 		RTTY_item.setSelected(theApp.isRTTY());
+		// Triggers
+		List<Trigger> trigList=theApp.getListTriggers();
+		int a;
+		for (a=0;a<trigList.size();a++)	{
+			trigger_items.get(a).setSelected(trigList.get(a).isActive());
+		}
 	}
 	
 	// Display a dialog box so the user can select a WAV file they wish to process

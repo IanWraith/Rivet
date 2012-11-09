@@ -84,6 +84,7 @@ public class Rivet {
 	private boolean viewGWChannelMarkers=true;
 	private int bitStreamOutCount=0;
 	private List<Trigger> listTriggers=new ArrayList<Trigger>();
+	private int activeTriggerCount=0;
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)",
 			"Experimental","CIS 36-50","FSK200/500",
@@ -950,6 +951,12 @@ public class Rivet {
 
 	public void setListTriggers(List<Trigger> listTriggers) {
 		this.listTriggers = listTriggers;
+		// Count the number of active triggers
+		activeTriggerCount=0;
+		int a;
+		for (a=0;a<listTriggers.size();a++)	{
+			if (listTriggers.get(a).isActive()==true) activeTriggerCount++;
+		}
 	}
 	
 	// Read in the trigger.xml file //
@@ -966,6 +973,10 @@ public class Rivet {
 		}
 
 	
+	public int getActiveTriggerCount() {
+		return activeTriggerCount;
+	}
+
 	// This class handles the rivet_settings.xml SAX events
 	public class TriggerXMLFileHandler extends DefaultHandler {
 			String value,description,sequence;

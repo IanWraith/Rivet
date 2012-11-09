@@ -102,7 +102,7 @@ public class FSKraw extends FSK {
 				boolean ibit=fskFreqHalf(circBuf,waveData,0);
 				circularBitSet.add(ibit);
 				// Check triggers
-				triggerCheck();
+				if (theApp.getActiveTriggerCount()>0) triggerCheck();
 				// Display this
 				if (ibit==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
 				else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
