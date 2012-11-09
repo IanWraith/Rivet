@@ -233,6 +233,9 @@ public class FSK {
 	public double[] doRTTYHalfSymbolBinRequest (double baud,CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
 		int a;
 		double vals[]=new double[2];
+		
+		// TODO : Add support for a data rate of 600 baud
+		
 		// 45.45 baud
 		if (baud==45.45)	{
 			// Get the data from the circular buffer
