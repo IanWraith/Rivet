@@ -166,6 +166,8 @@ public class FSK {
 	    }
 	    // 100 baud
 	    else if (baud==100)	return (do160FFT(circBuf,waveData,start));
+	    // 200 baud
+	    else if (baud==200) return (do64FFT(circBuf,waveData,start));
 	    else return 0;
 	}	
 	
@@ -227,6 +229,27 @@ public class FSK {
 		vals[1]=spec[bin1];
 		return vals;
 		}
+
+	
+	// Does a 64 point FFT on 20 samples (a half symbol) then returns the values of two specific bins
+	public double[] do200baudFSKHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
+		double vals[]=new double[2];
+		// Get the data from the circular buffer
+		double samData[]=circBuf.extractDataDouble(start,20);
+		double datar[]=new double[FFT_64_SIZE];
+		// Run the data through a Blackman window
+		int a;
+		for (a=0;a<datar.length;a++)	{
+			if ((a>=22)&&(a<42)) datar[a]=samData[a-22];
+			else datar[a]=0.0;
+			datar[a]=windowBlackman(datar[a],a,datar.length);
+			}
+		fft64.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		vals[0]=spec[bin0];
+		vals[1]=spec[bin1];
+		return vals;
+		}	
 	
 	
 	// Calculates the half symbol bin values for the RTTY code
@@ -234,7 +257,6 @@ public class FSK {
 		int a;
 		double vals[]=new double[2];
 		
-		// TODO : Add support for a data rate of 200 baud
 		// TODO : Add support for a data rate of 600 baud
 		
 		// 45.45 baud
@@ -290,6 +312,9 @@ public class FSK {
 		}
 		// 100 baud
 		else if (baud==100) return (do100baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
+		// 200 baud 
+		else if (baud==200) return (do200baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
+		
 		else	{
 			// We have a problem here !
 			JOptionPane.showMessageDialog(null,"Unsupported Baud Rate","Rivet", JOptionPane.ERROR_MESSAGE);
