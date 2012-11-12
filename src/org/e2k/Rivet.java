@@ -553,13 +553,12 @@ public class Rivet {
 	public void setRTTYOptions()	{
 		
 		 // TODO : Add options dialog box support for 200 baud operation
-		 // TODO : Add options dialog box support for 600 baud operation
 		 // TODO : Add support for a 600 Hz shift
 		
 		 // Create a panel that contains the FSK and RTTY options
 		 JPanel panel=new JPanel();
 		 // Set JPanel layout using GridLayout
-		 panel.setLayout(new GridLayout(22,1));
+		 panel.setLayout(new GridLayout(23,1));
 		 // Baud Rate
 		 boolean baud45=false,baud50=false,baud75=false,baud100=false;
 		 JLabel labelBaud=new JLabel("Baud Rate");	
@@ -578,7 +577,7 @@ public class Rivet {
 		 baudGroup.add(button100);
 		 // Shift 
 		 boolean shift170=false,shift425=false,shift450=false,shift500=false,shift850=false;
-		 boolean shift75=false,shift150=false,shift200=false,shift250=false,shift400=false,shift1000=false;
+		 boolean shift75=false,shift150=false,shift200=false,shift250=false,shift400=false,shift600=false,shift1000=false;
 		 JLabel labelShift=new JLabel("Shift");		
 		 if (rttyHandler.getShift()==75) shift75=true;
 		 else if (rttyHandler.getShift()==150) shift150=true;
@@ -589,6 +588,7 @@ public class Rivet {
 		 else if (rttyHandler.getShift()==425) shift425=true;
 		 else if (rttyHandler.getShift()==450) shift450=true;
 		 else if (rttyHandler.getShift()==500) shift500=true;
+		 else if (rttyHandler.getShift()==600) shift600=true;
 		 else if (rttyHandler.getShift()==850) shift850=true;
 		 else if (rttyHandler.getShift()==1000) shift1000=true;
 		 JRadioButton buttons75=new JRadioButton("75 Hz",shift75);
@@ -600,6 +600,7 @@ public class Rivet {
 		 JRadioButton buttons425=new JRadioButton("425 Hz",shift425);
 		 JRadioButton buttons450=new JRadioButton("450 Hz",shift450);
 		 JRadioButton buttons500=new JRadioButton("500 Hz",shift500);
+		 JRadioButton buttons600=new JRadioButton("600 Hz",shift600);
 		 JRadioButton buttons850=new JRadioButton("850 Hz",shift850);
 		 JRadioButton buttons1000=new JRadioButton("1000 Hz",shift1000);
 		 ButtonGroup shiftGroup=new ButtonGroup();
@@ -612,6 +613,7 @@ public class Rivet {
 		 shiftGroup.add(buttons425);
 		 shiftGroup.add(buttons450);
 		 shiftGroup.add(buttons500);
+		 shiftGroup.add(buttons600);
 		 shiftGroup.add(buttons850);
 		 shiftGroup.add(buttons1000);
 		 // Stop Bits
@@ -648,6 +650,7 @@ public class Rivet {
 		 panel.add(buttons425);
 		 panel.add(buttons450);
 		 panel.add(buttons500);
+		 panel.add(buttons600);
 		 panel.add(buttons850);
 		 panel.add(buttons1000);
 		 // Stop Bits
@@ -713,6 +716,10 @@ public class Rivet {
 			if (buttons500.isSelected()==true)	{
 				rttyHandler.setShift(500);
 				fskHandler.setShift(500);
+			}
+			if (buttons600.isSelected()==true)	{
+				rttyHandler.setShift(600);
+				fskHandler.setShift(600);
 			}
 			if (buttons850.isSelected()==true)	{
 				rttyHandler.setShift(850);
