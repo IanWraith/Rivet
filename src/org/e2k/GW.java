@@ -120,7 +120,7 @@ public class GW extends FSK {
 	
 	// Get the frequency at a certain symbol
 	private int getSymbolFreq (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		int fr=do160FFT(circBuf,waveData,start);
+		int fr=do100baudFFT(circBuf,waveData,start);
 		return fr;
 	}
 	
