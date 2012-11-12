@@ -552,7 +552,9 @@ public class Rivet {
 	// A dialog box to allow the user to set the FSK and RTTY options
 	public void setRTTYOptions()	{
 		
-		// TODO : Add support for a 600 Hz shift and 600 baud to the dialog box
+		 // TODO : Add options dialog box support for 200 baud operation
+		 // TODO : Add options dialog box support for 600 baud operation
+		 // TODO : Add support for a 600 Hz shift
 		
 		 // Create a panel that contains the FSK and RTTY options
 		 JPanel panel=new JPanel();
