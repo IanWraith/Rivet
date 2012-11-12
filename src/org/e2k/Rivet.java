@@ -551,30 +551,32 @@ public class Rivet {
 	
 	// A dialog box to allow the user to set the FSK and RTTY options
 	public void setRTTYOptions()	{
-		
-		 // TODO : Add options dialog box support for 200 baud operation
-		 // TODO : Add support for a 600 Hz shift
-		
 		 // Create a panel that contains the FSK and RTTY options
 		 JPanel panel=new JPanel();
 		 // Set JPanel layout using GridLayout
-		 panel.setLayout(new GridLayout(23,1));
+		 panel.setLayout(new GridLayout(25,1));
 		 // Baud Rate
-		 boolean baud45=false,baud50=false,baud75=false,baud100=false;
+		 boolean baud45=false,baud50=false,baud75=false,baud100=false,baud200=false,baud600=false;
 		 JLabel labelBaud=new JLabel("Baud Rate");	
 		 if (rttyHandler.getBaudRate()==45.45) baud45=true;
 		 else if (rttyHandler.getBaudRate()==50) baud50=true;
 		 else if (rttyHandler.getBaudRate()==75) baud75=true;
 		 else if (rttyHandler.getBaudRate()==100) baud100=true;
+		 else if (rttyHandler.getBaudRate()==200) baud200=true;
+		 else if (rttyHandler.getBaudRate()==600) baud600=true;
 		 JRadioButton button45=new JRadioButton("45.45 Baud",baud45);
 		 JRadioButton button50=new JRadioButton("50 Baud",baud50);
 		 JRadioButton button75=new JRadioButton("75 Baud",baud75);
 		 JRadioButton button100=new JRadioButton("100 Baud",baud100);
+		 JRadioButton button200=new JRadioButton("200 Baud",baud200);
+		 JRadioButton button600=new JRadioButton("600 Baud",baud600);
 		 ButtonGroup baudGroup=new ButtonGroup();
 		 baudGroup.add(button45);
 		 baudGroup.add(button50);
 		 baudGroup.add(button75);
 		 baudGroup.add(button100);
+		 baudGroup.add(button200);
+		 baudGroup.add(button600);
 		 // Shift 
 		 boolean shift170=false,shift425=false,shift450=false,shift500=false,shift850=false;
 		 boolean shift75=false,shift150=false,shift200=false,shift250=false,shift400=false,shift600=false,shift1000=false;
@@ -639,6 +641,8 @@ public class Rivet {
 		 panel.add(button50);
 		 panel.add(button75);
 		 panel.add(button100);
+		 panel.add(button200);
+		 panel.add(button600);
 		 // Shift
 		 panel.add(labelShift);
 		 panel.add(buttons75);
@@ -672,13 +676,21 @@ public class Rivet {
 				rttyHandler.setBaudRate(50);
 				fskHandler.setBaudRate(50);
 			}
+			if (button75.isSelected()==true)	{
+				rttyHandler.setBaudRate(75);
+				fskHandler.setBaudRate(75);
+			}		
 			if (button100.isSelected()==true)	{
 				rttyHandler.setBaudRate(100);
 				fskHandler.setBaudRate(100);
 			}
-			if (button75.isSelected()==true)	{
-				rttyHandler.setBaudRate(75);
-				fskHandler.setBaudRate(75);
+			if (button200.isSelected()==true)	{
+				rttyHandler.setBaudRate(200);
+				fskHandler.setBaudRate(200);
+			}
+			if (button600.isSelected()==true)	{
+				rttyHandler.setBaudRate(600);
+				fskHandler.setBaudRate(600);
 			}
 			// Shift
 			if (buttons75.isSelected()==true)	{
