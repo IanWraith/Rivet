@@ -1004,7 +1004,7 @@ public class Rivet {
 	// This class handles the rivet_settings.xml SAX events
 	public class TriggerXMLFileHandler extends DefaultHandler {
 			String value,description,sequence;
-			int type;
+			int type,backward,forward;
 			// Handle an XML start element
 			public void endElement(String namespaceURI,String localName,String qName) throws SAXException {	
 				// Look for a <trigger> end tag
@@ -1014,6 +1014,11 @@ public class Rivet {
 					trigger.setTriggerDescription(description);
 					trigger.setTriggerSequence(sequence);
 					trigger.setTriggerType(type);
+					// If type 3 (GRAB) load the forward and backward values
+					if (type==3)	{
+						trigger.setForwardGrab(forward);
+						trigger.setBackwardGrab(backward);
+					}
 					// Add this to the Trigger list
 					listTriggers.add(trigger);
 				}
@@ -1043,7 +1048,14 @@ public class Rivet {
 					if (qName.equals("type"))	{
 						type=Integer.parseInt(aval);
 					}
-					
+					// Forward grab value
+					if (qName.equals("forward"))	{
+						forward=Integer.parseInt(aval);
+					}
+					// Backward grab value
+					if (qName.equals("backward"))	{
+						backward=Integer.parseInt(aval);
+					}
 				}	
 				
 			}

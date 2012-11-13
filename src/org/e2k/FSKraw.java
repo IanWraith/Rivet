@@ -23,6 +23,7 @@ public class FSKraw extends FSK {
 	private int shift=450;
 	private CircularBitSet circularBitSet=new CircularBitSet();
 	private boolean display=false;
+	private int charactersRemaining=0;
 	
 	public FSKraw (Rivet tapp)	{
 		theApp=tapp;
@@ -110,6 +111,11 @@ public class FSKraw extends FSK {
 					if (ibit==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
 					else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
 					characterCounter++;
+				}
+				// Is there a grab trigger in progress
+				if (charactersRemaining>0)	{
+					charactersRemaining--;
+					if (charactersRemaining==0) display=false;
 				}
 				// Have we reached the end of a line
 				if (characterCounter==MAXCHARLENGTH)	{
@@ -266,6 +272,12 @@ public class FSKraw extends FSK {
 				// Trigger type 2 is a stop logging trigger
 				else if (trigger.getTriggerType()==2)	{
 					display=false;
+				}
+				// Trigger type 3 is a grab trigger
+				if (trigger.getTriggerType()==3)	{
+					display=true;
+					characterCounter=0;
+					charactersRemaining=trigger.getForwardGrab();
 				}
 				// Write the trigger description to the screen/log
 				String des=theApp.getTimeStamp()+" "+trigger.getTriggerDescription();

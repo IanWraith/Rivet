@@ -6,6 +6,8 @@ public class Trigger {
 	private String triggerDescription;
 	private int triggerType=-1;
 	private boolean active=false;
+	private int forwardGrab=0;
+	private int backwardGrab=0;
 	
 	public String getTriggerSequence() {
 		return triggerSequence;
@@ -54,7 +56,24 @@ public class Trigger {
 	public String getTypeDescription()	{
 		if (this.triggerType==1) return " (START)";
 		else if (this.triggerType==2) return " (END)";
+		else if (this.triggerType==3) return " (GRAB)";
 		else return " (UNKNOWN)";
+	}
+
+	public int getForwardGrab() {
+		return forwardGrab;
+	}
+
+	public void setForwardGrab(int forwardGrab) {
+		this.forwardGrab = forwardGrab;
+	}
+
+	public int getBackwardGrab() {
+		return backwardGrab;
+	}
+
+	public void setBackwardGrab(int backwardGrab) {
+		this.backwardGrab = backwardGrab;
 	}
 	
 	
