@@ -50,5 +50,12 @@ public class Trigger {
 		this.active = active;
 	}
 	
+	// Return a description of the trigger type
+	public String getTypeDescription()	{
+		if (this.triggerType==1) return " (START)";
+		else if (this.triggerType==2) return " (END)";
+		else return " (UNKNOWN)";
+	}
+	
 	
 }

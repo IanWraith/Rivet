@@ -22,6 +22,7 @@ public class FSKraw extends FSK {
 	private int adjCounter=0;
 	private int shift=450;
 	private CircularBitSet circularBitSet=new CircularBitSet();
+	private boolean display=false;
 	
 	public FSKraw (Rivet tapp)	{
 		theApp=tapp;
@@ -101,12 +102,15 @@ public class FSKraw extends FSK {
 			if (symbolCounter>=samplesPerSymbol)	{
 				boolean ibit=fskFreqHalf(circBuf,waveData,0);
 				circularBitSet.add(ibit);
-				// Check triggers
+				// Check triggers , if not active then enable the display
 				if (theApp.getActiveTriggerCount()>0) triggerCheck();
+				else display=true;
 				// Display this
-				if (ibit==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
-				else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
-				characterCounter++;
+				if (display==true)	{
+					if (ibit==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
+					else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
+					characterCounter++;
+				}
 				// Have we reached the end of a line
 				if (characterCounter==MAXCHARLENGTH)	{
 					characterCounter=0;
@@ -254,9 +258,18 @@ public class FSKraw extends FSK {
 			Trigger trigger=tList.get(a);
 			// Do we have a match ?
 			if (trigger.triggerMatch(circularBitSet)==true)	{
-				
-				// TODO : Do stuff with the trigger
-				
+				// Trigger type 1 is a start logging trigger
+				if (trigger.getTriggerType()==1)	{
+					display=true;
+					characterCounter=0;
+				}
+				// Trigger type 2 is a stop logging trigger
+				else if (trigger.getTriggerType()==2)	{
+					display=false;
+				}
+				// Write the trigger description to the screen/log
+				String des=theApp.getTimeStamp()+" "+trigger.getTriggerDescription();
+				theApp.writeLine(des,Color.BLACK,theApp.italicFont );	
 			}
 		}
 	}

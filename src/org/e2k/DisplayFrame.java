@@ -117,7 +117,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		List<Trigger> trigList=theApp.getListTriggers();
 		int a;
 		for (a=0;a<trigList.size();a++)	{
-			JMenuItem tmenu=new JRadioButtonMenuItem(trigList.get(a).getTriggerDescription(),trigList.get(a).isActive());
+			JMenuItem tmenu=new JRadioButtonMenuItem(trigList.get(a).getTriggerDescription()+trigList.get(a).getTypeDescription(),trigList.get(a).isActive());
 			tmenu.addActionListener(this);
 			trigger_items.add(tmenu);
 			triggersMenu.add(tmenu);
@@ -299,7 +299,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// Compare the event name with each triggers description
 		int a;
 		for (a=0;a<trigList.size();a++)	{
-			if (event_name.equals(trigList.get(a).getTriggerDescription()))	{
+			if (event_name.equals(trigList.get(a).getTriggerDescription()+trigList.get(a).getTypeDescription()))	{
 				// Change the active status of the trigger
 				if (trigList.get(a).isActive()==true) trigList.get(a).setActive(false);
 				else trigList.get(a).setActive(true);
