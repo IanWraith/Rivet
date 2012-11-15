@@ -1,5 +1,10 @@
 package org.e2k;
 
+// Trigger types
+// 1 - Start 
+// 2 - End
+// 3 - Grab
+
 public class Trigger {
 	
 	private String triggerSequence;
@@ -42,6 +47,14 @@ public class Trigger {
 		// Is this the same as the trigger sequence ?
 		if (triggerSequence.equals(cur)) return true;
 		else return false;
+	}
+	
+	// Return backwardGrab values as a string
+	public String getBackwardBitsString (CircularBitSet cBitSet)	{
+		// Extract the trigger string and backward grap bits
+		String cur=cBitSet.extractSequence(triggerSequence.length()+backwardGrab);
+		// Chop away the trigger string leaving just the prior bits
+		return cur.substring(0,backwardGrab);
 	}
 
 	public boolean isActive() {

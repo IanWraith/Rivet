@@ -11,6 +11,7 @@ CIS36-50 (50 baud only currently) : Used by the Russian Navy.
 CROWD36 : Used for Russian diplomatic and intelligence messages
 FSK200/500 : Used for Russian diplomatic and intelligence messages
 FSK200/1000 : Used for Russian diplomatic and intelligence messages
+FSK (raw) : For advanced users to investigate unknown FSK modes
 GW FSK (100 baud) : A commercial ship to shore data system.
 XPA (10 and 20 baud) : Believed used for Russian intelligence messages.
 XPA2 : Believed used for Russian intelligence messages.
@@ -82,6 +83,7 @@ Build 38 Fix a null pointer exception in the log file code.
 Build 39 Improve the detection of loss of baudot signals. Use the same code in the GW object to hopefully size
          packets correctly.    
 Build 40 Add the FSK (Raw) decoding mode.
+Build 41 Add further FSK/Baudot shifts and baud rates plus the new trigger feature
  
 
 Reported Bugs
@@ -93,4 +95,4 @@ these modes.
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (5th November 2012) 
+Ian Wraith (15th November 2012) 

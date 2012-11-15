@@ -28,7 +28,7 @@ public class FSKraw extends FSK {
 	public FSKraw (Rivet tapp)	{
 		theApp=tapp;
 		samplesPerSymbol=samplesPerSymbol(baudRate,8000);
-		circularBitSet.setTotalLength(200);
+		circularBitSet.setTotalLength(1024);
 	}
 	
 	public void setBaudRate(double br) {
@@ -277,7 +277,12 @@ public class FSKraw extends FSK {
 				if (trigger.getTriggerType()==3)	{
 					display=true;
 					characterCounter=0;
+					// Display the coming charactersRemaining characters in the forward grab
 					charactersRemaining=trigger.getForwardGrab();
+					// Display the prior characters in the backward grab
+					if (trigger.getBackwardGrab()>0)	{
+						theApp.writeLine(trigger.getBackwardBitsString(circularBitSet),Color.BLACK,theApp.boldFont);
+					}
 				}
 				// Write the trigger description to the screen/log
 				String des=theApp.getTimeStamp()+" "+trigger.getTriggerDescription();
