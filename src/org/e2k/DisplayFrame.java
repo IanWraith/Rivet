@@ -32,7 +32,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item,bitstream_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
-	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item;
+	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,SITORB_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
 	
 	// Constructor
@@ -90,6 +90,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		FSK_item.addActionListener(this);	
 		modeMenu.add(GW_item=new JRadioButtonMenuItem(theApp.MODENAMES[9],theApp.isGW()));
 		GW_item.addActionListener(this);
+		modeMenu.add(SITORB_item=new JRadioButtonMenuItem(theApp.MODENAMES[12],theApp.isSITORB()));
+		SITORB_item.addActionListener(this);	
 		modeMenu.add(XPA_10_item=new JRadioButtonMenuItem(theApp.MODENAMES[1],theApp.isXPA_10()));
 		XPA_10_item.addActionListener(this);
 		modeMenu.add(XPA_20_item=new JRadioButtonMenuItem(theApp.MODENAMES[3],theApp.isXPA_20()));
@@ -330,6 +332,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		bitstream_item.setSelected(theApp.isBitStreamOut());
 		freeChannelMarkerGW_item.setSelected(theApp.isViewGWChannelMarkers());
 		RTTY_item.setSelected(theApp.isRTTY());
+		SITORB_item.setSelected(theApp.isSITORB());
 		// Triggers
 		List<Trigger> trigList=theApp.getListTriggers();
 		int a;
