@@ -17,13 +17,19 @@ public class SITOR extends FSK {
 	private int lowBin;
 	private final int MAXCHARLENGTH=100;
 	private long missingCharCounter=0;
-	private double adjBuffer[]=new double[5];
-	private int adjCounter=0;
 	private double symbolTotal;
 	private double previousSymbolTotal;
 	private double oldSymbolPercentage[]=new double[4];
 	private boolean inChar7[]=new boolean[7];
 	private int bcount;
+	private boolean lettersMode=true;
+	private boolean lettersSyncObtained=false;
+	private int missingCharacter=0;
+	private int cBuffer[]=new int[6];
+	private final double KALMAN1=0.99;
+	private final double KALMAN2=0.009;
+	private final double EARLYLATEADJUST=5;
+	
 	
 	public SITOR (Rivet tapp)	{
 		theApp=tapp;
@@ -75,6 +81,8 @@ public class SITOR extends FSK {
 					energyBuffer.setBufferCounter(0);
 					missingCharCounter=0;
 					bcount=0;
+					lettersSyncObtained=false;
+					missingCharacter=0;
 				}
 			}
 		}
@@ -99,14 +107,46 @@ public class SITOR extends FSK {
 				double av=(oldSymbolPercentage[0]+oldSymbolPercentage[1]+oldSymbolPercentage[2]+oldSymbolPercentage[3])/4;
 				// If the percentage different is over 40% and more than two characters are missing then the signal has been lost
 				if ((av>40.0)&&(missingCharCounter>2)) setState(1);
-					
-				
 				// Add the bit to the character buffer
 				addToCharBuffer(ibit);
-				
-				
+				bcount++;	
 				// Adjust the symbol counter
 				symbolCounter=adjAdjust();
+				
+				if ((lettersSyncObtained==false)&&(bcount>=7))	{
+					if (isValidSITORChar()==true)	{
+						lettersSyncObtained=true;
+						bcount=0;
+					}
+				}
+				
+				if ((lettersSyncObtained==true)&&(bcount>=7))	{
+					if (isValidSITORChar()==true)	{
+						
+						String cs=getSITORchar();
+						
+						if (cs!=null)	{
+							theApp.writeChar(getSITORchar(),Color.BLACK,theApp.boldFont);
+							characterCount++;
+						}
+						
+						
+						lettersSyncObtained=true;
+						bcount=0;
+						missingCharacter=0;
+					}
+					else missingCharacter++;
+					
+					if (missingCharacter>2) 	{
+						missingCharacter=0;
+						lettersSyncObtained=false;
+						
+						theApp.writeLine("Char Sync Lost",Color.BLACK,theApp.italicFont);
+						
+					}
+					
+				}
+				
 				
 				// If the character count has reached MAXCHARLENGTH then display this line and write a newline to the screen
 				if (characterCount>=MAXCHARLENGTH)	{
@@ -163,38 +203,22 @@ public class SITOR extends FSK {
 		}
 		// If either the low bin or the high bin are zero there is a problem so return false
 		if ((lowBin==0)||(highBin==0)) return null;
-		String line=theApp.getTimeStamp()+" RTTY Sync Sequence Found";
+		String line=theApp.getTimeStamp()+" SITOR Sync Sequence Found";
 		return line;
 	}
 
 	
-	// Add a comparator output to a circular buffer of values
-	private void addToAdjBuffer (double in)	{
-		adjBuffer[adjCounter]=in;
-		adjCounter++;
-		if (adjCounter==adjBuffer.length) adjCounter=0;
-	}	
-	
-	// Return the average of the circular buffer
-	private double adjAverage()	{
-		int a;
-		double total=0.0;
-		for (a=0;a<adjBuffer.length;a++)	{
-			total=total+adjBuffer[a];
-		}
-		return (total/adjBuffer.length);
-	}
-	
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
-		double av=adjAverage();
-		double r=Math.abs(av)/5;
-		if (av<0) r=0-r;
-		//theApp.debugDump(Double.toString(av)+","+Double.toString(r));
+		double r=Math.abs(kalmanNew)/EARLYLATEADJUST;
+		if (kalmanNew<0) r=0-r;
+		
+		//theApp.debugDump(Double.toString(kalmanNew)+","+Integer.toString((int)r));
 		//r=0;
+		
 		return (int)r;
 	}		
-
+	
 	// Find the frequency of a SITOR symbol
 	// Currently the program only supports a sampling rate of 8000 KHz
 	private int sitorFreq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
@@ -215,20 +239,23 @@ public class SITOR extends FSK {
 		// Store the previous symbol energy total
 		previousSymbolTotal=symbolTotal;
 		symbolTotal=early[0]+late[0]+early[1]+late[1];
-		// Feed the early late difference into a buffer
-		if ((early[0]+late[0])>(early[1]+late[1])) addToAdjBuffer(getPercentageDifference(early[0],late[0]));
-		else addToAdjBuffer(getPercentageDifference(early[1],late[1]));
 		// Now work out the binary state represented by this symbol
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
+		
+		// Early/Late gate code
+		if (lowTotal>highTotal) kalmanFilter(getPercentageDifference(early[0],late[0]),KALMAN1,KALMAN2);
+		else kalmanFilter(getPercentageDifference(early[1],late[1]),KALMAN1,KALMAN2);
+		
+		
 		if (theApp.isInvertSignal()==false)	{
-			if (lowTotal>highTotal) return true;
-			else return false;
+			if (lowTotal>highTotal) return false;
+			else return true;
 		}
 		else	{
 			// If inverted is set invert the bit returned
-			if (lowTotal>highTotal) return false;
-			else return true;
+			if (lowTotal>highTotal) return true;
+			else return false;
 		}
 	}
 	
@@ -243,5 +270,71 @@ public class SITOR extends FSK {
 		// Increment the bit counter
 		bcount++;
 	}	
+	
+	
+	private boolean isValidSITORChar() {
+		int val=0;
+		if (inChar7[0]==true) val=64;
+		if (inChar7[1]==true) val=val+32;
+		if (inChar7[2]==true) val=val+16;
+		if (inChar7[3]==true) val=val+8;
+		if (inChar7[4]==true) val=val+4;
+		if (inChar7[5]==true) val=val+2;
+		if (inChar7[6]==true) val++;
+		return (checkCCIR476Char(val));
+	}
+	
+	// Return a CCIR476 character
+	private String getSITORchar()	{
+		int val=0;
+		String sout;
+		if (inChar7[0]==true) val=64;
+		if (inChar7[1]==true) val=val+32;
+		if (inChar7[2]==true) val=val+16;
+		if (inChar7[3]==true) val=val+8;
+		if (inChar7[4]==true) val=val+4;
+		if (inChar7[5]==true) val=val+2;
+		if (inChar7[6]==true) val++;
+		
+		
+		addToCharBuffer(val);
+		
+		if (cBuffer[0]==val)	{
+			// Get the CCIR476 index number
+			int i=retCCIR476Val(cBuffer[0]);
+			// Get the letter or number related to this index
+			if (lettersMode==true) sout=CCIR476LETS[i];
+			else sout=CCIR476NUMS[i];
+			// Are we changing to nums or lets modes
+			if (sout.equals("<fig>"))	{
+				lettersMode=false;
+				sout=null;
+			}
+			else if (sout.equals("<let>"))	{
+				lettersMode=true;
+				sout=null;
+			}
+			else if (sout.equals("<cr>"))	{
+				characterCount=MAXCHARLENGTH;
+				sout=null;
+			}
+			
+			return sout;
+		}
+		
+		
+		return null;
+		
+	}
+	
+	private void addToCharBuffer (int in)	{
+		cBuffer[0]=cBuffer[1];
+		cBuffer[1]=cBuffer[2];
+		cBuffer[2]=cBuffer[3];
+		cBuffer[3]=cBuffer[4];
+		cBuffer[4]=cBuffer[5];
+		cBuffer[5]=in;	
+	}
+	
 	
 }
