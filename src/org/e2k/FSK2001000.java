@@ -1,7 +1,6 @@
 package org.e2k;
 
 import java.awt.Color;
-
 import javax.swing.JOptionPane;
 
 public class FSK2001000 extends FSK {
@@ -24,6 +23,7 @@ public class FSK2001000 extends FSK {
 	private int blockCount=0;
 	private int missingBlockCount=0;
 	private int bitsSinceLastBlockHeader=0;
+	private int messageTotalBlockCount=0;
 	
 	public FSK2001000 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -293,9 +293,18 @@ public class FSK2001000 extends FSK {
 			// If block 0 display the special information
 			if (lineNos==0)	{
 				// Display the total number of blocks which is encoded into block 0 bits 64,65,66,67,80,81,82
-				int totalBlockCount=((data[8]&240)>>1)+((data[10]&224)>>5)+1;
-				linesOut[0]=linesOut[0]+" : Total Message Size "+Integer.toString(totalBlockCount)+" blocks";
+				messageTotalBlockCount=((data[8]&240)>>1)+((data[10]&224)>>5)+1;
+				linesOut[0]=linesOut[0]+" : Total Message Size "+Integer.toString(messageTotalBlockCount)+" blocks";
 			}
+			// If block 1 display the block 1 special information
+			else if (lineNos==1)	{
+				// Addressee identifier
+				String line=extractAddressee(data);
+				linesOut[0]=linesOut[0]+" "+line;
+				// If a 4 block message this block contains the date
+				if (messageTotalBlockCount==4) linesOut[0]=linesOut[0]+" "+extractDate(data);
+			}
+			
 			linesOut[1]=circularBitSet.extractBitSetasHex();
 		}
 		bitCount=0;
@@ -316,5 +325,89 @@ public class FSK2001000 extends FSK {
 		if (zeroCount>=30) return true;
 		else return false;
 	}
+	
+	// Extract addressee
+	private String extractAddressee (int da[])	{
+		int addr=(da[14]&240)+((da[20]&240)>>4);
+		String r="(Addressee Identifier ? 0x"+Integer.toHexString(addr)+")";
+		return r;
+	}
+	
+	
+	// Extract and display the date as a string
+	private String extractDate (int d[])	{
+		int dval=extractDateNum(d);
+		if (dval==1) return "(1st of month)";
+		else if (dval==2) return "(2nd of month)";
+		else if (dval==3) return "(3rd of month)";
+		else if (dval==4) return "(4th of month)";
+		else if (dval==5) return "(5th of month)";
+		else if (dval==6) return "(6th of month)";
+		else if (dval==7) return "(7th of month)";
+		else if (dval==8) return "(8th of month)";
+		else if (dval==9) return "(9th of month)";
+		else if (dval==10) return "(10th of month)";
+		else if (dval==11) return "(11th of month)";
+		else if (dval==12) return "(12th of month)";
+		else if (dval==13) return "(13th of month)";
+		else if (dval==14) return "(14th of month)";
+		else if (dval==15) return "(15th of month)";
+		else if (dval==16) return "(16th of month)";
+		else if (dval==17) return "(17th of month)";
+		else if (dval==18) return "(18th of month)";
+		else if (dval==19) return "(19th of month)";
+		else if (dval==20) return "(20th of month)";
+		else if (dval==21) return "(21st of month)";
+		else if (dval==22) return "(22nd of month)";
+		else if (dval==23) return "(23rd of month)";
+		else if (dval==24) return "(24th of month)";
+		else if (dval==25) return "(25th of month)";
+		else if (dval==26) return "(26th of month)";
+		else if (dval==27) return "(27th of month)";
+		else if (dval==28) return "(28th of month)";
+		else if (dval==29) return "(29th of month)";
+		else if (dval==30) return "(30th of month)";
+		else if (dval==31) return "(31st of month)";
+		else return "(Corrupt Date)";
+		
+	}
+	
+	// Extract the date as an int
+	private int extractDateNum (int da[])	{
+		int rval=((da[14]&15)<<4)+(da[16]&15);
+		if (rval==10) return 1;
+		else if (rval==20) return 2;
+		else if (rval==30) return 3;
+		else if (rval==40) return 4;
+		else if (rval==50) return 5;
+		else if (rval==60) return 6;
+		else if (rval==70) return 7;
+		else if (rval==80) return 8;
+		else if (rval==90) return 9;
+		else if (rval==100) return 10;
+		else if (rval==110) return 11;
+		else if (rval==120) return 12;
+		else if (rval==130) return 13;
+		else if (rval==140) return 14;
+		else if (rval==150) return 15;
+		else if (rval==160) return 16;
+		else if (rval==170) return 17;
+		else if (rval==180) return 18;
+		else if (rval==190) return 19;
+		else if (rval==200) return 20;
+		else if (rval==210) return 21;
+		else if (rval==220) return 22;
+		else if (rval==230) return 23;
+		else if (rval==240) return 24;
+		else if (rval==250) return 25;
+		else if (rval==4) return 26;
+		else if (rval==14) return 27;
+		else if (rval==24) return 28;
+		else if (rval==34) return 29;
+		else if (rval==44) return 30;
+		else if (rval==54) return 31;
+		else return 0;
+	}
+	
 	
 }
