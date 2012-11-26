@@ -235,11 +235,14 @@ public class GW extends FSK {
 		else if (id==0xc9) return "ZLA, Awanui, New Zealand";
 		else if (id==0xcc) return "HEC, Bern, Switzerland";
 		else if (id==0xd2) return "ZSC, Capetown, RSA";
-		else if (id==0xd7) return "KPH, San Franisco, USA";
+		// KPH was 0xd7
+		else if (id==0xfa) return "KPH, San Franisco, USA";
 		else if (id==0xd8) return "WNU, Slidell Radio, USA";
 		else if (id==0xdb) return "KHF, Agana, Guam";
-		else if (id==0xdc) return "KFS, Palo Alto, USA";
-		else if (id==0xdd) return "LSD836, Buenos Airos, Argentinia";
+		// KFS was 0xdc
+		else if (id==0xce) return "KFS, Palo Alto, USA";
+		// LSD836 was 0xdd
+		else if (id==0xee) return "LSD836, Buenos Airos, Argentinia";
 		else if (id==0xde) return "SAB, Goeteborg, Sweden";
 		else if (id==0xe3) return "8PO, Bridgetown, Barbados";
 		else return "Unknown";
