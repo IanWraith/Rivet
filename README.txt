@@ -85,6 +85,7 @@ Build 39 Improve the detection of loss of baudot signals. Use the same code in t
 Build 40 Add the FSK (Raw) decoding mode.
 Build 41 Add further FSK/Baudot shifts and baud rates plus the new trigger feature
 Build 42 Change some of the GW identifiers , add date and addressee identfiers to the FSK200/1000 decode module
+Build 43 Display CIS36-50 messages as hexidecimal bytes , display the date in block 1 FSK200/1000 msgs of any size
 
 Reported Bugs
 -------------
@@ -95,4 +96,4 @@ these modes.
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (26th November 2012) 
+Ian Wraith (28th November 2012) 
