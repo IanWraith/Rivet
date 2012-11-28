@@ -177,29 +177,40 @@ public class CIS3650 extends FSK {
 						// Every 7 bits we should have an ITA-3 character
 						if (startCount==7)	{
 							if (checkITA3Char(buffer7)==true)	{
-								int c=retITA3Val(buffer7);
-								theApp.writeChar(ITA3LETS[c],Color.BLACK,theApp.boldFont);
+								// Display received information as hex
+								StringBuilder ch=new StringBuilder();
+								ch.append("0x");
+								if (buffer7<16) ch.append("0");
+								ch.append(Integer.toHexString(buffer7)+" ");
+								characterCount=characterCount+ch.length();
+								theApp.writeChar(ch.toString(),Color.BLACK,theApp.boldFont);
 							}
 							else	{
 								// Display 0x77 characters as signalling the end of a message
 								if (buffer7==0x77)	{
 									theApp.writeChar("<EOM>",Color.BLACK,theApp.boldFont);
+									characterCount=characterCount+5;
 								}
 								else	{
-									theApp.writeChar(("<ERROR "+Integer.toString(buffer7)+"> "),Color.BLACK,theApp.boldFont);
+									StringBuilder ch=new StringBuilder();
+									// Display info with errors as hex but within <> characters
+									ch.append("<0x");
+									if (buffer7<16) ch.append("0");
+									ch.append(Integer.toHexString(buffer7)+"> ");
+									characterCount=characterCount+ch.length();
+									theApp.writeChar(ch.toString(),Color.BLACK,theApp.boldFont);
 									totalErrorCount++;
 								}
 							}
 							startCount=0;
 							buffer7=0;
-							characterCount++;
 							// Keep a count of the total number of characters in a message
 							totalCharacterCount++;
 							// If a message has gone on for 5000 characters there must be a problem so force an end
 							if (totalCharacterCount>5000) syncState=4;
 						} 
-						// Display 50 characters on a line
-						if (characterCount==50)	{
+						// Display 80 characters on a line
+						if (characterCount>=80)	{
 							theApp.newLineWrite();
 							characterCount=0;
 						}
@@ -390,8 +401,9 @@ public class CIS3650 extends FSK {
 		for (a=44;a<(44+70);a=a+7)	{
 			o=extractIntFromStart(a);
 			if (checkITA3Char(o)==true)	{
-				int c=retITA3Val(o);
-				sb.append("0x"+Integer.toHexString(c)+" ");
+				sb.append("0x");
+				if (o<16) sb.append("0");
+				sb.append(Integer.toHexString(o)+" ");
 			}
 			else	{
 				sb.append("<ERROR> ");
