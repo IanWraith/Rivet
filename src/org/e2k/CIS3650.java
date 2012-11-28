@@ -193,10 +193,10 @@ public class CIS3650 extends FSK {
 								}
 								else	{
 									StringBuilder ch=new StringBuilder();
-									// Display info with errors as hex but within <> characters
-									ch.append("<0x");
+									// Display info with errors as hex but within [] characters
+									ch.append("[0x");
 									if (buffer7<16) ch.append("0");
-									ch.append(Integer.toHexString(buffer7)+"> ");
+									ch.append(Integer.toHexString(buffer7)+"] ");
 									characterCount=characterCount+ch.length();
 									theApp.writeChar(ch.toString(),Color.BLACK,theApp.boldFont);
 									totalErrorCount++;
