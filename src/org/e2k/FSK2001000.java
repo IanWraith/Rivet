@@ -301,8 +301,8 @@ public class FSK2001000 extends FSK {
 				// Addressee identifier
 				String line=extractAddressee(data);
 				linesOut[0]=linesOut[0]+" "+line;
-				// If a 4 block message this block contains the date
-				if (messageTotalBlockCount==4) linesOut[0]=linesOut[0]+" "+extractDate(data);
+				// Extract the date
+				linesOut[0]=linesOut[0]+" "+extractDate(data);
 			}
 			
 			linesOut[1]=circularBitSet.extractBitSetasHex();
