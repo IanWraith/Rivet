@@ -1,6 +1,7 @@
 package org.e2k;
 
 import java.awt.Color;
+import java.util.Date;
 import java.util.List;
 import javax.swing.JOptionPane;
 
@@ -23,7 +24,7 @@ public class GW extends FSK {
 	private double symbolTotal;
 	private double previousSymbolTotal;
 	private double oldSymbolPercentage[]=new double[4];
-	
+	private long lastPacketMilli=0;
 
 	public GW (Rivet tapp)	{
 		theApp=tapp;
@@ -269,6 +270,10 @@ public class GW extends FSK {
 					for (a=0;a<18;a++)	{
 						lo.append(" "+Integer.toHexString(frame.get(a))+" ");
 					}
+					// Calculate the seconds since last packet
+					double sec=(System.currentTimeMillis()-lastPacketMilli)/1000;
+					if ((lastPacketMilli>0.5)&&(theApp.isSoundCardInput()==true)) lo.append(" ["+Double.toString(sec)+" sec]");
+					lastPacketMilli=System.currentTimeMillis();
 					if (theApp.isViewGWChannelMarkers()==true) theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
 					return;
 			}
@@ -277,6 +282,10 @@ public class GW extends FSK {
 			StringBuilder lo=new StringBuilder();
 			lo.append(theApp.getTimeStamp()+" GW ");
 			lo.append(dataBitSet.extractSectionFromStart(bitCount));
+			// Calculate the seconds since last packet
+			double sec=(System.currentTimeMillis()-lastPacketMilli)/1000;
+			if ((lastPacketMilli>0.5)&&(theApp.isSoundCardInput()==true)) lo.append(" ["+Double.toString(sec)+" sec]");
+			lastPacketMilli=System.currentTimeMillis();
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
 			return;
 		}
