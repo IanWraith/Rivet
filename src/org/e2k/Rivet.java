@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 43) by Ian Wraith";
+	public String program_version="Rivet (Build 44) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -66,6 +66,7 @@ public class Rivet {
     public RTTY rttyHandler=new RTTY(this);
     public GW gwHandler=new GW(this);
     public FSKraw fskHandler=new FSKraw(this);
+    public RDFTHandler rdftHandler=new RDFTHandler(this);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -88,7 +89,7 @@ public class Rivet {
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)",
 			"Experimental","CIS 36-50","FSK200/500",
-			"CCIR493-4","FSK200/1000","GW FSK (100 Baud)","Baudot","FSK (Raw)"};
+			"CCIR493-4","FSK200/1000","GW FSK (100 Baud)","Baudot","FSK (Raw)","RDFT"};
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
@@ -221,6 +222,11 @@ public class Rivet {
 		if (system==11) return true;
 		else return false;
 	}
+	
+	public boolean isRDFT()	{
+		if (system==12) return true;
+		else return false;
+	}
 		
 	// Tell the input thread to start to load a .WAV file
 	public void loadWAVfile(String fileName)	{
@@ -253,6 +259,8 @@ public class Rivet {
 		else if (system==10) rttyHandler.setState(0);
 		// FSK (raw)
 		else if (system==11) fskHandler.setState(0);
+		// RDFT
+		else if (system==12) rdftHandler.setState(0);
 		// Ensure the program knows we have a WAV file load ongoing
 		wavFileLoadOngoing=true;
 	}
@@ -344,6 +352,8 @@ public class Rivet {
 			else if (system==10) rttyHandler.decode(circBuffer,waveData);
 			// FSK (raw)
 			else if (system==11) fskHandler.decode(circBuffer,waveData);
+			// RDFT
+			else if (system==12) rdftHandler.decode(circBuffer,waveData);
 		}
 		catch (Exception e){
 			StringWriter sw=new StringWriter();
@@ -476,8 +486,8 @@ public class Rivet {
 			this.soundCardInput=false;
 		}
 		else	{
-			// CROWD36 , XPA , XPA2 , CIS36-50 , FSK200/500 , FSK200/1000 , CCIR493-4 , GW , RTTY
-			if ((system==0)||(system==1)||(system==2)||(system==3)||(system==5)||(system==6)||(system==8)||(system==7)||(system==9)||(system==10)||(system==11))	{
+			// CROWD36 , XPA , XPA2 , CIS36-50 , FSK200/500 , FSK200/1000 , CCIR493-4 , GW , RTTY , RDFT
+			if ((system==0)||(system==1)||(system==2)||(system==3)||(system==5)||(system==6)||(system==8)||(system==7)||(system==9)||(system==10)||(system==11)||(system==12))	{
 				WaveData waveSetting=new WaveData();
 				waveSetting.setChannels(1);
 				waveSetting.setEndian(true);
@@ -519,6 +529,8 @@ public class Rivet {
 		else if (system==10) rttyHandler.setState(0);
 		// FSK (raw)
 		else if (system==11) fskHandler.setState(0);
+		// RDFT
+		else if (system==12) rdftHandler.setState(0);
 	}
 	
 	// Gets all the text on the screen and returns it as a string
