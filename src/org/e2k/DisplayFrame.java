@@ -138,7 +138,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		twitter_item.addActionListener(this);
 		helpMenu.add(help_item=new JMenuItem("Help"));		
 		help_item.addActionListener(this);
-		helpMenu.add(sample_item=new JMenuItem("Sound Sample Files"));		
+		helpMenu.add(sample_item=new JMenuItem("Download the latest version of Rivet or sound sample files"));		
 		sample_item.addActionListener(this);
 		menuBar.add(helpMenu);
 		// Add the vertical scrollbar
@@ -204,7 +204,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			BareBonesBrowserLaunch.openURL("https://github.com/IanWraith/Rivet/wiki/Introduction");
 		}
 		// Sound Samples
-		if (event_name=="Sound Sample Files")	{
+		if (event_name=="Download the latest version of Rivet or sound sample files")	{
 			BareBonesBrowserLaunch.openURL("http://borg.shef.ac.uk/rivet");
 		}
 		// Twitter
