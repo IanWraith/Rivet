@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
-public class FFT {
+public class FFT extends Core {
 	
 	private int highSpectrum;
 	private double totalEnergy;

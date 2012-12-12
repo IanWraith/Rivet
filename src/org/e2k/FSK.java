@@ -13,12 +13,7 @@ public class FSK extends FFT {
 	public boolean lettersMode=true;
 	public double kalmanNew=0.0;
 	public double kalmanOld=0.0; 
-	
-	// Return the number of samples per baud
-	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
-			return (sampleFreq/dbaud);
-		}
-		
+			
 	// Runs a 64 point FFT on a FSK200/500 sample recorded at 8 KHz 
 	public int doFSK200500_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start,int ss)	{
 		// Get the data from the circular buffer
