@@ -1,14 +1,8 @@
 package org.e2k;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.JOptionPane;
 
-import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
-
-public class FSK {
-	
+public class FSK extends FFT {
 	private final String BAUDOT_LETTERS[]={"N/A","E","<LF>","A"," ","S","I","U","<CR>","D","R","J","N","F","C","K","T","Z","L","W","H","Y","P","Q","O","B","G","<FIG>","M","X","V","<LET>"};
 	private final String BAUDOT_NUMBERS[]={"N/A","3","<LF>","-"," ","<BELL>","8","7","<CR>","$","4","'",",","!",":","(","5","+",")","2","#","6","0","1","9","?","&","<FIG>",".","/","=","<LET>"};
 	public final int ITA3VALS[]={13,37,56,100,69,21,50,112,70,74,26,42,28,19,97,82,35,11,98,49,22,76,73,25,84,81,67,88,38,14,41,44,52,104,7};
@@ -17,107 +11,9 @@ public class FSK {
 	public final String CCIR476LETS[]={"<32>"," ","Q","W","E","R","T","Y","U","I","O","P","A","S","D","F","G","H","J","K","L","Z","X","C","V","B","N","M","<cr>","<lf>","<fig>","<let>","<alpha>"};
 	public final String CCIR476NUMS[]={"<32>"," ","1","2","3","4","5","6","7","8","9","0","-","'"," ","%","@","#","*","(",")","+","/",":","=","?",",",".","<cr>","<lf>","<fig>","<let>","<alpha>"};
 	public boolean lettersMode=true;
-	private int highSpectrum;
-	private double totalEnergy;
-	private double highestValue;
-	public final int FFT_64_SIZE=64;
-	public final int FFT_80_SIZE=80;
-	public final int FFT_106_SIZE=106;
-	public final int FFT_160_SIZE=160;
-	public final int FFT_176_SIZE=176;
-	private int freqBin;
-	private DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
-	private DoubleFFT_1D fft80=new DoubleFFT_1D(FFT_80_SIZE);
-	private DoubleFFT_1D fft106=new DoubleFFT_1D(FFT_106_SIZE);
-	private DoubleFFT_1D fft160=new DoubleFFT_1D(FFT_160_SIZE);
-	private DoubleFFT_1D fft176=new DoubleFFT_1D(FFT_176_SIZE);
-	private double componentDC;
-	private List<Double>spectrumVals=new ArrayList<Double>();
-	private boolean spectrumRecord=false;
 	public double kalmanNew=0.0;
 	public double kalmanOld=0.0; 
-	
-	// Return the number of samples per baud
-	public double samplesPerSymbol (double dbaud,double sampleFreq)	{
-			return (sampleFreq/dbaud);
-		}
-	
-	// Combine the complex data returned by the JTransform FFT routine to provide
-	// a power spectrum
-	public double[] getSpectrum (double[]data)	{
-			double spectrum[]=new double[data.length/2];
-			double highS=0;
-			if (spectrumRecord==true) spectrumVals.clear();
-			// Clear the total energy sum
-			totalEnergy=0.0;
-			int a,count=0;
-			componentDC=data[0];
-			for (a=2;a<data.length;a=a+2)	{
-				spectrum[count]=Math.sqrt(Math.pow(data[a],2.0)+Math.pow(data[a+1],2.0));
-				if (spectrumRecord==true) spectrumVals.add(spectrum[count]);
-				if (spectrum[count]>highS) highS=spectrum[count];
-				// Add this to the total energy sum
-				totalEnergy=totalEnergy+spectrum[count];
-				count++;
-			}
-			setHighSpectrum((int)highS);
-			return spectrum;
-		}
-	
-	// Given the real data in a double array return the largest frequency component
-	public int getFFTFreq (double[]x,double sampleFreq)	{
-			int bin=findHighBin(x);
-			freqBin=bin-1;
-			double len=x.length*2;
-			double ret=((sampleFreq/len)*bin);
-			return (int)ret;
-		}
-	
-	// Find the bin containing the high value from an array of doubles
-	public int findHighBin(double[]x)	{
-			int a,highBin=-1;
-			highestValue=-1;
-			for (a=0;a<x.length;a++)	{
-				if (x[a]>highestValue)	{
-					highestValue=x[a];
-					highBin=a;
-				}
-			}
-			// Return the highest bin position
-			return highBin+1;
-		}
-
-	public int getHighSpectrum() {
-		return highSpectrum;
-	}
-
-	public void setHighSpectrum(int highSpectrum) {
-		this.highSpectrum = highSpectrum;
-	}
-	
-	// Return the total energy sum
-	public double getTotalEnergy ()	{
-			return this.totalEnergy;
-		}
-	
-	// A Hamming window
-	public double windowHamming (double in,int i,int m)	{
-			double r=0.54-0.46*Math.cos(2*Math.PI*i/m);
-			return (in*r);
-		}
-		
-	// A Blackman window
-	public double windowBlackman (double in,int i,int m)	{
-			double r=0.42-0.5*Math.cos(2*Math.PI*i/m)+0.08*Math.cos(4*Math.PI*i/m);
-			return (in*r);
-		}
-	
-	// Show what percentage of the total the highest spectral value is
-	public double getPercentageOfTotal()	{
-			double p=(highestValue/totalEnergy)*100.0;
-			return p;
-		}
-	
+			
 	// Runs a 64 point FFT on a FSK200/500 sample recorded at 8 KHz 
 	public int doFSK200500_8000FFT (CircularDataBuffer circBuf,WaveData waveData,int start,int ss)	{
 		// Get the data from the circular buffer
@@ -458,12 +354,7 @@ public class FSK {
 			else return true;
 			}
 		}
-	
-	public int getFreqBin ()	{
-		return freqBin;
-	}
-	
-	
+		
 	// Returns two bins from a 64 bin FFT covering half a symbol
 	public double[] do64FFTHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int samples,int bin0,int bin1)	{
 		double vals[]=new double[2];
@@ -483,10 +374,6 @@ public class FSK {
 		return vals;
 		}
 
-	// Returns the DC component of the signal
-	public double getComponentDC() {
-		return componentDC;
-	}
 	
 	// Get a Baudot letter
 	public String getBAUDOT_LETTERS(int i) {
@@ -502,18 +389,7 @@ public class FSK {
 	public double getPercentageDifference (double x,double y)	{
 		return (((x-y)/(x+y))*100.0);
 	}
-	
-	// Return a spectrum array as a CSV string
-	public String getSpectrumValsString()	{
-		int a;
-		StringBuilder sb=new StringBuilder();
-		for (a=0;a<spectrumVals.size();a++)	{
-			double s=spectrumVals.get(a);
-			sb.append(Double.toString(s)+",");
-		}
-		return sb.toString();
-	}
-	
+		
 	// A Kalman filter for use by the FSK early/late gate
 	public double kalmanFilter (double in,double cof1,double cof2)	{
 		double newo=(cof1*kalmanOld)+(cof2*in);

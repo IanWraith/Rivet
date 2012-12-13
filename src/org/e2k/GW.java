@@ -1,7 +1,6 @@
 package org.e2k;
 
 import java.awt.Color;
-import java.util.Date;
 import java.util.List;
 import javax.swing.JOptionPane;
 
