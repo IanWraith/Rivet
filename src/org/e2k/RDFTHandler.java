@@ -55,6 +55,20 @@ public class RDFTHandler extends OFDM {
 			theApp.setStatusLabel("Sync Hunt");
 			return;
 		}
+		else if (state==1)	{
+			sampleCount++;
+			if (sampleCount<0) return;
+			
+			double spr[]=doRDFTFFTAllBinsRequest(circBuf,waveData,0);
+			
+			StringBuilder sb=new StringBuilder();
+			int a;
+			for (a=0;a<spr.length;a++)	{
+				sb.append(Double.toString(spr[a])+",");
+			}
+			theApp.debugDump(sb.toString());
+			
+		}
 		
 	}
 	
