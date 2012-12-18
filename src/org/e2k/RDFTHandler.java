@@ -1,5 +1,7 @@
 package org.e2k;
 
+import java.util.List;
+
 import javax.swing.JOptionPane;
 
 public class RDFTHandler extends OFDM {
@@ -59,14 +61,25 @@ public class RDFTHandler extends OFDM {
 			sampleCount++;
 			if (sampleCount<0) return;
 			
-			double spr[]=doRDFTFFTAllBinsRequest(circBuf,waveData,0);
-			
-			StringBuilder sb=new StringBuilder();
-			int a;
-			for (a=0;a<spr.length;a++)	{
-				sb.append(Double.toString(spr[a])+",");
+			// Only run this check every X samples as this is rather maths intensive
+			if (sampleCount%20==0)	{
+				double spr[]=doRDFTFFTAllBinsRequest(circBuf,waveData,0);
+			    List<CarrierInfo> clist=findOFDMCarriers(spr);
+			    // Look for 8 carriers
+			    if (clist.size()==8)	{
+			    	
+			    	StringBuilder sb=new StringBuilder();
+			    	int a;
+			    	sb.append(Long.toString(sampleCount));
+			    	for (a=0;a<spr.length-1;a++)	{
+			    		sb.append(","+Double.toString(spr[a]));
+			    	}
+			    	theApp.debugDump(sb.toString());
+			    	
+			    }
+			    
 			}
-			theApp.debugDump(sb.toString());
+			
 			
 		}
 		
