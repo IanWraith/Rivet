@@ -14,7 +14,7 @@ public class OFDM extends FFT {
 		}
 	
 	// Find the highest values in the spectrum data and return them as CarrierInfo objects
-	public List<CarrierInfo> findOFDMCarriers (double spectrum[])	{
+	public List<CarrierInfo> findOFDMCarriers (double spectrum[],double sampleRate,int binCount)	{
 		List<CarrierInfo> cList=new ArrayList<CarrierInfo>();
 		int a;
 		// Find the highest value
@@ -24,19 +24,32 @@ public class OFDM extends FFT {
 		}
 		// Run though again looking for the highs
 		for (a=0;a<spectrum.length;a++)	{
-			double per=spectrum[a]/highVal;
-			if (per>0.3)	{
+			double per=(spectrum[a]/highVal)*100.0;
+			if (per>30.0)	{
 				CarrierInfo cInfo=new CarrierInfo();
 				cInfo.setBinFFT(a);
 				cInfo.setEnergy(spectrum[a]);
+				// Calculate the actual frequency of the carrier
+				double freq=(double)a*(sampleRate/(double)binCount);
+				cInfo.setFrequencyHZ(freq);
+				// Add this carrier object to the list
 				cList.add(cInfo);
-				
-				// TODO : We need to calculate the frequency of this carrier
-				
 			}
 		}
 		return cList;
 	}
+	
+	// Check an OFDM signal described as a list of CarrierInfo objects has the correct spacing
+	public boolean carrierSpacingCheck (List<CarrierInfo> carrierList,double requiredSpacing,double errorAllowance)	{
+		int a;
+		// Calculate the carrier spacing
+		for (a=carrierList.size()-1;a>0;a--)	{
+			double actualSpacing=carrierList.get(a).getFrequencyHZ()-carrierList.get(a-1).getFrequencyHZ();
+			if (Math.abs(actualSpacing-requiredSpacing)>errorAllowance) return false;
+		}
+		return true;
+	}
+
 	
 	
 }

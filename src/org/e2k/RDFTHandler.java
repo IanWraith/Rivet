@@ -57,33 +57,29 @@ public class RDFTHandler extends OFDM {
 			theApp.setStatusLabel("Sync Hunt");
 			return;
 		}
+		// Look for the constant 8 carriers that signal a RDFT start
 		else if (state==1)	{
 			sampleCount++;
 			if (sampleCount<0) return;
-			
-			// Only run this check every X samples as this is rather maths intensive
-			if (sampleCount%20==0)	{
+			// Only run this check every 10 samples as this is rather maths intensive
+			if (sampleCount%10==0)	{
 				double spr[]=doRDFTFFTAllBinsRequest(circBuf,waveData,0);
-			    List<CarrierInfo> clist=findOFDMCarriers(spr);
+			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),FFT_400_SIZE);
 			    // Look for 8 carriers
 			    if (clist.size()==8)	{
-			    	
-			    	StringBuilder sb=new StringBuilder();
-			    	int a;
-			    	sb.append(Long.toString(sampleCount));
-			    	for (a=0;a<spr.length-1;a++)	{
-			    		sb.append(","+Double.toString(spr[a]));
-			    	}
-			    	theApp.debugDump(sb.toString());
-			    	
+			    	// Check the carrier spacing is correct
+			    	if (carrierSpacingCheck(clist,220.0,80.0)==true) state=2;
 			    }
-			    
 			}
+		}
+		else if (state==2)	{
+			
+			
 			
 			
 		}
 		
 	}
 	
-
+	
 }
