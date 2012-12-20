@@ -1,5 +1,6 @@
 package org.e2k;
 
+import java.awt.Color;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -11,8 +12,7 @@ public class RDFTHandler extends OFDM {
 	private long sampleCount=0;
 	private long symbolCounter=0;
 	private double samplesPerSymbol;
-	public StringBuilder lineBuffer=new StringBuilder();
-
+	private int leadInToneBins[]=new int[8];
 	
 	public RDFTHandler (Rivet tapp)	{
 		theApp=tapp;
@@ -22,8 +22,12 @@ public class RDFTHandler extends OFDM {
 		return state;
 	}
 
+	// Set the state and change the contents of the status label
 	public void setState(int state) {
 		this.state=state;
+		if (state==0) theApp.setStatusLabel("Setup");
+		else if (state==1) theApp.setStatusLabel("Signal Hunt");
+		else if (state==2) theApp.setStatusLabel("Msg Hunt");
 	}
 	
 	// The main decode routine
@@ -52,9 +56,7 @@ public class RDFTHandler extends OFDM {
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			samplesPerSymbol=samplesPerSymbol(122.5,waveData.getSampleRate());
-			state=1;
-			lineBuffer.delete(0,lineBuffer.length());
-			theApp.setStatusLabel("Sync Hunt");
+			setState(1);
 			return;
 		}
 		// Look for the constant 8 carriers that signal a RDFT start
@@ -68,7 +70,21 @@ public class RDFTHandler extends OFDM {
 			    // Look for 8 carriers
 			    if (clist.size()==8)	{
 			    	// Check the carrier spacing is correct
-			    	if (carrierSpacingCheck(clist,220.0,80.0)==true) state=2;
+			    	if (carrierSpacingCheck(clist,220.0,80.0)==true)	{
+			    		// Display this carrier info
+			    		StringBuilder sb=new StringBuilder();
+			    		sb.append(theApp.getTimeStamp()+" RDFT lead in tones found (");
+			    		int a;
+			    		for (a=0;a<clist.size();a++)	{
+			    			if (a>0) sb.append(",");
+			    			sb.append(Double.toString(clist.get(a).getFrequencyHZ())+" Hz");
+			    			// Also store the 8 lead in tones bins
+			    			leadInToneBins[a]=clist.get(a).getBinFFT();
+			    		}
+			    		sb.append(")");
+						theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont );	
+						setState(2);
+			    	}
 			    }
 			}
 		}
