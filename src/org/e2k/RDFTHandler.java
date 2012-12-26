@@ -69,19 +69,8 @@ public class RDFTHandler extends OFDM {
 			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE);
 			    // Look for 8 carriers
 			    if (clist.size()==8)	{
-			    	
-			    	
-			    	StringBuilder sa=new StringBuilder();
-			    	sa.append(Long.toString(sampleCount));
-			    	int aa;
-			    	for (aa=0;aa<clist.size();aa++)	{
-			    		sa.append(","+Double.toString(clist.get(aa).getFrequencyHZ()));
-			    	}
-			    	theApp.debugDump(sa.toString());
-			    	
-			    	
 			    	// Check the carrier spacing is correct
-			    	if (carrierSpacingCheck(clist,220.0,80.0)==true)	{
+			    	if (carrierSpacingCheck(clist,220.0,60.0)==true)	{
 			    		// Display this carrier info
 			    		StringBuilder sb=new StringBuilder();
 			    		sb.append(theApp.getTimeStamp()+" RDFT lead in tones found (");
