@@ -12,7 +12,7 @@ public class RDFTHandler extends OFDM {
 	private long sampleCount=0;
 	private long symbolCounter=0;
 	private double samplesPerSymbol;
-	private int leadInToneBins[]=new int[8];
+	private int toneBin[][]=new int[8][11];
 	
 	public RDFTHandler (Rivet tapp)	{
 		theApp=tapp;
@@ -65,12 +65,13 @@ public class RDFTHandler extends OFDM {
 			if (sampleCount<0) return;
 			// Only run this check every 20 samples as this is rather maths intensive
 			if (sampleCount%20==0)	{
-				double spr[]=doRDFTFFTAllBinsRequest(circBuf,waveData,0);
+				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0);
 			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE);
 			    // Look for 8 carriers
 			    if (clist.size()==8)	{
 			    	// Check the carrier spacing is correct
 			    	if (carrierSpacingCheck(clist,220.0,60.0)==true)	{
+			    		int leadInToneBins[]=new int[8];
 			    		// Display this carrier info
 			    		StringBuilder sb=new StringBuilder();
 			    		sb.append(theApp.getTimeStamp()+" RDFT lead in tones found (");
@@ -82,15 +83,32 @@ public class RDFTHandler extends OFDM {
 			    			leadInToneBins[a]=clist.get(a).getBinFFT();
 			    		}
 			    		sb.append(")");
-						theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont );	
-						setState(2);
+			    		theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont );	
+			    		// Populate the tone bins
+			    		for (a=0;a<8;a++)	{
+			    			// Run through each bin
+			    			toneBin[a][0]=leadInToneBins[a]-5;
+			    			toneBin[a][1]=leadInToneBins[a]-4;
+			    			toneBin[a][2]=leadInToneBins[a]-3;
+			    			toneBin[a][3]=leadInToneBins[a]-2;
+			    			toneBin[a][4]=leadInToneBins[a]-1;
+			    			toneBin[a][5]=leadInToneBins[a];
+			    			toneBin[a][6]=leadInToneBins[a]+1;
+			    			toneBin[a][7]=leadInToneBins[a]+2;
+			    			toneBin[a][8]=leadInToneBins[a]+3;
+			    			toneBin[a][9]=leadInToneBins[a]+4;
+			    			toneBin[a][10]=leadInToneBins[a]+5;
+			    		}
+			    		// All done detecting
+			    		setState(2);
 			    	}
 			    }
 			}
 		}
 		else if (state==2)	{
+			sampleCount++;
 			
-			
+			double ri[]=doRDFTFFTFull(circBuf,waveData,0);
 			
 			
 		}

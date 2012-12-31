@@ -5,18 +5,19 @@ import java.util.List;
 
 public class OFDM extends FFT {
 		
-	// Does a 800 point FFT then returns all bins
-	public double[] doRDFTFFTAllBinsRequest (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+	// Does a RDFT_FFT_SIZE point FFT then returns the full spectrum
+	public double[] doRDFTFFTSpectrum (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
 		double datar[]=circBuf.extractDataDouble(start,RDFT_FFT_SIZE);
-		
-		//int a;
-		//for (a=0;a<datar.length;a++){
-			//datar[a]=windowBlackman(datar[a],a,datar.length);
-		//}
-		
 		RDFTfft.realForward(datar);
 		return getSpectrum(datar);
+		}
+	
+	public double[] doRDFTFFTFull (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+		double datar[]=circBuf.extractDataDouble(start,RDFT_FFT_SIZE);
+		RDFTfft.realForward(datar);
+		return datar;
 		}
 	
 	// Find the highest values in the spectrum data and return them as CarrierInfo objects
