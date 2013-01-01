@@ -2,7 +2,6 @@ package org.e2k;
 
 import java.awt.Color;
 import java.util.List;
-
 import javax.swing.JOptionPane;
 
 public class RDFTHandler extends OFDM {
@@ -12,7 +11,7 @@ public class RDFTHandler extends OFDM {
 	private long sampleCount=0;
 	private long symbolCounter=0;
 	private double samplesPerSymbol;
-	private int toneBin[][]=new int[8][11];
+	private int carrierBinNos[][][]=new int[8][11][11];
 	
 	public RDFTHandler (Rivet tapp)	{
 		theApp=tapp;
@@ -65,7 +64,7 @@ public class RDFTHandler extends OFDM {
 			if (sampleCount<0) return;
 			// Only run this check every 20 samples as this is rather maths intensive
 			if (sampleCount%20==0)	{
-				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0);
+				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true);
 			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE);
 			    // Look for 8 carriers
 			    if (clist.size()==8)	{
@@ -85,19 +84,21 @@ public class RDFTHandler extends OFDM {
 			    		sb.append(")");
 			    		theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont );	
 			    		// Populate the tone bins
+			    		// A 400 point FFT gives us a 20 Hz resolution so 11 bins per carrier
 			    		for (a=0;a<8;a++)	{
+			    			// TODO : Convert the leadInToneBins into the FFT real and imaginary numbers
 			    			// Run through each bin
-			    			toneBin[a][0]=leadInToneBins[a]-5;
-			    			toneBin[a][1]=leadInToneBins[a]-4;
-			    			toneBin[a][2]=leadInToneBins[a]-3;
-			    			toneBin[a][3]=leadInToneBins[a]-2;
-			    			toneBin[a][4]=leadInToneBins[a]-1;
-			    			toneBin[a][5]=leadInToneBins[a];
-			    			toneBin[a][6]=leadInToneBins[a]+1;
-			    			toneBin[a][7]=leadInToneBins[a]+2;
-			    			toneBin[a][8]=leadInToneBins[a]+3;
-			    			toneBin[a][9]=leadInToneBins[a]+4;
-			    			toneBin[a][10]=leadInToneBins[a]+5;
+			    			//toneBin[a][0]=leadInToneBins[a]-5;
+			    			//toneBin[a][1]=leadInToneBins[a]-4;
+			    			//toneBin[a][2]=leadInToneBins[a]-3;
+			    			//toneBin[a][3]=leadInToneBins[a]-2;
+			    			//toneBin[a][4]=leadInToneBins[a]-1;
+			    			//toneBin[a][5]=leadInToneBins[a];
+			    			//toneBin[a][6]=leadInToneBins[a]+1;
+			    			//toneBin[a][7]=leadInToneBins[a]+2;
+			    			//toneBin[a][8]=leadInToneBins[a]+3;
+			    			//toneBin[a][9]=leadInToneBins[a]+4;
+			    			//toneBin[a][10]=leadInToneBins[a]+5;
 			    		}
 			    		// All done detecting
 			    		setState(2);
@@ -108,7 +109,7 @@ public class RDFTHandler extends OFDM {
 		else if (state==2)	{
 			sampleCount++;
 			
-			double ri[]=doRDFTFFTFull(circBuf,waveData,0);
+			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false);
 			
 			
 		}

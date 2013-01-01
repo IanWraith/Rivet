@@ -6,18 +6,13 @@ import java.util.List;
 public class OFDM extends FFT {
 		
 	// Does a RDFT_FFT_SIZE point FFT then returns the full spectrum
-	public double[] doRDFTFFTSpectrum (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+	// If type is true return the processed spectrum and if now the full data array
+	public double[] doRDFTFFTSpectrum (CircularDataBuffer circBuf,WaveData waveData,int start,boolean type)	{
 		// Get the data from the circular buffer
 		double datar[]=circBuf.extractDataDouble(start,RDFT_FFT_SIZE);
 		RDFTfft.realForward(datar);
-		return getSpectrum(datar);
-		}
-	
-	public double[] doRDFTFFTFull (CircularDataBuffer circBuf,WaveData waveData,int start)	{
-		// Get the data from the circular buffer
-		double datar[]=circBuf.extractDataDouble(start,RDFT_FFT_SIZE);
-		RDFTfft.realForward(datar);
-		return datar;
+		if (type==true) return getSpectrum(datar);
+		else return datar;
 		}
 	
 	// Find the highest values in the spectrum data and return them as CarrierInfo objects
