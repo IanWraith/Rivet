@@ -66,7 +66,7 @@ public class Rivet {
     public RTTY rttyHandler=new RTTY(this);
     public GW gwHandler=new GW(this);
     public FSKraw fskHandler=new FSKraw(this);
-    public RDFTHandler rdftHandler=new RDFTHandler(this);
+    public RDFT rdftHandler=new RDFT(this);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
