@@ -11,7 +11,7 @@ public class RDFTHandler extends OFDM {
 	private long sampleCount=0;
 	private long symbolCounter=0;
 	private double samplesPerSymbol;
-	private int carrierBinNos[][][]=new int[8][11][11];
+	private int carrierBinNos[][][]=new int[8][11][2];
 	
 	public RDFTHandler (Rivet tapp)	{
 		theApp=tapp;
@@ -83,22 +83,43 @@ public class RDFTHandler extends OFDM {
 			    		}
 			    		sb.append(")");
 			    		theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont );	
-			    		// Populate the tone bins
+			    		// Populate the carrier bins
 			    		// A 400 point FFT gives us a 20 Hz resolution so 11 bins per carrier
 			    		for (a=0;a<8;a++)	{
-			    			// TODO : Convert the leadInToneBins into the FFT real and imaginary numbers
 			    			// Run through each bin
-			    			//toneBin[a][0]=leadInToneBins[a]-5;
-			    			//toneBin[a][1]=leadInToneBins[a]-4;
-			    			//toneBin[a][2]=leadInToneBins[a]-3;
-			    			//toneBin[a][3]=leadInToneBins[a]-2;
-			    			//toneBin[a][4]=leadInToneBins[a]-1;
-			    			//toneBin[a][5]=leadInToneBins[a];
-			    			//toneBin[a][6]=leadInToneBins[a]+1;
-			    			//toneBin[a][7]=leadInToneBins[a]+2;
-			    			//toneBin[a][8]=leadInToneBins[a]+3;
-			    			//toneBin[a][9]=leadInToneBins[a]+4;
-			    			//toneBin[a][10]=leadInToneBins[a]+5;
+			    			// -5
+			    			carrierBinNos[a][0][0]=returnRealBin(leadInToneBins[a]-5);
+			    			carrierBinNos[a][0][1]=returnImagBin(leadInToneBins[a]-5);
+			    			// -4
+			    			carrierBinNos[a][1][0]=returnRealBin(leadInToneBins[a]-4);
+			    			carrierBinNos[a][1][1]=returnImagBin(leadInToneBins[a]-4);
+			    			// -3
+			    			carrierBinNos[a][2][0]=returnRealBin(leadInToneBins[a]-3);
+			    			carrierBinNos[a][2][1]=returnImagBin(leadInToneBins[a]-3);
+			    			// -2
+			    			carrierBinNos[a][3][0]=returnRealBin(leadInToneBins[a]-2);
+			    			carrierBinNos[a][3][1]=returnImagBin(leadInToneBins[a]-2);
+			    			// -1
+			    			carrierBinNos[a][4][0]=returnRealBin(leadInToneBins[a]-1);
+			    			carrierBinNos[a][4][1]=returnImagBin(leadInToneBins[a]-1);
+			    			// 0
+			    			carrierBinNos[a][5][0]=returnRealBin(leadInToneBins[a]);
+			    			carrierBinNos[a][5][1]=returnImagBin(leadInToneBins[a]);
+			    			// +1
+			    			carrierBinNos[a][6][0]=returnRealBin(leadInToneBins[a]+1);
+			    			carrierBinNos[a][6][1]=returnImagBin(leadInToneBins[a]+1);
+			    			// +2
+			    			carrierBinNos[a][7][0]=returnRealBin(leadInToneBins[a]+2);
+			    			carrierBinNos[a][7][1]=returnImagBin(leadInToneBins[a]+2);
+			    			// +3
+			    			carrierBinNos[a][8][0]=returnRealBin(leadInToneBins[a]+3);
+			    			carrierBinNos[a][8][1]=returnImagBin(leadInToneBins[a]+3);
+			    			// +4
+			    			carrierBinNos[a][9][0]=returnRealBin(leadInToneBins[a]+4);
+			    			carrierBinNos[a][9][1]=returnImagBin(leadInToneBins[a]+4);
+			    			// +5
+			    			carrierBinNos[a][10][0]=returnRealBin(leadInToneBins[a]+5);
+			    			carrierBinNos[a][10][1]=returnImagBin(leadInToneBins[a]+5);
 			    		}
 			    		// All done detecting
 			    		setState(2);

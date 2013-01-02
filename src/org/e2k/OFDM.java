@@ -57,6 +57,16 @@ public class OFDM extends FFT {
 		return true;
 	}
 
+	// Given a spectral bin number return the real bin number
+	public int returnRealBin (int binno)	{
+		int rb=(binno+1)*2;
+		return rb;
+	}
 	
+	// Given a spectral bin number return the imaginary bin number
+	public int returnImagBin (int binno)	{
+		int rb=(binno+1)*2;
+		return (rb+1);
+	}	
 	
 }
