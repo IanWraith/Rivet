@@ -1,5 +1,7 @@
 package org.e2k;
 
+// RDFT has 8 carriers spaced 230 Hz apart
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +14,10 @@ public class RDFT extends OFDM {
 	private long sampleCount=0;
 	private long symbolCounter=0;
 	private double samplesPerSymbol;
-	private int carrierBinNos[][][]=new int[8][11][2];
+	private int carrierBinNos[][][]=new int[8][3][2];
+	private double totalCarriersEnergy;
+	private double energyBuffer[]=new double[65];
+	private int energyBufferCounter=0;
 	
 	public RDFT (Rivet tapp)	{
 		theApp=tapp;
@@ -74,59 +79,35 @@ public class RDFT extends OFDM {
 			    		int leadInToneBins[]=new int[8];
 			    		// Display this carrier info
 			    		StringBuilder sb=new StringBuilder();
-			    		sb.append(theApp.getTimeStamp()+" RDFT lead in tones found (");
+			    		sb.append(theApp.getTimeStamp()+" RDFT lead in tones found in FFT bins (");
 			    		int a;
 			    		for (a=0;a<clist.size();a++)	{
 			    			if (a>0) sb.append(",");
-			    			sb.append(Double.toString(clist.get(a).getFrequencyHZ())+" Hz");
+			    			sb.append(Integer.toString(clist.get(a).getBinFFT()));
 			    			// Also store the 8 lead in tones bins
 			    			leadInToneBins[a]=clist.get(a).getBinFFT();
 			    		}
 			    		sb.append(")");
 			    		theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont );	
 			    		// Populate the carrier bins
-			    		// A 400 point FFT gives us a 20 Hz resolution so 11 bins per carrier
+			    		// A 104 point FFT gives us a 76.9 Hz resolution so 3 bins per carrier
 			    		for (a=0;a<8;a++)	{
 			    			// Run through each bin
-			    			// -5
-			    			carrierBinNos[a][0][0]=returnRealBin(leadInToneBins[a]-5);
-			    			carrierBinNos[a][0][1]=returnImagBin(leadInToneBins[a]-5);
-			    			// -4
-			    			carrierBinNos[a][1][0]=returnRealBin(leadInToneBins[a]-4);
-			    			carrierBinNos[a][1][1]=returnImagBin(leadInToneBins[a]-4);
-			    			// -3
-			    			carrierBinNos[a][2][0]=returnRealBin(leadInToneBins[a]-3);
-			    			carrierBinNos[a][2][1]=returnImagBin(leadInToneBins[a]-3);
-			    			// -2
-			    			carrierBinNos[a][3][0]=returnRealBin(leadInToneBins[a]-2);
-			    			carrierBinNos[a][3][1]=returnImagBin(leadInToneBins[a]-2);
 			    			// -1
-			    			carrierBinNos[a][4][0]=returnRealBin(leadInToneBins[a]-1);
-			    			carrierBinNos[a][4][1]=returnImagBin(leadInToneBins[a]-1);
-			    			// 0
-			    			carrierBinNos[a][5][0]=returnRealBin(leadInToneBins[a]);
-			    			carrierBinNos[a][5][1]=returnImagBin(leadInToneBins[a]);
+			    			carrierBinNos[a][0][0]=returnRealBin(leadInToneBins[a]-1);
+			    			carrierBinNos[a][0][1]=returnImagBin(leadInToneBins[a]-1);
+			    			// Centre 0
+			    			carrierBinNos[a][1][0]=returnRealBin(leadInToneBins[a]);
+			    			carrierBinNos[a][1][1]=returnImagBin(leadInToneBins[a]);
 			    			// +1
-			    			carrierBinNos[a][6][0]=returnRealBin(leadInToneBins[a]+1);
-			    			carrierBinNos[a][6][1]=returnImagBin(leadInToneBins[a]+1);
-			    			// +2
-			    			carrierBinNos[a][7][0]=returnRealBin(leadInToneBins[a]+2);
-			    			carrierBinNos[a][7][1]=returnImagBin(leadInToneBins[a]+2);
-			    			// +3
-			    			carrierBinNos[a][8][0]=returnRealBin(leadInToneBins[a]+3);
-			    			carrierBinNos[a][8][1]=returnImagBin(leadInToneBins[a]+3);
-			    			// +4
-			    			carrierBinNos[a][9][0]=returnRealBin(leadInToneBins[a]+4);
-			    			carrierBinNos[a][9][1]=returnImagBin(leadInToneBins[a]+4);
-			    			// +5
-			    			carrierBinNos[a][10][0]=returnRealBin(leadInToneBins[a]+5);
-			    			carrierBinNos[a][10][1]=returnImagBin(leadInToneBins[a]+5);
+			    			carrierBinNos[a][2][0]=returnRealBin(leadInToneBins[a]+1);
+			    			carrierBinNos[a][2][1]=returnImagBin(leadInToneBins[a]+1);
 			    		}
-			    		
-			    		symbolCounter=50;
-			    		
 			    		// All done detecting
 			    		setState(2);
+			    		
+			    		symbolCounter=40;
+			    		
 			    	}
 			    }
 			}
@@ -137,29 +118,85 @@ public class RDFT extends OFDM {
 			
 			// TODO: Work out how to do symbol timing with 9-PSK
 			
-			//symbolCounter++;
+			symbolCounter++;
 			//if (symbolCounter<=samplesPerSymbol) return;
-			
 			//symbolCounter=0;
+			
+			if (symbolCounter<RDFT_FFT_SIZE) return;
+			symbolCounter=0;
 			
 			// Get the complex spectrum
 			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false);
 			// Extract each carrier symbol as a complex number
-			List<Complex> symbolComplex=extractCarrierSymbols(ri);
+			//List<Complex> symbolComplex=extractCarrierSymbols(ri);
 			
-			StringBuilder sb=new StringBuilder();
-			sb.append(Long.toString(sampleCount));
-			int c;
+			int a;
+			double out1[]=new double[RDFT_FFT_SIZE];
+			double out2[]=new double[RDFT_FFT_SIZE];
+			double out3[]=new double[RDFT_FFT_SIZE];
+			double out4[]=new double[RDFT_FFT_SIZE];
+			double out5[]=new double[RDFT_FFT_SIZE];
+			double out6[]=new double[RDFT_FFT_SIZE];
+			double out7[]=new double[RDFT_FFT_SIZE];
+			double out8[]=new double[RDFT_FFT_SIZE];
+			
+			for (a=0;a<out1.length;a++)	{
 				
-			for (c=0;c<8;c++)	{
-				Complex carrier=symbolComplex.get(c);
-				sb.append(","+Double.toString(carrier.getReal())+","+Double.toString(carrier.getImag())+","+Double.toString(carrier.returnFull())+",X");
+				out1[a]=ri[a];
+				out2[a]=ri[a];
+				out3[a]=ri[a];
+				out4[a]=ri[a];
+				out5[a]=ri[a];
+				out6[a]=ri[a];
+				out7[a]=ri[a];
+				out8[a]=ri[a];
 				
-				//sb.append(","+Double.toString(carrier.returnFull()));
-				
+				if ((a<14)||(a>19)) out1[a]=0.0;	
+				if ((a<20)||(a>25)) out2[a]=0.0;	
+				if ((a<26)||(a>31)) out3[a]=0.0;	
+				if ((a<32)||(a>37)) out4[a]=0.0;	
+				if ((a<38)||(a>43)) out5[a]=0.0;	
+				if ((a<44)||(a>49)) out6[a]=0.0;	
+				if ((a<50)||(a>55)) out7[a]=0.0;	
+				if ((a<56)||(a>61)) out8[a]=0.0;	
 			}
-			theApp.debugDump(sb.toString());
+			RDFTfft.realInverse(out1,false);
+			RDFTfft.realInverse(out2,false);
+			RDFTfft.realInverse(out3,false);
+			RDFTfft.realInverse(out4,false);
+			RDFTfft.realInverse(out5,false);
+			RDFTfft.realInverse(out6,false);
+			RDFTfft.realInverse(out7,false);
+			RDFTfft.realInverse(out8,false);
 			
+			
+			for (a=0;a<out1.length;a++)	{
+				StringBuilder sb=new StringBuilder();
+				sb.append(Double.toString(out1[a]));
+				sb.append(","+Double.toString(out2[a]));
+				sb.append(","+Double.toString(out3[a]));
+				sb.append(","+Double.toString(out4[a]));
+				sb.append(","+Double.toString(out5[a]));
+				sb.append(","+Double.toString(out6[a]));
+				sb.append(","+Double.toString(out7[a]));
+				sb.append(","+Double.toString(out8[a]));
+				theApp.debugDump(sb.toString());
+			}
+			
+			//energyBuffer[energyBufferCounter]=totalCarriersEnergy;
+			//energyBufferCounter++;
+			
+			
+			//StringBuilder sb=new StringBuilder();
+			//sb.append(Long.toString(sampleCount));
+			
+			//sb.append(","+Double.toString(totalCarriersEnergy));
+			
+			//int s;
+			//for (s=0;s<symbolComplex.size();s++)	{
+				//sb.append(","+Double.toString(symbolComplex.get(s).getReal())+","+Double.toString(symbolComplex.get(s).getImag()));
+			//}
+			//theApp.debugDump(sb.toString());
 			
 			
 		}
@@ -169,14 +206,20 @@ public class RDFT extends OFDM {
 	private List<Complex> extractCarrierSymbols (double fdata[])	{
 		List<Complex> complexList=new ArrayList<Complex>();
 		int carrierNo;
+		totalCarriersEnergy=0.0;
 		// Run through each carrier
 		for (carrierNo=0;carrierNo<8;carrierNo++)	{
-			// Get the central carrier bin only
-			int rBin=carrierBinNos[carrierNo][5][0];
-			int iBin=carrierBinNos[carrierNo][5][1];
-			Complex tbin=new Complex(fdata[rBin],fdata[iBin]);
+			int b;
+			Complex total=new Complex();
+			for (b=0;b<3;b++)	{
+				int rBin=carrierBinNos[carrierNo][b][0];
+				int iBin=carrierBinNos[carrierNo][b][1];
+				Complex tbin=new Complex(fdata[rBin],fdata[iBin]);
+				total=total.add(tbin);
+				totalCarriersEnergy=totalCarriersEnergy+tbin.returnFull();
+			}
 			// Add this to the list
-			complexList.add(tbin);
+			complexList.add(total);
 		}
 		return complexList;
 	}

@@ -14,7 +14,7 @@ public class FFT extends Core {
 	public final int FFT_106_SIZE=106;
 	public final int FFT_160_SIZE=160;
 	public final int FFT_176_SIZE=176;
-	public final int RDFT_FFT_SIZE=400;
+	public final int RDFT_FFT_SIZE=104;
 	private int freqBin;
 	public DoubleFFT_1D fft64=new DoubleFFT_1D(FFT_64_SIZE);
 	public DoubleFFT_1D fft80=new DoubleFFT_1D(FFT_80_SIZE);
