@@ -30,8 +30,12 @@ final public class Complex {
     	return this.imag;
     }
     
-    public double returnFull ()	{
+    public double getMagnitude ()	{
     	return Math.sqrt(Math.pow(this.real,2.0)+Math.pow(this.imag,2.0));
+    }
+    
+    public double getPhase ()	{
+    	return Math.atan((imag/real));
     }
 
 }
