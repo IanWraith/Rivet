@@ -15,45 +15,58 @@ public class OFDM extends FFT {
 		else return datar;
 		}
 	
-	// Find the highest values in the spectrum data and return them as CarrierInfo objects
+	// Find the peaks in the spectrum data and return them as CarrierInfo objects
 	public List<CarrierInfo> findOFDMCarriers (double spectrum[],double sampleRate,int binCount)	{
 		List<CarrierInfo> cList=new ArrayList<CarrierInfo>();
-		int a,lastBin=-1;
+		int a,highBin=0;
+		boolean inPeak=false;
+		double lastVal=0.0,midValue=-1.0,highVal=-1.0;
 		// Find the highest value
-		double highVal=-1.0;
 		for (a=0;a<spectrum.length;a++)	{
-			if (spectrum[a]>highVal) highVal=spectrum[a];
+			if (spectrum[a]>midValue) midValue=spectrum[a];
 		}
+		// Set the peak detect mid value to 25% of the maximum value found
+		midValue=midValue*0.25;
 		// Run though again looking for the highs
 		for (a=0;a<spectrum.length;a++)	{
-			double per=(spectrum[a]/highVal)*100.0;
-			// Check this value is within 30% of the high bin and not next to the last high value bin
-			if ((per>30.0)&&(a>lastBin+1))	{
-				// Store this bin
-				lastBin=a;
+			// Are moving into a peak ?
+			if ((lastVal<midValue)&&(spectrum[a]>midValue)&&(inPeak==false))	{
+				highBin=a;
+				highVal=spectrum[a];
+				inPeak=true;
+			}
+			// Are we leaving a peak ?
+			// If so take the highest value as being the peak
+			if ((lastVal>midValue)&&(midValue>spectrum[a])&&(inPeak==true))	{
+				inPeak=false;
 				CarrierInfo cInfo=new CarrierInfo();
-				cInfo.setBinFFT(a);
-				cInfo.setEnergy(spectrum[a]);
+				cInfo.setBinFFT(highBin);
+				cInfo.setEnergy(highVal);
 				// Calculate the actual frequency of the carrier
-				double freq=(double)a*(sampleRate/(double)binCount);
+				double freq=(double)highBin*(sampleRate/(double)binCount);
 				cInfo.setFrequencyHZ(freq);
 				// Add this carrier object to the list
 				cList.add(cInfo);
 			}
+			// If we are in a peak record the highest bin as we go along
+			if (inPeak==true)	{
+				if (spectrum[a]>highVal)	{
+					highVal=spectrum[a];
+					highBin=a;
+				}
+			}
+			lastVal=spectrum[a];
 		}
 		return cList;
 	}
-	
+		
 	// Check an OFDM signal described as a list of CarrierInfo objects has the correct spacing
-	public boolean carrierSpacingCheck (List<CarrierInfo> carrierList,double requiredSpacing,double errorAllowance)	{
-		int a;
-		// Calculate the carrier spacing
-		for (a=carrierList.size()-1;a>0;a--)	{
-			double actualSpacing=carrierList.get(a).getFrequencyHZ()-carrierList.get(a-1).getFrequencyHZ();	
-			// If the frequency difference is greater than error allowance return false
-			if (Math.abs(actualSpacing-requiredSpacing)>errorAllowance) return false;
+	public boolean carrierSpacingCheck (List<CarrierInfo> carrierList,int correctBinSpacing)	{
+		int a,lastBin;
+		for (a=1;a<carrierList.size();a++)	{
+			lastBin=carrierList.get(a).getBinFFT()-carrierList.get(a-1).getBinFFT();
+			if (lastBin!=correctBinSpacing) return false;
 		}
-		// Everything must be withing tolerance so return true
 		return true;
 	}
 

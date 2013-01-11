@@ -74,8 +74,25 @@ public class RDFT extends OFDM {
 			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE);
 			    // Look for 8 carriers
 			    if (clist.size()==8)	{
+			    	
+			    	//////////////////////////////////////////////////////////////////////////////////////////////
+			    	StringBuilder sba=new StringBuilder();
+		    		sba.append("Tones difs (");
+		    		int aa;
+		    		for (aa=1;aa<clist.size();aa++)	{
+		    			
+		    			double dif=clist.get(aa).getFrequencyHZ()-clist.get(aa-1).getFrequencyHZ();
+		    			
+		    			if (aa>1) sba.append(",");
+		    			sba.append(Double.toString(dif)+" Hz");
+		    		}
+		    		sba.append(") at "+Long.toString(sampleCount));
+		    		
+		    		theApp.writeLine(sba.toString(),Color.BLACK,theApp.boldFont );	
+		    		//////////////////////////////////////////////////////////////////////////////////////////////
+			    	
 			    	// Check the carrier spacing is correct
-			    	if (carrierSpacingCheck(clist,220.0,60.0)==true)	{
+			    	if (carrierSpacingCheck(clist,23)==true)	{
 			    		int leadInToneBins[]=new int[8];
 			    		// Display this carrier info
 			    		StringBuilder sb=new StringBuilder();
@@ -84,6 +101,9 @@ public class RDFT extends OFDM {
 			    		for (a=0;a<clist.size();a++)	{
 			    			if (a>0) sb.append(",");
 			    			sb.append(Integer.toString(clist.get(a).getBinFFT()));
+			    			
+			    			sb.append(" "+clist.get(a).getFrequencyHZ()+" Hz");
+			    			
 			    			// Also store the 8 lead in tones bins
 			    			leadInToneBins[a]=clist.get(a).getBinFFT();
 			    		}
@@ -122,73 +142,24 @@ public class RDFT extends OFDM {
 			//if (symbolCounter<=samplesPerSymbol) return;
 			//symbolCounter=0;
 			
-			if (symbolCounter<RDFT_FFT_SIZE) return;
-			symbolCounter=0;
-			
 			// Get the complex spectrum
 			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false);
 			// Extract each carrier symbol as a complex number
-			//List<Complex> symbolComplex=extractCarrierSymbols(ri);
-			
-			int a;
-			double out1[]=new double[RDFT_FFT_SIZE];
-			double out2[]=new double[RDFT_FFT_SIZE];
-			double out3[]=new double[RDFT_FFT_SIZE];
-			double out4[]=new double[RDFT_FFT_SIZE];
-			double out5[]=new double[RDFT_FFT_SIZE];
-			double out6[]=new double[RDFT_FFT_SIZE];
-			double out7[]=new double[RDFT_FFT_SIZE];
-			double out8[]=new double[RDFT_FFT_SIZE];
-			
-			for (a=0;a<out1.length;a++)	{
-				
-				out1[a]=ri[a];
-				out2[a]=ri[a];
-				out3[a]=ri[a];
-				out4[a]=ri[a];
-				out5[a]=ri[a];
-				out6[a]=ri[a];
-				out7[a]=ri[a];
-				out8[a]=ri[a];
-				
-				if ((a<14)||(a>19)) out1[a]=0.0;	
-				if ((a<20)||(a>25)) out2[a]=0.0;	
-				if ((a<26)||(a>31)) out3[a]=0.0;	
-				if ((a<32)||(a>37)) out4[a]=0.0;	
-				if ((a<38)||(a>43)) out5[a]=0.0;	
-				if ((a<44)||(a>49)) out6[a]=0.0;	
-				if ((a<50)||(a>55)) out7[a]=0.0;	
-				if ((a<56)||(a>61)) out8[a]=0.0;	
-			}
-			RDFTfft.realInverse(out1,false);
-			RDFTfft.realInverse(out2,false);
-			RDFTfft.realInverse(out3,false);
-			RDFTfft.realInverse(out4,false);
-			RDFTfft.realInverse(out5,false);
-			RDFTfft.realInverse(out6,false);
-			RDFTfft.realInverse(out7,false);
-			RDFTfft.realInverse(out8,false);
+			List<Complex> symbolComplex=extractCarrierSymbols(ri);
 			
 			
-			for (a=0;a<out1.length;a++)	{
-				StringBuilder sb=new StringBuilder();
-				sb.append(Double.toString(out1[a]));
-				sb.append(","+Double.toString(out2[a]));
-				sb.append(","+Double.toString(out3[a]));
-				sb.append(","+Double.toString(out4[a]));
-				sb.append(","+Double.toString(out5[a]));
-				sb.append(","+Double.toString(out6[a]));
-				sb.append(","+Double.toString(out7[a]));
-				sb.append(","+Double.toString(out8[a]));
-				theApp.debugDump(sb.toString());
-			}
 			
 			//energyBuffer[energyBufferCounter]=totalCarriersEnergy;
 			//energyBufferCounter++;
 			
 			
-			//StringBuilder sb=new StringBuilder();
-			//sb.append(Long.toString(sampleCount));
+			StringBuilder sb=new StringBuilder();
+			sb.append(Long.toString(sampleCount));
+			
+			int a;
+			for (a=0;a<symbolComplex.size();a++)	{
+				sb.append(","+Double.toString(symbolComplex.get(a).getReal())+","+Double.toString(symbolComplex.get(a).getImag()));
+			}
 			
 			//sb.append(","+Double.toString(totalCarriersEnergy));
 			
@@ -216,7 +187,7 @@ public class RDFT extends OFDM {
 				int iBin=carrierBinNos[carrierNo][b][1];
 				Complex tbin=new Complex(fdata[rBin],fdata[iBin]);
 				total=total.add(tbin);
-				totalCarriersEnergy=totalCarriersEnergy+tbin.returnFull();
+				totalCarriersEnergy=totalCarriersEnergy+tbin.getMagnitude();
 			}
 			// Add this to the list
 			complexList.add(total);
@@ -224,6 +195,6 @@ public class RDFT extends OFDM {
 		return complexList;
 	}
 	
-	
+
 	
 }
