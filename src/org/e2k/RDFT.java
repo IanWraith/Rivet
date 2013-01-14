@@ -166,16 +166,11 @@ public class RDFT extends OFDM {
 		if ((dif<1590.0)||(dif>1600.0)) return false;
 		// Find the highest and lowest spacing between carriers
 		int a;
-		double highDif=-1.0,lowDif=10000.0;
 		for (a=1;a<carrierList.size();a++)	{
 			double tdif=carrierList.get(a).getFrequencyHZ()-carrierList.get(a-1).getFrequencyHZ();
-			if (tdif>highDif) highDif=tdif;
-			if (tdif<highDif) lowDif=tdif;
+			// If the carrier frequency difference is more than 300 Hz or less than 190 Hz this isn't RDFT
+			if ((tdif>300.0)||(tdif<190.0)) return false;
 		}
-		// If there is a carrier spacing of more than 300 Hz then fail
-		if (highDif>300.0) return false;
-		// If there is a carrier spacing of less than 190 Hz then fail
-		if (lowDif<190.0) return false;
 		return true;
 	}
 	
