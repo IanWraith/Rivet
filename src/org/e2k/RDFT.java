@@ -79,9 +79,8 @@ public class RDFT extends OFDM {
 			    	sb.append(theApp.getTimeStamp()+" RDFT lead in tones found. Carrier 1 at "+Double.toString(clist.get(0).getFrequencyHZ())+" Hz");
 			    	sb.append(" & Carrier 8 at "+Double.toString(clist.get(7).getFrequencyHZ())+" Hz");
 			    	theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont);		
-			    	
-			    	// TODO : Populate the carrierBinNos[][][] variable
-			    	
+			    	// Populate the carrier bins
+			    	populateCarrierTonesBins(clist.get(0).getBinFFT());
 			    	// All done detecting
 			    	setState(2);
 			    }
@@ -168,5 +167,25 @@ public class RDFT extends OFDM {
 		}
 		return true;
 	}
+	
+	
+	// Populate the carrierBinNos[][][] variable
+	private void populateCarrierTonesBins (int carrierCentre)	{
+		int binNos,mod,carrierNos;
+		// Run though each carrier
+		for (carrierNos=0;carrierNos<8;carrierNos++)	{
+			mod=-11;
+			for (binNos=0;binNos<23;binNos++)	{
+				carrierBinNos[carrierNos][binNos][0]=returnRealBin(carrierCentre+mod);
+				carrierBinNos[carrierNos][binNos][1]=returnImagBin(carrierCentre+mod);
+				mod++;
+			}
+			carrierCentre=carrierCentre+23;
+		}
+		
+	}
+	
+	
+	
 	
 }
