@@ -76,13 +76,8 @@ public class RDFT extends OFDM {
 			    if (RDFTCheck(clist)==true)	{
 			    	// Display this carrier info
 			    	StringBuilder sb=new StringBuilder();
-			    	sb.append(theApp.getTimeStamp()+" RDFT lead in tones found in FFT bins (");
-			    	int a;
-			    	for (a=0;a<clist.size();a++)	{
-			    		if (a>0) sb.append(",");
-			    		sb.append(Integer.toString(clist.get(a).getBinFFT()));	
-			    		}
-			    	sb.append(")");
+			    	sb.append(theApp.getTimeStamp()+" RDFT lead in tones found. Carrier 1 at "+Double.toString(clist.get(0).getFrequencyHZ())+" Hz");
+			    	sb.append(" & Carrier 8 at "+Double.toString(clist.get(7).getFrequencyHZ())+" Hz");
 			    	theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont);		
 			    	
 			    	// TODO : Populate the carrierBinNos[][][] variable
