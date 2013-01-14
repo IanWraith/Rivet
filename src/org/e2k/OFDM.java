@@ -10,6 +10,10 @@ public class OFDM extends FFT {
 	public double[] doRDFTFFTSpectrum (CircularDataBuffer circBuf,WaveData waveData,int start,boolean type)	{
 		// Get the data from the circular buffer
 		double datar[]=circBuf.extractDataDouble(start,RDFT_FFT_SIZE);
+		int a;
+	    for (a=0;a<datar.length;a++)	{
+			datar[a]=windowHamming(datar[a],a,datar.length);
+	    }
 		RDFTfft.realForward(datar);
 		if (type==true) return getSpectrum(datar);
 		else return datar;

@@ -14,7 +14,7 @@ public class RDFT extends OFDM {
 	private long sampleCount=0;
 	private long symbolCounter=0;
 	private double samplesPerSymbol;
-	private int carrierBinNos[][][]=new int[8][3][2];
+	private int carrierBinNos[][][]=new int[8][23][2];
 	private double totalCarriersEnergy;
 	private double energyBuffer[]=new double[65];
 	private int energyBufferCounter=0;
@@ -72,63 +72,23 @@ public class RDFT extends OFDM {
 			if (sampleCount%20==0)	{
 				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true);
 			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE);
-			    // Look for 8 carriers
-			    if (clist.size()==8)	{
-			    	
-			    	//////////////////////////////////////////////////////////////////////////////////////////////
-			    	StringBuilder sba=new StringBuilder();
-		    		sba.append("Tones difs (");
-		    		int aa;
-		    		for (aa=1;aa<clist.size();aa++)	{
-		    			
-		    			double dif=clist.get(aa).getFrequencyHZ()-clist.get(aa-1).getFrequencyHZ();
-		    			
-		    			if (aa>1) sba.append(",");
-		    			sba.append(Double.toString(dif)+" Hz");
-		    		}
-		    		sba.append(") at "+Long.toString(sampleCount));
-		    		
-		    		theApp.writeLine(sba.toString(),Color.BLACK,theApp.boldFont );	
-		    		//////////////////////////////////////////////////////////////////////////////////////////////
-			    	
-			    	// Check the carrier spacing is correct
-			    	if (carrierSpacingCheck(clist,23)==true)	{
-			    		int leadInToneBins[]=new int[8];
-			    		// Display this carrier info
-			    		StringBuilder sb=new StringBuilder();
-			    		sb.append(theApp.getTimeStamp()+" RDFT lead in tones found in FFT bins (");
-			    		int a;
-			    		for (a=0;a<clist.size();a++)	{
-			    			if (a>0) sb.append(",");
-			    			sb.append(Integer.toString(clist.get(a).getBinFFT()));
-			    			
-			    			sb.append(" "+clist.get(a).getFrequencyHZ()+" Hz");
-			    			
-			    			// Also store the 8 lead in tones bins
-			    			leadInToneBins[a]=clist.get(a).getBinFFT();
+			    // Look for an RDFT start sequence
+			    if (RDFTCheck(clist)==true)	{
+			    	// Display this carrier info
+			    	StringBuilder sb=new StringBuilder();
+			    	sb.append(theApp.getTimeStamp()+" RDFT lead in tones found in FFT bins (");
+			    	int a;
+			    	for (a=0;a<clist.size();a++)	{
+			    		if (a>0) sb.append(",");
+			    		sb.append(Integer.toString(clist.get(a).getBinFFT()));	
 			    		}
-			    		sb.append(")");
-			    		theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont );	
-			    		// Populate the carrier bins
-			    		// A 104 point FFT gives us a 76.9 Hz resolution so 3 bins per carrier
-			    		for (a=0;a<8;a++)	{
-			    			// Run through each bin
-			    			// -1
-			    			carrierBinNos[a][0][0]=returnRealBin(leadInToneBins[a]-1);
-			    			carrierBinNos[a][0][1]=returnImagBin(leadInToneBins[a]-1);
-			    			// Centre 0
-			    			carrierBinNos[a][1][0]=returnRealBin(leadInToneBins[a]);
-			    			carrierBinNos[a][1][1]=returnImagBin(leadInToneBins[a]);
-			    			// +1
-			    			carrierBinNos[a][2][0]=returnRealBin(leadInToneBins[a]+1);
-			    			carrierBinNos[a][2][1]=returnImagBin(leadInToneBins[a]+1);
-			    		}
-			    		// All done detecting
-			    		setState(2);
-			    		
-			    		symbolCounter=40;
-			    		
-			    	}
+			    	sb.append(")");
+			    	theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont);		
+			    	
+			    	// TODO : Populate the carrierBinNos[][][] variable
+			    	
+			    	// All done detecting
+			    	setState(2);
 			    }
 			}
 		}
@@ -196,5 +156,27 @@ public class RDFT extends OFDM {
 	}
 	
 
+	// Check we have a RDFT wave form here
+	private boolean RDFTCheck (List<CarrierInfo> carrierList)	{
+		// Check there are 8 carriers
+		if (carrierList.size()!=8) return false;
+		// Find the frequency difference between the highest and lowest carriers
+		double dif=carrierList.get(7).getFrequencyHZ()-carrierList.get(0).getFrequencyHZ();
+		// This difference must between 1590 Hz and 1600 Hz
+		if ((dif<1590.0)||(dif>1600.0)) return false;
+		// Find the highest and lowest spacing between carriers
+		int a;
+		double highDif=-1.0,lowDif=10000.0;
+		for (a=1;a<carrierList.size();a++)	{
+			double tdif=carrierList.get(a).getFrequencyHZ()-carrierList.get(a-1).getFrequencyHZ();
+			if (tdif>highDif) highDif=tdif;
+			if (tdif<highDif) lowDif=tdif;
+		}
+		// If there is a carrier spacing of more than 300 Hz then fail
+		if (highDif>300.0) return false;
+		// If there is a carrier spacing of less than 190 Hz then fail
+		if (lowDif<190.0) return false;
+		return true;
+	}
 	
 }
