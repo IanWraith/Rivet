@@ -90,7 +90,7 @@ public class FFT extends Core {
 			double r=0.54-0.46*Math.cos(2*Math.PI*i/m);
 			return (in*r);
 	}
-		
+	
 	// A Blackman window
 	public double windowBlackman (double in,int i,int m)	{
 			double r=0.42-0.5*Math.cos(2*Math.PI*i/m)+0.08*Math.cos(4*Math.PI*i/m);

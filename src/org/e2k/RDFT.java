@@ -68,9 +68,9 @@ public class RDFT extends OFDM {
 		else if (state==1)	{
 			sampleCount++;
 			if (sampleCount<0) return;
-			// Only run this check every 20 samples as this is rather maths intensive
-			if (sampleCount%20==0)	{
-				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true);
+			// Only run this check every 5 samples as this is rather maths intensive
+			if (sampleCount%5==0)	{
+				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true,(int)samplesPerSymbol);
 			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE);
 			    // Look for an RDFT start sequence
 			    if (RDFTCheck(clist)==true)	{
@@ -92,12 +92,12 @@ public class RDFT extends OFDM {
 			
 			// TODO: Work out how to do symbol timing with 9-PSK
 			
-			symbolCounter++;
+			//symbolCounter++;
 			//if (symbolCounter<=samplesPerSymbol) return;
 			//symbolCounter=0;
 			
 			// Get the complex spectrum
-			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false);
+			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol);
 			// Extract each carrier symbol as a complex number
 			List<Complex> symbolComplex=extractCarrierSymbols(ri);
 			
@@ -115,13 +115,13 @@ public class RDFT extends OFDM {
 				sb.append(","+Double.toString(symbolComplex.get(a).getReal())+","+Double.toString(symbolComplex.get(a).getImag()));
 			}
 			
-			//sb.append(","+Double.toString(totalCarriersEnergy));
+			sb.append(","+Double.toString(totalCarriersEnergy));
 			
 			//int s;
 			//for (s=0;s<symbolComplex.size();s++)	{
 				//sb.append(","+Double.toString(symbolComplex.get(s).getReal())+","+Double.toString(symbolComplex.get(s).getImag()));
 			//}
-			//theApp.debugDump(sb.toString());
+			theApp.debugDump(sb.toString());
 			
 			
 		}
@@ -136,7 +136,7 @@ public class RDFT extends OFDM {
 		for (carrierNo=0;carrierNo<8;carrierNo++)	{
 			int b;
 			Complex total=new Complex();
-			for (b=0;b<3;b++)	{
+			for (b=0;b<23;b++)	{
 				int rBin=carrierBinNos[carrierNo][b][0];
 				int iBin=carrierBinNos[carrierNo][b][1];
 				Complex tbin=new Complex(fdata[rBin],fdata[iBin]);
@@ -184,8 +184,7 @@ public class RDFT extends OFDM {
 		}
 		
 	}
-	
-	
+
 	
 	
 }

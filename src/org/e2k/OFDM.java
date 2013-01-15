@@ -7,12 +7,15 @@ public class OFDM extends FFT {
 		
 	// Does a RDFT_FFT_SIZE point FFT then returns the full spectrum
 	// If type is true return the processed spectrum and if now the full data array
-	public double[] doRDFTFFTSpectrum (CircularDataBuffer circBuf,WaveData waveData,int start,boolean type)	{
+	public double[] doRDFTFFTSpectrum (CircularDataBuffer circBuf,WaveData waveData,int start,boolean type,int ss)	{
 		// Get the data from the circular buffer
-		double datar[]=circBuf.extractDataDouble(start,RDFT_FFT_SIZE);
+		double datao[]=circBuf.extractDataDouble(start,ss);
+		double datar[]=new double[RDFT_FFT_SIZE];
 		int a;
 	    for (a=0;a<datar.length;a++)	{
-			datar[a]=windowHamming(datar[a],a,datar.length);
+	    	if ((a>=367)&&(a<432)) datar[a]=datao[a-367];
+			else datar[a]=0.0;
+	    	datar[a]=windowHamming(datar[a],a,datar.length);
 	    }
 		RDFTfft.realForward(datar);
 		if (type==true) return getSpectrum(datar);
