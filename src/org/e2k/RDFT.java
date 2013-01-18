@@ -121,7 +121,7 @@ public class RDFT extends OFDM {
 			//for (s=0;s<symbolComplex.size();s++)	{
 				//sb.append(","+Double.toString(symbolComplex.get(s).getReal())+","+Double.toString(symbolComplex.get(s).getImag()));
 			//}
-			theApp.debugDump(sb.toString());
+			//theApp.debugDump(sb.toString());
 			
 			
 		}
@@ -152,20 +152,59 @@ public class RDFT extends OFDM {
 
 	// Check we have a RDFT wave form here
 	private boolean RDFTCheck (List<CarrierInfo> carrierList)	{
-		// Check there are 8 carriers
-		if (carrierList.size()!=8) return false;
-		// Find the frequency difference between the highest and lowest carriers
-		double dif=carrierList.get(7).getFrequencyHZ()-carrierList.get(0).getFrequencyHZ();
-		// This difference must between 1590 Hz and 1600 Hz
-		if ((dif<1590.0)||(dif>1600.0)) return false;
-		// Find the highest and lowest spacing between carriers
-		int a;
-		for (a=1;a<carrierList.size();a++)	{
-			double tdif=carrierList.get(a).getFrequencyHZ()-carrierList.get(a-1).getFrequencyHZ();
-			// If the carrier frequency difference is more than 300 Hz or less than 190 Hz this isn't RDFT
-			if ((tdif>300.0)||(tdif<190.0)) return false;
+		// Check there are 8 or more carriers
+		if (carrierList.size()<8) return false;
+		int a,leadCarrierNos[]=new int[8];
+		for (a=0;a<(carrierList.size()-1);a++)	{
+			leadCarrierNos[0]=a;
+			// First peak 
+			leadCarrierNos[1]=carrierHunt(carrierList,230.0,leadCarrierNos[0]);
+			if (leadCarrierNos[1]>0)	{
+				// 2nd peak
+				leadCarrierNos[2]=carrierHunt(carrierList,230.0,leadCarrierNos[1]);
+				if (leadCarrierNos[2]>0)	{
+					// 3rd peak
+					leadCarrierNos[3]=carrierHunt(carrierList,230.0,leadCarrierNos[2]);
+					if (leadCarrierNos[3]>0)	{
+						// 4th peak
+						leadCarrierNos[4]=carrierHunt(carrierList,230.0,leadCarrierNos[3]);
+						if (leadCarrierNos[4]>0)	{
+							// 5th peak
+							leadCarrierNos[5]=carrierHunt(carrierList,230.0,leadCarrierNos[4]);
+							if (leadCarrierNos[5]>0)	{
+								// 6th peak
+								leadCarrierNos[6]=carrierHunt(carrierList,230.0,leadCarrierNos[5]);
+								if (leadCarrierNos[6]>0)	{
+									// 7th and final peak
+									leadCarrierNos[7]=carrierHunt(carrierList,230.0,leadCarrierNos[6]);
+									if (leadCarrierNos[7]>0)	{
+										
+										return true;
+										
+									}
+								}
+							}
+						}
+					}
+					
+				}
+			}
 		}
-		return true;
+		
+		
+		return false;
+	}
+	
+	// Return the next carrier that has a frequency stepFreqSize greater than currentCarrierNos
+	private int carrierHunt (List<CarrierInfo> carrierList,double stepFreqSize,int currentCarrierNos)	{
+		int a;
+		double baseFreq=carrierList.get(currentCarrierNos).getFrequencyHZ();
+		for (a=(currentCarrierNos+1);a<carrierList.size();a++)	{
+			double tFreq=carrierList.get(a).getFrequencyHZ()-baseFreq;
+			if (tFreq==230.0) return a;
+		}
+		// Return -1 to show nothing found
+		return -1;
 	}
 	
 	

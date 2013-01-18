@@ -25,44 +25,20 @@ public class OFDM extends FFT {
 	// Find the peaks in the spectrum data and return them as CarrierInfo objects
 	public List<CarrierInfo> findOFDMCarriers (double spectrum[],double sampleRate,int binCount)	{
 		List<CarrierInfo> cList=new ArrayList<CarrierInfo>();
-		int a,highBin=0;
-		boolean inPeak=false;
-		double lastVal=0.0,midValue=-1.0,highVal=-1.0;
-		// Find the highest value
-		for (a=0;a<spectrum.length;a++)	{
-			if (spectrum[a]>midValue) midValue=spectrum[a];
-		}
-		// Set the peak detect mid value to 25% of the maximum value found
-		midValue=midValue*0.25;
-		// Run though again looking for the highs
-		for (a=0;a<spectrum.length;a++)	{
-			// Are moving into a peak ?
-			if ((lastVal<midValue)&&(spectrum[a]>midValue)&&(inPeak==false))	{
-				highBin=a;
-				highVal=spectrum[a];
-				inPeak=true;
-			}
-			// Are we leaving a peak ?
-			// If so take the highest value as being the peak
-			if ((lastVal>midValue)&&(midValue>spectrum[a])&&(inPeak==true))	{
-				inPeak=false;
+		int a;
+		for (a=1;a<(spectrum.length-1);a++)	{
+			// Check the current spectrum value is higher than the last one and the next one
+			// if it is then this is a peak so classify this as a carrier
+			if ((spectrum[a]>spectrum[a-1])&&(spectrum[a]>spectrum[a+1]))	{
 				CarrierInfo cInfo=new CarrierInfo();
-				cInfo.setBinFFT(highBin);
-				cInfo.setEnergy(highVal);
+				cInfo.setBinFFT(a);
+				cInfo.setEnergy(spectrum[a]);
 				// Calculate the actual frequency of the carrier
-				double freq=(double)highBin*(sampleRate/(double)binCount);
+				double freq=(double)a*(sampleRate/(double)binCount);
 				cInfo.setFrequencyHZ(freq);
 				// Add this carrier object to the list
 				cList.add(cInfo);
 			}
-			// If we are in a peak record the highest bin as we go along
-			if (inPeak==true)	{
-				if (spectrum[a]>highVal)	{
-					highVal=spectrum[a];
-					highBin=a;
-				}
-			}
-			lastVal=spectrum[a];
 		}
 		return cList;
 	}
