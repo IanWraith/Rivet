@@ -68,9 +68,9 @@ public class RDFT extends OFDM {
 		else if (state==1)	{
 			sampleCount++;
 			if (sampleCount<0) return;
-			// Only run this check every 5 samples as this is rather maths intensive
-			if (sampleCount%5==0)	{
-				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true,(int)samplesPerSymbol);
+			// Only run this check every 50 samples as this is rather maths intensive
+			if (sampleCount%50==0)	{
+				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true,650);
 			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE);
 			    // Look for an RDFT start sequence
 			    if (RDFTCheck(clist)==true)	{
@@ -92,9 +92,9 @@ public class RDFT extends OFDM {
 			
 			// TODO: Work out how to do symbol timing with 9-PSK
 			
-			//symbolCounter++;
-			//if (symbolCounter<=samplesPerSymbol) return;
-			//symbolCounter=0;
+			symbolCounter++;
+			if (symbolCounter<=samplesPerSymbol) return;
+			symbolCounter=0;
 			
 			// Get the complex spectrum
 			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol);
@@ -114,14 +114,7 @@ public class RDFT extends OFDM {
 			for (a=0;a<symbolComplex.size();a++)	{
 				sb.append(","+Double.toString(symbolComplex.get(a).getReal())+","+Double.toString(symbolComplex.get(a).getImag()));
 			}
-			
-			sb.append(","+Double.toString(totalCarriersEnergy));
-			
-			//int s;
-			//for (s=0;s<symbolComplex.size();s++)	{
-				//sb.append(","+Double.toString(symbolComplex.get(s).getReal())+","+Double.toString(symbolComplex.get(s).getImag()));
-			//}
-			//theApp.debugDump(sb.toString());
+			theApp.debugDump(sb.toString());
 			
 			
 		}
@@ -152,60 +145,18 @@ public class RDFT extends OFDM {
 
 	// Check we have a RDFT wave form here
 	private boolean RDFTCheck (List<CarrierInfo> carrierList)	{
-		// Check there are 8 or more carriers
-		if (carrierList.size()<8) return false;
+		// Check there are 8 carriers
+		if (carrierList.size()!=8) return false;
 		int a,leadCarrierNos[]=new int[8];
-		for (a=0;a<(carrierList.size()-1);a++)	{
-			leadCarrierNos[0]=a;
-			// First peak 
-			leadCarrierNos[1]=carrierHunt(carrierList,230.0,leadCarrierNos[0]);
-			if (leadCarrierNos[1]>0)	{
-				// 2nd peak
-				leadCarrierNos[2]=carrierHunt(carrierList,230.0,leadCarrierNos[1]);
-				if (leadCarrierNos[2]>0)	{
-					// 3rd peak
-					leadCarrierNos[3]=carrierHunt(carrierList,230.0,leadCarrierNos[2]);
-					if (leadCarrierNos[3]>0)	{
-						// 4th peak
-						leadCarrierNos[4]=carrierHunt(carrierList,230.0,leadCarrierNos[3]);
-						if (leadCarrierNos[4]>0)	{
-							// 5th peak
-							leadCarrierNos[5]=carrierHunt(carrierList,230.0,leadCarrierNos[4]);
-							if (leadCarrierNos[5]>0)	{
-								// 6th peak
-								leadCarrierNos[6]=carrierHunt(carrierList,230.0,leadCarrierNos[5]);
-								if (leadCarrierNos[6]>0)	{
-									// 7th and final peak
-									leadCarrierNos[7]=carrierHunt(carrierList,230.0,leadCarrierNos[6]);
-									if (leadCarrierNos[7]>0)	{
-										
-										return true;
-										
-									}
-								}
-							}
-						}
-					}
-					
-				}
-			}
+		// Check the difference between the highest carrier bin and the lowest is within an allowable range
+		int totalDifference=carrierList.get(7).getBinFFT()-carrierList.get(0).getBinFFT();
+		if ((totalDifference<159)||(totalDifference>162)) return false;
+		for (a=0;a<8;a++)	{
+			leadCarrierNos[a]=carrierList.get(0).getBinFFT()+(a*23);
 		}
-		
-		
-		return false;
+		return true;
 	}
 	
-	// Return the next carrier that has a frequency stepFreqSize greater than currentCarrierNos
-	private int carrierHunt (List<CarrierInfo> carrierList,double stepFreqSize,int currentCarrierNos)	{
-		int a;
-		double baseFreq=carrierList.get(currentCarrierNos).getFrequencyHZ();
-		for (a=(currentCarrierNos+1);a<carrierList.size();a++)	{
-			double tFreq=carrierList.get(a).getFrequencyHZ()-baseFreq;
-			if (tFreq==230.0) return a;
-		}
-		// Return -1 to show nothing found
-		return -1;
-	}
 	
 	
 	// Populate the carrierBinNos[][][] variable

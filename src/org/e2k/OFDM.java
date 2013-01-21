@@ -13,8 +13,14 @@ public class OFDM extends FFT {
 		double datar[]=new double[RDFT_FFT_SIZE];
 		int a;
 	    for (a=0;a<datar.length;a++)	{
-	    	if ((a>=367)&&(a<432)) datar[a]=datao[a-367];
-			else datar[a]=0.0;
+	    	if (ss==65)	{
+	    		if ((a>=167)&&(a<232)) datar[a]=datao[a-167];
+	    		else datar[a]=0.0;
+	    	}
+	    	else if (ss==650)	{
+	    		if ((a>=75)&&(a<725)) datar[a]=datao[a-75];
+	    		else datar[a]=0.0;
+	    	}
 	    	datar[a]=windowHamming(datar[a],a,datar.length);
 	    }
 		RDFTfft.realForward(datar);
@@ -26,10 +32,15 @@ public class OFDM extends FFT {
 	public List<CarrierInfo> findOFDMCarriers (double spectrum[],double sampleRate,int binCount)	{
 		List<CarrierInfo> cList=new ArrayList<CarrierInfo>();
 		int a;
+		double dPoint=-1.0;
+		for (a=0;a<(spectrum.length-1);a++)	{
+			if (spectrum[a]>dPoint) dPoint=spectrum[a];
+		}
+		dPoint=dPoint*0.2;
 		for (a=1;a<(spectrum.length-1);a++)	{
 			// Check the current spectrum value is higher than the last one and the next one
 			// if it is then this is a peak so classify this as a carrier
-			if ((spectrum[a]>spectrum[a-1])&&(spectrum[a]>spectrum[a+1]))	{
+			if ((spectrum[a]>spectrum[a-1])&&(spectrum[a]>spectrum[a+1])&&(spectrum[a]>dPoint))	{
 				CarrierInfo cInfo=new CarrierInfo();
 				cInfo.setBinFFT(a);
 				cInfo.setEnergy(spectrum[a]);
