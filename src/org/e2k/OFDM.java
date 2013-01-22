@@ -76,4 +76,16 @@ public class OFDM extends FFT {
 		return (rb+1);
 	}	
 	
+	// Return the average spacing between the carriers
+	public double averageCarrierSpacing (List<CarrierInfo> carrierList)	{
+		int a;
+		double average=0.0;
+		for (a=1;a<carrierList.size();a++)	{
+			average=average+(carrierList.get(a).getFrequencyHZ()-carrierList.get(a-1).getFrequencyHZ());
+		}
+		average=average/carrierList.size();
+		return average;
+	}
+	
+	
 }

@@ -151,12 +151,15 @@ public class RDFT extends OFDM {
 		// Check the difference between the highest carrier bin and the lowest is within an allowable range
 		int totalDifference=carrierList.get(7).getBinFFT()-carrierList.get(0).getBinFFT();
 		if ((totalDifference<159)||(totalDifference>162)) return false;
+		// Check the average spacing of the carriers is more than 190 Hz and less than 250 Hz
+		double spacing=averageCarrierSpacing(carrierList);
+		if ((spacing<190.0)||(spacing>250.0)) return false;
+		// Calculate the central bins used by each carrier
 		for (a=0;a<8;a++)	{
 			leadCarrierNos[a]=carrierList.get(0).getBinFFT()+(a*23);
 		}
 		return true;
 	}
-	
 	
 	
 	// Populate the carrierBinNos[][][] variable
