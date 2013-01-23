@@ -16,8 +16,6 @@ public class RDFT extends OFDM {
 	private double samplesPerSymbol;
 	private int carrierBinNos[][][]=new int[8][23][2];
 	private double totalCarriersEnergy;
-	private double energyBuffer[]=new double[65];
-	private int energyBufferCounter=0;
 	
 	public RDFT (Rivet tapp)	{
 		theApp=tapp;
@@ -70,7 +68,7 @@ public class RDFT extends OFDM {
 			if (sampleCount<0) return;
 			// Only run this check every 50 samples as this is rather maths intensive
 			if (sampleCount%50==0)	{
-				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true,650);
+				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true,650,true);
 			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE);
 			    // Look for an RDFT start sequence
 			    if (RDFTCheck(clist)==true)	{
@@ -93,28 +91,26 @@ public class RDFT extends OFDM {
 			// TODO: Work out how to do symbol timing with 9-PSK
 			
 			symbolCounter++;
-			if (symbolCounter<=samplesPerSymbol) return;
+			//if (symbolCounter<=samplesPerSymbol) return;
+			if (symbolCounter<=RDFT_FFT_SIZE) return;
 			symbolCounter=0;
 			
 			// Get the complex spectrum
-			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol);
+			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,RDFT_FFT_SIZE,false);
 			// Extract each carrier symbol as a complex number
-			List<Complex> symbolComplex=extractCarrierSymbols(ri);
+			//List<Complex> symbolComplex=extractCarrierSymbols(ri);
 			
-			
-			
-			//energyBuffer[energyBufferCounter]=totalCarriersEnergy;
-			//energyBufferCounter++;
-			
-			
-			StringBuilder sb=new StringBuilder();
-			sb.append(Long.toString(sampleCount));
-			
-			int a;
-			for (a=0;a<symbolComplex.size();a++)	{
-				sb.append(","+Double.toString(symbolComplex.get(a).getReal())+","+Double.toString(symbolComplex.get(a).getImag()));
+			int carrier,a;
+			for (carrier=0;carrier<8;carrier++)	{
+				double sprOut[]=recoverCarrier(carrier,ri);
+				StringBuilder sb=new StringBuilder();
+				sb.append(Long.toString(sampleCount)+","+Integer.toString(carrier+1));
+				for (a=0;a<sprOut.length;a++)	{
+					sb.append(","+Double.toString(sprOut[a]));
+				}
+				theApp.debugDump(sb.toString());
+				
 			}
-			theApp.debugDump(sb.toString());
 			
 			
 		}
@@ -160,8 +156,7 @@ public class RDFT extends OFDM {
 		}
 		return true;
 	}
-	
-	
+		
 	// Populate the carrierBinNos[][][] variable
 	private void populateCarrierTonesBins (int carrierCentre)	{
 		int binNos,mod,carrierNos;
@@ -178,6 +173,25 @@ public class RDFT extends OFDM {
 		
 	}
 
-	
+	// Do an inverse FFT to recover one particular carrier
+	private double[] recoverCarrier (int carrierNo,double spectrumIn[])	{
+		double spectrum[]=new double[spectrumIn.length];
+		int b;
+		for (b=0;b<23;b++)	{
+				int rBin=carrierBinNos[carrierNo][b][0];
+				int iBin=carrierBinNos[carrierNo][b][1];	
+				spectrum[rBin]=spectrumIn[rBin];
+				spectrum[iBin]=spectrumIn[iBin];
+			}
+		RDFTfft.realInverse(spectrum,false);		
+		return spectrum;
+	}
 	
 }
+
+
+
+
+
+
+
