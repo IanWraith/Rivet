@@ -17,6 +17,9 @@ public class RDFT extends OFDM {
 	private int carrierBinNos[][][]=new int[8][23][2];
 	private double totalCarriersEnergy;
 	
+	private double pastEnergyBuffer[]=new double[3];
+	private int pastEnergyBufferCounter=0;
+	
 	public RDFT (Rivet tapp)	{
 		theApp=tapp;
 	}
@@ -91,28 +94,33 @@ public class RDFT extends OFDM {
 			// TODO: Work out how to do symbol timing with 9-PSK
 			
 			symbolCounter++;
-			//if (symbolCounter<=samplesPerSymbol) return;
-			if (symbolCounter<=RDFT_FFT_SIZE) return;
+			//if (symbolCounter<samplesPerSymbol) return;
+			//if (symbolCounter<=RDFT_FFT_SIZE) return;
 			symbolCounter=0;
 			
 			// Get the complex spectrum
-			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,RDFT_FFT_SIZE,false);
+			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
 			// Extract each carrier symbol as a complex number
-			//List<Complex> symbolComplex=extractCarrierSymbols(ri);
+			List<Complex> symbolComplex=extractCarrierSymbols(ri);
 			
-			int carrier,a;
-			for (carrier=0;carrier<8;carrier++)	{
-				double sprOut[]=recoverCarrier(carrier,ri);
-				StringBuilder sb=new StringBuilder();
-				sb.append(Long.toString(sampleCount)+","+Integer.toString(carrier+1));
-				for (a=0;a<sprOut.length;a++)	{
-					sb.append(","+Double.toString(sprOut[a]));
-				}
-				theApp.debugDump(sb.toString());
+			StringBuilder sb=new StringBuilder();
+			sb.append(Long.toString(sampleCount));
+		    
+		    pastEnergyBuffer[pastEnergyBufferCounter]=totalCarriersEnergy;
+		    pastEnergyBufferCounter++;
+		    if (pastEnergyBufferCounter==pastEnergyBuffer.length) pastEnergyBufferCounter=0;
+			
+		    int a;
+		    double av=0.0;
+		    for (a=0;a<pastEnergyBuffer.length;a++)	{
+		    	av=av+pastEnergyBuffer[a];
+		    }
+		    av=av/pastEnergyBuffer.length;
+		    
+			sb.append(","+Double.toString(av));
+			
+			theApp.debugDump(sb.toString());
 				
-			}
-			
-			
 		}
 		
 	}
@@ -130,10 +138,11 @@ public class RDFT extends OFDM {
 				int iBin=carrierBinNos[carrierNo][b][1];
 				Complex tbin=new Complex(fdata[rBin],fdata[iBin]);
 				total=total.add(tbin);
-				totalCarriersEnergy=totalCarriersEnergy+tbin.getMagnitude();
 			}
 			// Add this to the list
 			complexList.add(total);
+			// Calculate the total energy
+			totalCarriersEnergy=totalCarriersEnergy+total.getMagnitude();
 		}
 		return complexList;
 	}
