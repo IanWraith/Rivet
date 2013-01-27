@@ -55,10 +55,10 @@ public class CircularBitSet extends BitSet {
 	
 	
 	// Extract a section of the circular BitSet as binary encoded as a String
-	public String extractSectionFromStart (int end)	{
+	public String extractSectionFromStart (int start,int end)	{
 		StringBuilder out=new StringBuilder();
 		int a;
-		for (a=0;a<end;a++)	{
+		for (a=start;a<end;a++)	{
 			if (this.get(a)==true) out.append("1");
 			else out.append("0");
 		}
