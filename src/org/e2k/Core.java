@@ -8,5 +8,18 @@ public class Core {
 		}
 	
 	
+	// Return an ASCII character
+	public String getAsciiChar (int c)	{
+		String ch;
+		if ((c>=32)&&(c<=126))	{
+			char cr=(char)c;
+			return Character.toString(cr);
+		}
+		else	{
+			ch="["+Integer.toString(c)+"]";
+			return ch;
+		}
+	}
+	
 	
 }

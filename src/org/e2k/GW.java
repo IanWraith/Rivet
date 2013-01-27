@@ -23,8 +23,7 @@ public class GW extends FSK {
 	private double symbolTotal;
 	private double previousSymbolTotal;
 	private double oldSymbolPercentage[]=new double[4];
-	private long lastPacketMilli=0;
-
+	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
 		dataBitSet.setTotalLength(200);
@@ -251,7 +250,7 @@ public class GW extends FSK {
 	// The main method to process GW traffic
 	private void processGWData ()	{
 		// Turn the data into a string
-		String sData=dataBitSet.extractSectionFromStart(bitCount);
+		String sData=dataBitSet.extractSectionFromStart(0,bitCount);
 		// Possible channel free marker
 		if (bitCount>144)	{
 			// Hunt for 0x38A3 or 0011100010100011
@@ -269,27 +268,39 @@ public class GW extends FSK {
 					for (a=0;a<18;a++)	{
 						lo.append(" "+Integer.toHexString(frame.get(a))+" ");
 					}
-					// Calculate the seconds since last packet
-					double sec=(System.currentTimeMillis()-lastPacketMilli)/1000;
-					if ((lastPacketMilli>0.5)&&(theApp.isSoundCardInput()==true)) lo.append(" ["+Double.toString(sec)+" sec]");
-					lastPacketMilli=System.currentTimeMillis();
 					if (theApp.isViewGWChannelMarkers()==true) theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
 					return;
 			}
 		}
-		else if ((bitCount>88)&&(bitCount<95))	{
+		else if ((bitCount>60)&&(bitCount<95))	{
 			StringBuilder lo=new StringBuilder();
 			lo.append(theApp.getTimeStamp()+" GW ");
-			lo.append(dataBitSet.extractSectionFromStart(bitCount));
-			// Calculate the seconds since last packet
-			double sec=(System.currentTimeMillis()-lastPacketMilli)/1000;
-			if ((lastPacketMilli>0.5)&&(theApp.isSoundCardInput()==true)) lo.append(" ["+Double.toString(sec)+" sec]");
-			lastPacketMilli=System.currentTimeMillis();
+			// Does this start 10010 ?
+			if ((sData.startsWith("10010")==true)||(sData.startsWith("10001")==true)) 	{
+				String ascii=displayGWAsAscii(0);
+				lo.append(ascii);
+				lo.append(" ("+dataBitSet.extractSectionFromStart(0,bitCount)+")");
+			}
+			else	{
+				lo.append(dataBitSet.extractSectionFromStart(0,bitCount));
+			}
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
 			return;
 		}
 		
 		
 	}
+	
+	// Display a GW packet as ASCII
+	private String displayGWAsAscii (int sPos)	{
+		StringBuilder lo=new StringBuilder();
+		List<Integer> aInts=dataBitSet.returnIntsFromStart(sPos+13);
+		int a;
+		for (a=0;a<6;a++)	{
+			lo.append(getAsciiChar(aInts.get(a)));
+		}
+		return lo.toString();
+	}
+	
 	
 }
