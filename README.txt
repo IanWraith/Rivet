@@ -92,6 +92,7 @@ Build 42 Change some of the GW identifiers , add date and addressee identfiers t
 Build 43 Display CIS36-50 messages as hexidecimal bytes , display the date in block 1 FSK200/1000 msgs of any size
 Build 44 Fix a spelling mistake in the GW identifiers and add a menu item to link to the new upload page. 
 Build 45 Add RDFT detection , a 625 Hz FSK shift and very basic ASCII decoding of GW FSK traffic.
+Build 46 Improve the decoding and display of GW ship side packets.
 
 Reported Bugs
 -------------
