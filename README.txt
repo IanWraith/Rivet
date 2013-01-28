@@ -91,6 +91,7 @@ Build 41 Add further FSK/Baudot shifts and baud rates plus the new trigger featu
 Build 42 Change some of the GW identifiers , add date and addressee identfiers to the FSK200/1000 decode module
 Build 43 Display CIS36-50 messages as hexidecimal bytes , display the date in block 1 FSK200/1000 msgs of any size
 Build 44 Fix a spelling mistake in the GW identifiers and add a menu item to link to the new upload page. 
+Build 45 Add RDFT detection , a 625 Hz FSK shift and very basic ASCII decoding of GW FSK traffic.
 
 Reported Bugs
 -------------
@@ -101,4 +102,4 @@ these modes.
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (12th December 2012) 
+Ian Wraith (28th January 2013) 
