@@ -62,6 +62,10 @@ public class RDFT extends OFDM {
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			samplesPerSymbol=samplesPerSymbol(122.5,waveData.getSampleRate());
+			// Add a user warning that RDFT doesn't yet decode
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			theApp.writeLine("Please note that this mode is experimental and doesn't work yet !",Color.RED,theApp.italicFont);
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			setState(1);
 			return;
 		}
@@ -119,7 +123,7 @@ public class RDFT extends OFDM {
 		    
 			sb.append(","+Double.toString(av));
 			
-			theApp.debugDump(sb.toString());
+			//theApp.debugDump(sb.toString());
 				
 		}
 		
