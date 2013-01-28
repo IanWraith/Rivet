@@ -275,16 +275,31 @@ public class GW extends FSK {
 		else if ((bitCount>60)&&(bitCount<95))	{
 			StringBuilder lo=new StringBuilder();
 			lo.append(theApp.getTimeStamp()+" GW ");
-			// Does this start 10010 ?
-			if ((sData.startsWith("10010")==true)||(sData.startsWith("10001")==true)) 	{
-				String ascii=displayGWAsAscii(0);
-				lo.append(ascii);
-				lo.append(" ("+dataBitSet.extractSectionFromStart(0,bitCount)+")");
-			}
-			else	{
-				lo.append(dataBitSet.extractSectionFromStart(0,bitCount));
-			}
+			int type=0,packetCounter=0,mystery=0;
+			// Type
+			if (sData.charAt(0)=='1') type=32;
+			if (sData.charAt(1)=='1') type=type+16;
+			if (sData.charAt(2)=='1') type=type+8;
+			if (sData.charAt(3)=='1') type=type+4;
+			if (sData.charAt(4)=='1') type=type+2;
+			if (sData.charAt(5)=='1') type++;
+			// Counter
+			if (sData.charAt(6)=='1') packetCounter=1;
+			// Mystery
+			if (sData.charAt(7)=='1') mystery=64;
+			if (sData.charAt(8)=='1') mystery=mystery+32;
+			if (sData.charAt(9)=='1') mystery=mystery+16;
+			if (sData.charAt(10)=='1') mystery=mystery+8;
+			if (sData.charAt(11)=='1') mystery=mystery+4;
+			if (sData.charAt(12)=='1') mystery=mystery+2;
+			if (sData.charAt(13)=='1') mystery++;
+			// Display this
+			lo.append(" type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" UNID="+Integer.toString(mystery));
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			// Does this start 10010 ?
+			if (type==37) theApp.writeLine(displayGWAsAscii(0),Color.BLUE,theApp.boldFont);
+			// Display as binary
+			theApp.writeLine(dataBitSet.extractSectionFromStart(0,bitCount),Color.BLACK,theApp.plainFont);
 			return;
 		}
 		
