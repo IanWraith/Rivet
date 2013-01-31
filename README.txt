@@ -93,6 +93,7 @@ Build 43 Display CIS36-50 messages as hexidecimal bytes , display the date in bl
 Build 44 Fix a spelling mistake in the GW identifiers and add a menu item to link to the new upload page. 
 Build 45 Add RDFT detection , a 625 Hz FSK shift and very basic ASCII decoding of GW FSK traffic.
 Build 46 Improve the decoding and display of GW ship side packets.
+Build 47 Add partial decoding of the GW character set.
 
 Reported Bugs
 -------------
@@ -103,4 +104,4 @@ these modes.
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (28th January 2013) 
+Ian Wraith (31st January 2013) 

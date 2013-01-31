@@ -309,12 +309,40 @@ public class GW extends FSK {
 	// Display a GW packet as ASCII
 	private String displayGWAsAscii (int sPos)	{
 		StringBuilder lo=new StringBuilder();
-		List<Integer> aInts=dataBitSet.returnIntsFromStart(sPos+13);
+		List<Integer> aInts=dataBitSet.returnIntsFromStart(sPos+14);
 		int a;
 		for (a=0;a<6;a++)	{
-			lo.append(getAsciiChar(aInts.get(a)));
+			lo.append(getGWChar(aInts.get(a)));
 		}
 		return lo.toString();
+	}
+	
+	// Convert from a byte to the GW character
+	private String getGWChar(int c)	{
+		if (c==0x60) return "0";
+		else if (c==0x60) return "1";
+		else if (c==0x20) return "2";
+		else if (c==0x40) return "3";
+		else if (c==0x00) return "4";
+		else if (c==0x30) return "5";
+		else if (c==0x50) return "6";
+		else if (c==0x10) return "7";
+		else if (c==0x68) return "8";
+		else if (c==0x28) return "9";
+		else if (c==0x78) return "<";
+		else if ((c==0x2e)||(c==0x7c)) return ",";
+		else if (c==0x5c) return ".";
+		else if (c==0x74) return "$";
+		else if (c==0x4c) return "*";
+		else if (c==0x27) return "A";
+		else if ((c==0x47)||(c==0x3f)) return "B";
+		else if ((c==0x37)||(c==0x07)) return "E";
+		else if (c==0x17) return "G";
+		else if ((c==0x7f)||(c==0x63)) return "L";
+		else if (c==0x5f) return "N";
+		else if ((c==0x1f)||(c==0x43)) return "O";
+		else if (c==0x13) return "W";
+		else return ("[0x"+Integer.toHexString(c)+"]");
 	}
 	
 	
