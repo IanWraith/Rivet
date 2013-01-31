@@ -94,6 +94,7 @@ Build 44 Fix a spelling mistake in the GW identifiers and add a menu item to lin
 Build 45 Add RDFT detection , a 625 Hz FSK shift and very basic ASCII decoding of GW FSK traffic.
 Build 46 Improve the decoding and display of GW ship side packets.
 Build 47 Add partial decoding of the GW character set.
+Build 48 Fix a bug in the GW character set.
 
 Reported Bugs
 -------------

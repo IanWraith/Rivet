@@ -320,10 +320,10 @@ public class GW extends FSK {
 	// Convert from a byte to the GW character
 	private String getGWChar(int c)	{
 		if (c==0x60) return "0";
-		else if (c==0x60) return "1";
-		else if (c==0x20) return "2";
-		else if (c==0x40) return "3";
-		else if (c==0x00) return "4";
+		else if (c==0x20) return "1";
+		else if (c==0x40) return "2";
+		else if (c==0x00) return "3";
+		else if (c==0x70) return "4";
 		else if (c==0x30) return "5";
 		else if (c==0x50) return "6";
 		else if (c==0x10) return "7";
