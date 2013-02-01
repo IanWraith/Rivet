@@ -23,6 +23,9 @@ public class GW extends FSK {
 	private double symbolTotal;
 	private double previousSymbolTotal;
 	private double oldSymbolPercentage[]=new double[4];
+	private StringBuilder positionReport=new StringBuilder();
+	private boolean receivingPositionReport=false;
+	private String lastPositionFragment;
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
@@ -272,10 +275,10 @@ public class GW extends FSK {
 					return;
 			}
 		}
-		else if ((bitCount>60)&&(bitCount<95))	{
+		else if ((bitCount>63)&&(bitCount<95))	{
 			StringBuilder lo=new StringBuilder();
-			lo.append(theApp.getTimeStamp()+" GW ");
-			int type=0,packetCounter=0,mystery=0;
+			lo.append(theApp.getTimeStamp()+" GW");
+			int type=0,packetCounter=0,subType=0;
 			// Type
 			if (sData.charAt(0)=='1') type=32;
 			if (sData.charAt(1)=='1') type=type+16;
@@ -285,19 +288,45 @@ public class GW extends FSK {
 			if (sData.charAt(5)=='1') type++;
 			// Counter
 			if (sData.charAt(6)=='1') packetCounter=1;
-			// Mystery
-			if (sData.charAt(7)=='1') mystery=64;
-			if (sData.charAt(8)=='1') mystery=mystery+32;
-			if (sData.charAt(9)=='1') mystery=mystery+16;
-			if (sData.charAt(10)=='1') mystery=mystery+8;
-			if (sData.charAt(11)=='1') mystery=mystery+4;
-			if (sData.charAt(12)=='1') mystery=mystery+2;
-			if (sData.charAt(13)=='1') mystery++;
-			// Display this
-			lo.append(" type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" UNID="+Integer.toString(mystery));
+			// Sub type
+			if (sData.charAt(7)=='1') subType=64;
+			if (sData.charAt(8)=='1') subType=subType+32;
+			if (sData.charAt(9)=='1') subType=subType+16;
+			if (sData.charAt(10)=='1') subType=subType+8;
+			if (sData.charAt(11)=='1') subType=subType+4;
+			if (sData.charAt(12)=='1') subType=subType+2;
+			if (sData.charAt(13)=='1') subType++;
+			
+			// Is this the start of a position report ?
+			if ((type==37)&&(subType==102))	{
+				// Clear the position report StringBuilder object
+				positionReport.delete(0,positionReport.length());
+				lastPositionFragment="";
+				receivingPositionReport=true;
+				positionReport.append(theApp.getTimeStamp()+" "+displayGWAsAscii(0));
+				return;
+			}
+			// An ongoing position report
+			else if ((type==37)&&((subType==86)||(subType==118))&&(receivingPositionReport==true))	{
+				// Check if this fragment of the position report is a repeat and can be ignored
+				String curFrag=displayGWAsAscii(0);
+				if (curFrag.equals(lastPositionFragment)) return;
+				// It isn't so add this to the position report StringBuilder
+				else positionReport.append(curFrag);
+				// Store this fragment to check against the next fragment
+				lastPositionFragment=curFrag;
+				return;
+			}
+			// End of a position report
+			else if ((type==34)&&(subType==106)&&(receivingPositionReport==true))	{
+				receivingPositionReport=false;
+				// Display this position report
+				theApp.writeLine(positionReport.toString(),Color.BLUE,theApp.boldFont);
+			}
+			
+			// Display everything else
+			lo.append(" (Type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" Subtype="+Integer.toString(subType)+")");
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
-			// Does this start 10010 ?
-			if (type==37) theApp.writeLine(displayGWAsAscii(0),Color.BLUE,theApp.boldFont);
 			// Display as binary
 			theApp.writeLine(dataBitSet.extractSectionFromStart(0,bitCount),Color.BLACK,theApp.plainFont);
 			return;

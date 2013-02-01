@@ -95,6 +95,7 @@ Build 45 Add RDFT detection , a 625 Hz FSK shift and very basic ASCII decoding o
 Build 46 Improve the decoding and display of GW ship side packets.
 Build 47 Add partial decoding of the GW character set.
 Build 48 Fix a bug in the GW character set.
+Build 49 Package GW position reports together and display them on a single line.
 
 Reported Bugs
 -------------
@@ -105,4 +106,4 @@ these modes.
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (31st January 2013) 
+Ian Wraith (1st February 2013) 
