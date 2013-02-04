@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 49) by Ian Wraith";
+	public String program_version="Rivet (Build 50) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -981,6 +981,11 @@ public class Rivet {
 			display_view.addChar(ct,col,font);
 			if (logging==true) fileWriteChar(ct);
 		}
+	}
+	
+	// Clear the display screen
+	public void clearScreen()	{
+		display_view.clearScreen();
 	}
 	
 	// Writes a new line to the screen

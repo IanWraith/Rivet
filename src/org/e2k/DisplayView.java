@@ -120,5 +120,15 @@ public class DisplayView extends JComponent implements Observer {
 		repaint();
 	}
 	
+	// Clear the display screen
+	public void clearScreen	()	{
+		int a;
+		displayCounter=0;
+		for (a=0;a<DISPLAYCOUNT;a++)	{
+			displayString[a]=null;
+		}
+		repaint();
+	}
+	
 
 }
