@@ -328,7 +328,7 @@ public class GW extends FSK {
 			lo.append(" (Type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" Subtype="+Integer.toString(subType)+")");
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
 			// Display as binary
-			theApp.writeLine(dataBitSet.extractSectionFromStart(0,bitCount),Color.BLACK,theApp.plainFont);
+			theApp.writeLine(dataBitSet.extractSectionFromStart(0,62),Color.BLACK,theApp.plainFont);
 			return;
 		}
 		
