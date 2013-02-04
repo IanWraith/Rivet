@@ -325,10 +325,10 @@ public class GW extends FSK {
 			}
 			
 			// Display everything else
-			lo.append(" (Type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" Subtype="+Integer.toString(subType)+")");
+			lo.append(" (Type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" Subtype="+Integer.toString(subType)+") : ");
+			// Display the binary
+			lo.append(dataBitSet.extractSectionFromStart(0,62));
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
-			// Display as binary
-			theApp.writeLine(dataBitSet.extractSectionFromStart(0,62),Color.BLACK,theApp.plainFont);
 			return;
 		}
 		
