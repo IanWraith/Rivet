@@ -323,11 +323,21 @@ public class GW extends FSK {
 				// Display this position report
 				theApp.writeLine(positionReport.toString(),Color.BLUE,theApp.boldFont);
 			}
-			
 			// Display everything else
 			lo.append(" (Type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" Subtype="+Integer.toString(subType)+") : ");
 			// Display the binary
 			lo.append(dataBitSet.extractSectionFromStart(0,62));
+			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			return;
+		}
+		// Handle very short packets
+		// These packets are only 8 bits long and may be ACKs
+		// Reports suggest they are 10010101 (0x95) but we need to see if this is always the case
+		// Rivet needs at least 2 bits to lock onto a signal so I am only displaying the following 6 bits 
+		else if ((bitCount>7)&&(bitCount<12))	{
+			StringBuilder lo=new StringBuilder();
+			lo.append(theApp.getTimeStamp()+" GW ");
+			lo.append(dataBitSet.extractSectionFromStart(0,6));
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
 			return;
 		}
