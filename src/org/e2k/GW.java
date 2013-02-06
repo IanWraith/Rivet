@@ -26,6 +26,7 @@ public class GW extends FSK {
 	private StringBuilder positionReport=new StringBuilder();
 	private boolean receivingPositionReport=false;
 	private String lastPositionFragment;
+	private int positionFragmentCounter=0;
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
@@ -276,13 +277,14 @@ public class GW extends FSK {
 			}
 		}
 		else if ((bitCount>63)&&(bitCount<95))	{
+			// Ensure this starts with 10 which seems to be a part of the sync sequence
+			if ((sData.charAt(0)!='1')||(sData.charAt(1)!='0')) return;
 			StringBuilder lo=new StringBuilder();
+			String orphanFragment="";
 			lo.append(theApp.getTimeStamp()+" GW");
 			int type=0,packetCounter=0,subType=0;
 			// Type
-			if (sData.charAt(0)=='1') type=32;
-			if (sData.charAt(1)=='1') type=type+16;
-			if (sData.charAt(2)=='1') type=type+8;
+			if (sData.charAt(2)=='1') type=8;
 			if (sData.charAt(3)=='1') type=type+4;
 			if (sData.charAt(4)=='1') type=type+2;
 			if (sData.charAt(5)=='1') type++;
@@ -296,18 +298,18 @@ public class GW extends FSK {
 			if (sData.charAt(11)=='1') subType=subType+4;
 			if (sData.charAt(12)=='1') subType=subType+2;
 			if (sData.charAt(13)=='1') subType++;
-			
 			// Is this the start of a position report ?
-			if ((type==37)&&(subType==102))	{
+			if ((type==5)&&(subType==102))	{
 				// Clear the position report StringBuilder object
 				positionReport.delete(0,positionReport.length());
 				lastPositionFragment="";
 				receivingPositionReport=true;
+				positionFragmentCounter=0;
 				positionReport.append(theApp.getTimeStamp()+" "+displayGWAsAscii(0));
 				return;
 			}
 			// An ongoing position report
-			else if ((type==37)&&((subType==86)||(subType==118))&&(receivingPositionReport==true))	{
+			else if ((type==5)&&((subType==86))&&(receivingPositionReport==true))	{
 				// Check if this fragment of the position report is a repeat and can be ignored
 				String curFrag=displayGWAsAscii(0);
 				if (curFrag.equals(lastPositionFragment)) return;
@@ -315,30 +317,44 @@ public class GW extends FSK {
 				else positionReport.append(curFrag);
 				// Store this fragment to check against the next fragment
 				lastPositionFragment=curFrag;
+				// Count the number of fragment sent
+				positionFragmentCounter++;
 				return;
 			}
+			// An orphan position report
+			else if ((type==5)&&(subType==86)&&(receivingPositionReport==false)) orphanFragment=displayGWAsAscii(0);	
 			// End of a position report
-			else if ((type==34)&&(subType==106)&&(receivingPositionReport==true))	{
+			else if ((type==5)&&(subType==118)&&(receivingPositionReport==true))	{
 				receivingPositionReport=false;
+				// Check enough position fragments have been received
+				if (positionFragmentCounter<10) return;
+				String curFrag=displayGWAsAscii(0);
+				if (curFrag.equals(lastPositionFragment)) return;
+				// It isn't so add this to the position report StringBuilder
+				else positionReport.append(curFrag);
 				// Display this position report
 				theApp.writeLine(positionReport.toString(),Color.BLUE,theApp.boldFont);
+				return;
 			}
 			// Display everything else
 			lo.append(" (Type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" Subtype="+Integer.toString(subType)+") : ");
 			// Display the binary
 			lo.append(dataBitSet.extractSectionFromStart(0,62));
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			// Display an Orphan Fragment if there is one
+			if (orphanFragment.length()>1) theApp.writeLine(orphanFragment,Color.BLUE,theApp.boldFont);
 			return;
 		}
 		// Handle very short packets
 		// These packets are only 8 bits long and may be ACKs
 		// Reports suggest they are 10010101 (0x95) but we need to see if this is always the case
-		// Rivet needs at least 2 bits to lock onto a signal so I am only displaying the following 6 bits 
 		else if ((bitCount>7)&&(bitCount<12))	{
 			StringBuilder lo=new StringBuilder();
-			lo.append(theApp.getTimeStamp()+" GW ");
-			lo.append(dataBitSet.extractSectionFromStart(0,6));
-			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			String shortContent=dataBitSet.extractSectionFromStart(0,6);
+			if ((shortContent.equals("010101"))||(shortContent.equals("101010")))	{
+				lo.append(theApp.getTimeStamp()+" GW ACK");
+				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			}
 			return;
 		}
 		
@@ -368,7 +384,7 @@ public class GW extends FSK {
 		else if (c==0x10) return "7";
 		else if (c==0x68) return "8";
 		else if (c==0x28) return "9";
-		else if (c==0x78) return "<";
+		else if ((c==0x78)||(c==0x3e)||(c==0x4e)) return "<";
 		else if ((c==0x2e)||(c==0x7c)) return ",";
 		else if (c==0x5c) return ".";
 		else if (c==0x74) return "$";
