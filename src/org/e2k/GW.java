@@ -298,6 +298,11 @@ public class GW extends FSK {
 			if (sData.charAt(11)=='1') subType=subType+4;
 			if (sData.charAt(12)=='1') subType=subType+2;
 			if (sData.charAt(13)=='1') subType++;
+			// Setup the display
+			lo.append(" (Type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" Subtype="+Integer.toString(subType)+") : ");
+			// Display the binary
+			lo.append(dataBitSet.extractSectionFromStart(0,62));
+			
 			// Is this the start of a position report ?
 			if ((type==5)&&(subType==102))	{
 				// Clear the position report StringBuilder object
@@ -336,10 +341,24 @@ public class GW extends FSK {
 				theApp.writeLine(positionReport.toString(),Color.BLUE,theApp.boldFont);
 				return;
 			}
+			// Type 5 Subtype 54 
+			else if ((type==5)&&(subType==54))	{
+				// Display the packet details
+				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+				// Display the content 
+				theApp.writeLine(displayGWAsAscii(0),Color.BLUE,theApp.boldFont);
+				return;
+			}
+			// Type 2 Subtype 106
+			else if ((type==2)&&(subType==106))	{
+				// Display the packet details
+				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+				// Display the content 
+				theApp.writeLine(displayGWAsAscii(0),Color.BLUE,theApp.boldFont);
+				return;
+			}
+			
 			// Display everything else
-			lo.append(" (Type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" Subtype="+Integer.toString(subType)+") : ");
-			// Display the binary
-			lo.append(dataBitSet.extractSectionFromStart(0,62));
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
 			// Display an Orphan Fragment if there is one
 			if (orphanFragment.length()>1) theApp.writeLine(orphanFragment,Color.BLUE,theApp.boldFont);
