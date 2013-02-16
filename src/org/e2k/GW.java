@@ -227,11 +227,13 @@ public class GW extends FSK {
 	// Return the GW station name
 	private String stationName (int id)	{
 		if (id==0x33) return "LFI, Rogaland, Norway";
-		else if (id==0x47) return "HLF, Seoul, South Korea";
+		// HLF was 0x47
+		else if (id==0xb8) return "HLF, Seoul, South Korea";
 		else if (id==0x4e) return "VCS, Halifax, Canada";
 		else if (id==0x5d) return "KEJ, Honolulu, Hawaii ";
 		else if (id==0x5e) return "CPK, Santa Cruz, Bolivia";
-		else if (id==0x5f) return "A9M, Hamala, Bahrain";
+		// A9M was 0x5f
+		else if (id==0xbe) return "A9M, Hamala, Bahrain";
 		else if (id==0x63) return "9HD, Malta";
 		else if (id==0xc3) return "XSV, Tianjin, China";
 		else if (id==0xc6) return "9MG, Georgetown, Malaysia";
