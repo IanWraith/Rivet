@@ -32,8 +32,9 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item,bitstream_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
-	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,ClearScreen_item;
+	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,ClearScreen_item,AddEditTrigger_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
+	private TriggerModify triggerModify=new TriggerModify();
 	
 	// Constructor
 	public DisplayFrame(String title,Rivet theApp) {
@@ -124,6 +125,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			trigger_items.add(tmenu);
 			triggersMenu.add(tmenu);
 		}
+		triggersMenu.addSeparator();
+		// Add the Trigger Add/Edit menu item
+		triggersMenu.add(AddEditTrigger_item=new JMenuItem("Add,Edit or Delete a Trigger"));
+		AddEditTrigger_item.addActionListener(this);
 		menuBar.add(triggersMenu);
 		// View
 		JMenu viewMenu=new JMenu("View");
@@ -313,6 +318,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 				else trigList.get(a).setActive(true);
 				theApp.setListTriggers(trigList);
 			}
+		}	
+		// Add,Edit or Delete a Trigger
+		if (event_name=="Add,Edit or Delete a Trigger")	{
+			triggerModify.setup(theApp);
 		}
 		
 		menuItemUpdate();
