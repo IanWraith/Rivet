@@ -29,6 +29,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	public static final long serialVersionUID=1;
 	private JStatusBar statusBar=new JStatusBar();
 	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
+	private JMenu triggersMenu=new JMenu("Triggers");
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item,bitstream_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
@@ -114,20 +115,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		CROWD36_sync_item.addActionListener(this);
 		menuBar.add(optionsMenu);
 		// Triggers
-		JMenu triggersMenu=new JMenu("Triggers");
-		// Get details of all the triggers
-		List<Trigger> trigList=theApp.getListTriggers();
-		int a;
-		for (a=0;a<trigList.size();a++)	{
-			JMenuItem tmenu=new JRadioButtonMenuItem(trigList.get(a).getTriggerDescription()+trigList.get(a).getTypeDescription(),trigList.get(a).isActive());
-			tmenu.addActionListener(this);
-			trigger_items.add(tmenu);
-			triggersMenu.add(tmenu);
-		}
-		triggersMenu.addSeparator();
-		// Add the Trigger Add/Edit menu item
-		triggersMenu.add(AddEditTrigger_item=new JMenuItem("Add,Edit or Delete a Trigger"));
-		AddEditTrigger_item.addActionListener(this);
+		updateTriggerMenuItems();
 		menuBar.add(triggersMenu);
 		// View
 		JMenu viewMenu=new JMenu("View");
@@ -528,8 +516,27 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	// Open a Trigger modify dialog box
 	void DialogTriggerModify ()	{
 		TriggerModify triggerModify=new TriggerModify(theApp);
-		
+				
 	}
 	
-
+	// Redraw the Triggers menu item
+	void updateTriggerMenuItems ()	{
+		// First remove anything that may be already on this menu
+		triggersMenu.removeAll();
+		// Get details of all the triggers
+		List<Trigger> trigList=theApp.getListTriggers();
+		int a;
+		for (a=0;a<trigList.size();a++)	{
+			JMenuItem tmenu=new JRadioButtonMenuItem(trigList.get(a).getTriggerDescription()+trigList.get(a).getTypeDescription(),trigList.get(a).isActive());
+			tmenu.addActionListener(this);
+			trigger_items.add(tmenu);
+			triggersMenu.add(tmenu);
+		}
+		triggersMenu.addSeparator();
+		// Add the Trigger Add/Edit menu item
+		triggersMenu.add(AddEditTrigger_item=new JMenuItem("Add,Edit or Delete a Trigger"));
+		AddEditTrigger_item.addActionListener(this);
+	}
+	
+	
 }
