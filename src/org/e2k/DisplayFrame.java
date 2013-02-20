@@ -516,10 +516,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	// Open a Trigger modify dialog box
 	void DialogTriggerModify ()	{
 		TriggerModify triggerModify=new TriggerModify(this,theApp);
-		
-		
-		
-		
+		// Check if any changes were made to the triggers and if so update the menu items
+		if (triggerModify.isChangedTriggers()==true) updateTriggerMenuItems();
 	}
 	
 	// Redraw the Triggers menu item
