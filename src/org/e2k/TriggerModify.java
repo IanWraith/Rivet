@@ -20,8 +20,9 @@ public class TriggerModify extends JDialog implements ActionListener {
 	private JButton cancelButton=new JButton("Cancel");
 	private boolean changedTriggers=false;
 	
-	public TriggerModify (Rivet theApp)	{
-		TtheApp=theApp;
+	public TriggerModify (JFrame mf,Rivet theApp)	{
+		super(mf,"Add or Modify Triggers",true);
+		TtheApp=theApp;	
 		this.setSize(300,400);
 		// Position the dialog box in the centre of the screen
 		final Toolkit toolkit=Toolkit.getDefaultToolkit();
@@ -29,9 +30,7 @@ public class TriggerModify extends JDialog implements ActionListener {
 		final int x=(screenSize.width-this.getWidth())/2;
 		final int y=(screenSize.height-this.getHeight())/2;
 		this.setLocation(x,y);
-		this.setVisible(true);
 		this.setLayout(new GridLayout(9,1));
-		this.setTitle("Add or Modify Triggers");
 		// Get a current list of triggers
 		triggerList=TtheApp.getListTriggers();
 		// Add a label to describe the Trigger select combo box
@@ -56,6 +55,7 @@ public class TriggerModify extends JDialog implements ActionListener {
 		okButton.addActionListener(this);
 		this.add(cancelButton);
 		cancelButton.addActionListener(this);
+		this.setVisible(true);		
 	}
 	
 	// Create a uneditable combo box showing the current triggers
@@ -77,11 +77,13 @@ public class TriggerModify extends JDialog implements ActionListener {
 		if (eventName.equals("OK"))	{
 			// Transfer the trigger this to the main program
 			TtheApp.setListTriggers(triggerList);
-			this.setVisible(false);
+			changedTriggers=true;
+			dispose();
 		}
 		// Cancel
 		else if (eventName.equals("Cancel"))	{
-			this.setVisible(false);
+			changedTriggers=false;
+			dispose();
 		}
 		// Delete a trigger
 		else if (eventName.equals("Delete the selected Trigger"))	{
