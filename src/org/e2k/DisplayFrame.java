@@ -34,7 +34,6 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
 	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,ClearScreen_item,AddEditTrigger_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
-	private TriggerModify triggerModify=new TriggerModify();
 	
 	// Constructor
 	public DisplayFrame(String title,Rivet theApp) {
@@ -321,7 +320,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		}	
 		// Add,Edit or Delete a Trigger
 		if (event_name=="Add,Edit or Delete a Trigger")	{
-			triggerModify.setup(theApp);
+			DialogTriggerModify();
 		}
 		
 		menuItemUpdate();
@@ -524,6 +523,12 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		}
 		theApp.setBitStreamOut(true);
 		return true;
+	}
+	
+	// Open a Trigger modify dialog box
+	void DialogTriggerModify ()	{
+		TriggerModify triggerModify=new TriggerModify(theApp);
+		
 	}
 	
 

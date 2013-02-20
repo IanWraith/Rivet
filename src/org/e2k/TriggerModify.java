@@ -19,11 +19,7 @@ public class TriggerModify extends JDialog implements ActionListener {
 	private JButton okButton=new JButton("OK");
 	private JButton cancelButton=new JButton("Cancel");
 	
-	public TriggerModify ()	{
-	
-	}
-	
-	public void setup (Rivet theApp)	{
+	public TriggerModify (Rivet theApp)	{
 		TtheApp=theApp;
 		this.setSize(300,400);
 		// Position the dialog box in the centre of the screen
@@ -59,7 +55,6 @@ public class TriggerModify extends JDialog implements ActionListener {
 		this.add(cancelButton);
 		cancelButton.addActionListener(this);
 	}
-	
 	
 	// Create a uneditable combo box showing the current triggers
 	private void createTriggerCombo ()	{
