@@ -21,7 +21,7 @@ public class TriggerModify extends JDialog implements ActionListener {
 	private boolean changedTriggers=false;
 	
 	public TriggerModify (JFrame mf,Rivet theApp)	{
-		super(mf,"Add or Modify Triggers",true);
+		super(mf,"Modify Triggers",true);
 		TtheApp=theApp;	
 		this.setSize(300,400);
 		// Position the dialog box in the centre of the screen
@@ -89,7 +89,25 @@ public class TriggerModify extends JDialog implements ActionListener {
 		else if (eventName.equals("Delete the selected Trigger"))	{
 			deleteTrigger();
 		}
-	
+		// Edit a trigger
+		else if (eventName.equals("Edit the selected Trigger"))	{
+			// Find the name of the selected Trigger
+			String selectedTriggerName=(String) triggerComboList.getSelectedItem();
+			// Get the list index of this trigger
+			int index=getTriggerIndex(selectedTriggerName);
+			// Check if anything has been selected
+			if (index==-1)	{
+				JOptionPane.showMessageDialog(null,"Please select the Trigger you wish to edit.","Rivet", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			TriggerModifyAddEdit triggerMod=new TriggerModifyAddEdit(this,triggerList.get(index));
+			// TODO : Check OK has been pressed and get the edited Trigger then put it in the TriggerList and update the menu
+		}
+		// Add a trigger
+		else if (eventName.equals("Add a new Trigger"))	{
+			TriggerModifyAddEdit triggerMod=new TriggerModifyAddEdit(this,null);
+			// TODO : Check OK has been pressed and get the new Trigger then put it in the TriggerList and update the menu
+		}
 		
 	}
 	
