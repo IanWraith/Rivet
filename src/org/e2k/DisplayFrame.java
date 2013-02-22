@@ -537,6 +537,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// Add the Trigger Add/Edit menu item
 		triggersMenu.add(AddEditTrigger_item=new JMenuItem("Add,Edit or Delete a Trigger"));
 		AddEditTrigger_item.addActionListener(this);
+		
+		// TODO : Add code here which will create a new Tiggers.xml file when called
 	}
 	
 	

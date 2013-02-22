@@ -101,14 +101,26 @@ public class TriggerModify extends JDialog implements ActionListener {
 				return;
 			}
 			TriggerModifyAddEdit triggerMod=new TriggerModifyAddEdit(this,triggerList.get(index));
-			// TODO : Check OK has been pressed and get the edited Trigger then put it in the TriggerList and update the menu
+			// Has a trigger changed ?
+			if (triggerMod.isChangedTriggers()==true)	{
+				// Remove the old trigger
+				triggerList.remove(index);
+				// Add the edited trigger
+				triggerList.add(triggerMod.exposeTrigger());
+				// Ensure the object knows that changes have been made
+				changesMade();
+			}	
 		}
 		// Add a trigger
 		else if (eventName.equals("Add a new Trigger"))	{
 			TriggerModifyAddEdit triggerMod=new TriggerModifyAddEdit(this,null);
-			// TODO : Check OK has been pressed and get the new Trigger then put it in the TriggerList and update the menu
-		}
-		
+			// Has a trigger changed ?
+			if (triggerMod.isChangedTriggers()==true)	{
+				triggerList.add(triggerMod.exposeTrigger());
+				// Ensure the object knows that changes have been made
+				changesMade();
+			}
+		}	
 	}
 	
 	// Delete a trigger

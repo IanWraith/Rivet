@@ -69,7 +69,7 @@ public class TriggerModifyAddEdit extends JDialog implements ActionListener {
 		cancelButton.addActionListener(this);
 		// Populate the fields
 		// If this is an edit set the values of the various fields to the selected Trigger
-		if (trigger!=null)	{
+		if (Ttrigger!=null)	{
 			// Copy the trigger object
 			trigger=Ttrigger;
 			// Description
