@@ -137,7 +137,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		helpMenu.add(sample_item=new JMenuItem("Download the latest version of Rivet or sound sample files"));		
 		sample_item.addActionListener(this);
 		menuBar.add(helpMenu);
-		// Add the vertical scrollbar
+		// Add the vertical scroll bar
 		add(vscrollbar,BorderLayout.EAST);
 		// Add a listener for this
 		vscrollbar.addAdjustmentListener(new MyAdjustmentListener());
@@ -537,8 +537,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// Add the Trigger Add/Edit menu item
 		triggersMenu.add(AddEditTrigger_item=new JMenuItem("Add,Edit or Delete a Trigger"));
 		AddEditTrigger_item.addActionListener(this);
-		
-		// TODO : Add code here which will create a new Tiggers.xml file when called
+		// Save these triggers
+		if (theApp.saveTriggerXMLFile()==false)	{
+			JOptionPane.showMessageDialog(null,"Error saving the Triggers","Rivet", JOptionPane.INFORMATION_MESSAGE);
+		}
 	}
 	
 	

@@ -99,6 +99,7 @@ Build 49 Package GW position reports together and display them on a single line.
 Build 50 Display GW short packets on a single line and add a clear screen option.
 Build 51 Display the GW 8 bit packets in raw binary form.
 Build 53 Various improvements to the GW FSK decoding side of things.
+Build 54 Allow Triggers to be added , deleted and edited within the program
 
 Reported Bugs
 -------------
@@ -109,4 +110,4 @@ these modes.
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (14th February 2013) 
+Ian Wraith (23rd February 2013) 

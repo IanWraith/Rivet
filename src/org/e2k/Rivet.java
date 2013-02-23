@@ -1085,5 +1085,57 @@ public class Rivet {
 				
 			}
 		}
-		
+	
+	// Save the current Trigger list to the file trigger.xml
+	public boolean saveTriggerXMLFile () 	{
+		try	{
+			FileWriter xmlfile;
+			String line;
+			xmlfile=new FileWriter("trigger.xml");
+			// Start the XML file //
+			line="<?xml version='1.0' encoding='utf-8' standalone='yes'?>";
+			xmlfile.write(line);
+			line="\n<settings>";
+			xmlfile.write(line);
+			// Run through each Trigger object in the list
+			int a;
+			for (a=0;a<listTriggers.size();a++)	{
+				line="\n <trigger>";
+				xmlfile.write(line);
+				// Description
+				line="\n  <description val='"+listTriggers.get(a).getTriggerDescription()+"'/>";
+				xmlfile.write(line);
+				// Sequence
+				line="\n  <sequence val='"+listTriggers.get(a).getTriggerSequence()+"'/>";
+				xmlfile.write(line);
+				// Type
+				line="\n  <type val='"+Integer.toString(listTriggers.get(a).getTriggerType())+"'/>";
+				xmlfile.write(line);
+				// If a GRAB (type 3) then save the forward and backward values
+				if (listTriggers.get(a).getTriggerType()==3)	{
+					// Forward bits
+					line="\n  <forward val='"+Integer.toString(listTriggers.get(a).getForwardGrab())+"'/>";
+					xmlfile.write(line);
+					// Backward bits
+					line="\n  <backward val='"+Integer.toString(listTriggers.get(a).getBackwardGrab())+"'/>";
+					xmlfile.write(line);	
+				}
+				line="\n </trigger>";
+				xmlfile.write(line);
+			}
+			// All done so close the root item //
+			line="\n</settings>";
+			xmlfile.write(line);
+			// Flush and close the file //
+			xmlfile.flush();
+			xmlfile.close();
+			
+		}
+		catch (Exception e)	{
+			debugDump("Error writing Triger.xml :"+e.toString());
+			return false;
+		}
+		return true;
+	}
+	
 }
