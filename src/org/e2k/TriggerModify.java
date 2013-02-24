@@ -23,7 +23,7 @@ public class TriggerModify extends JDialog implements ActionListener {
 	public TriggerModify (JFrame mf,Rivet theApp)	{
 		super(mf,"Modify Triggers",true);
 		TtheApp=theApp;	
-		this.setSize(300,400);
+		this.setSize(250,300);
 		// Position the dialog box in the centre of the screen
 		final Toolkit toolkit=Toolkit.getDefaultToolkit();
 		final Dimension screenSize=toolkit.getScreenSize();
@@ -41,7 +41,7 @@ public class TriggerModify extends JDialog implements ActionListener {
 		this.add(triggerComboList);
 		// Add a gap between the combo box and the next buttons
 		this.add(new JLabel(""));
-		// Function Buttons
+		// Function Buttons	
 		this.add(addTriggerButton);
 		addTriggerButton.addActionListener(this);
 		this.add(deleteTriggerButton);
