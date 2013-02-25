@@ -24,6 +24,7 @@ public class FSKraw extends FSK {
 	private CircularBitSet circularBitSet=new CircularBitSet();
 	private boolean display=false;
 	private int charactersRemaining=0;
+	private boolean activeTrigger;
 	
 	public FSKraw (Rivet tapp)	{
 		theApp=tapp;
@@ -78,6 +79,7 @@ public class FSKraw extends FSK {
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
+			activeTrigger=false;
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
 			return;
@@ -115,7 +117,10 @@ public class FSKraw extends FSK {
 				// Is there a grab trigger in progress
 				if (charactersRemaining>0)	{
 					charactersRemaining--;
-					if (charactersRemaining==0) display=false;
+					if (charactersRemaining==0)	{
+						display=false;
+						activeTrigger=false;
+					}
 				}
 				// Have we reached the end of a line
 				if (characterCounter==MAXCHARLENGTH)	{
@@ -254,6 +259,7 @@ public class FSKraw extends FSK {
 
 	// Check if there have been any trigger activations
 	public void triggerCheck()	{
+		boolean showTrigger=false;
 		// Find the number of Triggers
 		List<Trigger> tList=theApp.getListTriggers();
 		// If no triggers return
@@ -268,10 +274,14 @@ public class FSKraw extends FSK {
 				if (trigger.getTriggerType()==1)	{
 					display=true;
 					characterCounter=0;
+					activeTrigger=true;
+					showTrigger=true;
 				}
 				// Trigger type 2 is a stop logging trigger
-				else if (trigger.getTriggerType()==2)	{
+				else if ((trigger.getTriggerType()==2)&&(activeTrigger==true))	{
 					display=false;
+					activeTrigger=false;
+					showTrigger=true;
 				}
 				// Trigger type 3 is a grab trigger
 				if (trigger.getTriggerType()==3)	{
@@ -283,10 +293,14 @@ public class FSKraw extends FSK {
 					if (trigger.getBackwardGrab()>0)	{
 						theApp.writeLine(trigger.getBackwardBitsString(circularBitSet),Color.BLACK,theApp.boldFont);
 					}
+					activeTrigger=true;
+					showTrigger=true;
 				}
 				// Write the trigger description to the screen/log
-				String des=theApp.getTimeStamp()+" "+trigger.getTriggerDescription();
-				theApp.writeLine(des,Color.BLACK,theApp.italicFont );	
+				if (showTrigger==true)	{
+					String des=theApp.getTimeStamp()+" "+trigger.getTriggerDescription();
+					theApp.writeLine(des,Color.BLUE,theApp.italicFont);
+				}
 			}
 		}
 	}
