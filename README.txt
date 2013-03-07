@@ -101,6 +101,7 @@ Build 51 Display the GW 8 bit packets in raw binary form.
 Build 53 Various improvements to the GW FSK decoding side of things.
 Build 54 Allow Triggers to be added , deleted and edited within the program
 Build 55 Fix a bug in the trigger code which allowed a STOP to activate before a START.
+Build 56 Increase the number of display lines , add a audio selection source menu item and a GW position report time out
 
 Reported Bugs
 -------------
@@ -111,4 +112,4 @@ these modes.
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (25th February 2013) 
+Ian Wraith (7th March 2013) 
