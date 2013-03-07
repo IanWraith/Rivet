@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 55) by Ian Wraith";
+	public String program_version="Rivet (Build 56) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -495,7 +495,7 @@ public class Rivet {
 				waveSetting.setFromFile(false);
 				waveSetting.setSampleRate(8000.0);
 				waveSetting.setBytesPerFrame(2);
-				inputThread.setupAudio(waveSetting); 
+				inputThread.setupAudio(waveSetting);
 				waveData=waveSetting;
 				this.soundCardInput=true;	
 			}
@@ -826,6 +826,9 @@ public class Rivet {
 			// Stop bits
 			line="<rttystop val='"+Double.toString(rttyHandler.getStopBits())+"'/>";
 			xmlfile.write(line);			
+			// Save the current audio source
+			line="<audioDevice val='"+inputThread.getMixerName()+"'/>";
+			xmlfile.write(line);
 			// All done so close the root item //
 			line="</settings>";
 			xmlfile.write(line);
@@ -918,7 +921,16 @@ public class Rivet {
 						fskHandler.setShift(Integer.parseInt(aval));
 					}
 					// Stop bits
-					else if (qName.equals("rttystop"))	rttyHandler.setStopBits(Double.parseDouble(aval));
+					else if (qName.equals("rttystop"))	{
+						rttyHandler.setStopBits(Double.parseDouble(aval));
+					}
+					// The audio input source
+					else if (qName.equals("audioDevice"))	{
+						if (inputThread.changeMixer(aval)==false) {
+							JOptionPane.showMessageDialog(null,"Error changing mixer\n"+inputThread.getMixerErrorMessage(),"Rivet",JOptionPane.ERROR_MESSAGE);
+						}
+					}
+					
 				}	
 				
 			}
@@ -1137,5 +1149,11 @@ public class Rivet {
 		}
 		return true;
 	}
+	
+	// Change the audio mixer
+	public boolean changeMixer(String mixerName)	{
+		// Tell the audio in thread to change its mixer
+		return inputThread.changeMixer(mixerName);
+	}	
 	
 }

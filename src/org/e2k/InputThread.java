@@ -16,8 +16,6 @@ package org.e2k;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.TargetDataLine;
 import javax.swing.JOptionPane;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -31,12 +29,10 @@ public class InputThread extends Thread {
 	private DataOutputStream outPipe=new DataOutputStream(ps);
 	private File wavFile;
 	private long fileSize;
-	private AudioInputStream audioInputStream;
 	public final int CHUNK_SIZE=32768;
     private long fileCounter;
     private String errorCause="None";
     private long sampleCounter=0;
-    private TargetDataLine Line;
     private static int VOLUMEBUFFERSIZE=100;
 	private int volumeBuffer[]=new int[VOLUMEBUFFERSIZE];
 	private int volumeBufferCounter=0;
@@ -44,9 +40,12 @@ public class InputThread extends Thread {
 	private byte buffer[]=new byte[ISIZE+1];
 	private int inputLevel=0;
 	private Rivet theApp; 
+	private AudioMixer audioMixer;
+	private AudioInputStream audioInputStream;
 	
  
 	public InputThread (Rivet TtheApp) {
+		audioMixer=new AudioMixer();
     	audioReady=false;
     	gettingAudio=false;
     	loadingFile=false;
@@ -228,12 +227,14 @@ public class InputThread extends Thread {
 				  return;
 			  }
 			  sampleCounter=0;
+			  // If it is running stop the audio so it can be changed
+			  audioMixer.stopAudio();
 			  // Sample according to the the WaveData objects parameters
 			  AudioFormat format=new AudioFormat((int)waveData.getSampleRate(),waveData.getSampleSizeInBits(),waveData.getChannels(),true,waveData.isEndian());
-			  DataLine.Info info=new DataLine.Info(TargetDataLine.class,format);
-			  Line=(TargetDataLine) AudioSystem.getLine(info);
-			  Line.open(format);
-			  Line.start();
+			  audioMixer.setAudioFormat(format);
+			  audioMixer.setDefaultLine();
+			  audioMixer.openLine();
+			  audioMixer.line.start();
 			  audioReady=true;
 			  loadingFile=false;
 		  } catch (Exception e) {
@@ -241,12 +242,12 @@ public class InputThread extends Thread {
 			  JOptionPane.showMessageDialog(null,err,"Rivet",JOptionPane.ERROR_MESSAGE);
 			  System.exit(0);
 	   		}
-    }
+     }
     
     // Close the audio device
     public boolean closeAudio ()	{
     	try	{
-    		Line.close();
+    		audioMixer.line.close();
     		audioReady=false;
     		return true;
     	}
@@ -285,7 +286,7 @@ public class InputThread extends Thread {
     	// Doing it this way reduces CPU loading
 		try	{
 				while (total<ISIZE)	{
-					count=Line.read(buffer,0,ISIZE);
+					count=audioMixer.line.read(buffer,0,ISIZE);				
 					total=total+count;
 			  		}
 			  	} catch (Exception e)	{
@@ -319,5 +320,20 @@ public class InputThread extends Thread {
     public boolean getAudioReady()	{
     	return this.audioReady;
     }
+    
+	public boolean changeMixer(String mixerName)	{
+		return audioMixer.changeMixer(mixerName);
+	}   
+    
+	public String getMixerName()	{
+		return audioMixer.getMixer().getMixerInfo().getName();
+	}
+	
+	public String getMixerErrorMessage() {
+		return audioMixer.getErrorMsg();
+	}    
+	
+
+	
     
 }

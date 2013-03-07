@@ -24,7 +24,7 @@ import java.awt.Graphics2D;
 public class DisplayView extends JComponent implements Observer {
 	
 	public static final long serialVersionUID=1;
-	private static final int DISPLAYCOUNT=130;
+	private static final int DISPLAYCOUNT=300;
 	private String displayString[]=new String[DISPLAYCOUNT];
 	private Color displayColour[]=new Color[DISPLAYCOUNT];
 	private Font displayFont[]=new Font[DISPLAYCOUNT];

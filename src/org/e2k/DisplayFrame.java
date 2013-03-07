@@ -21,6 +21,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.Mixer;
 
 public class DisplayFrame extends JFrame implements ActionListener {
 	
@@ -35,6 +38,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
 	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,ClearScreen_item,AddEditTrigger_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
+	private JMenu audioDevicesMenu;
+	private static ArrayList<AudioMixer> devices;
 	
 	// Constructor
 	public DisplayFrame(String title,Rivet theApp) {
@@ -73,6 +78,12 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		mainMenu.add(exit_item=new JMenuItem("Exit"));		
 		exit_item.addActionListener(this);
 		menuBar.add(mainMenu);
+		// Audio 
+		JMenu audioMenu=new JMenu("Audio");
+		audioDevicesMenu=buildAudioDevices();
+		audioMenu.add(audioDevicesMenu);
+		audioDevicesMenu.updateUI();
+		menuBar.add(audioMenu);
 		// Modes
 		JMenu modeMenu=new JMenu("Modes");
 		modeMenu.add(RTTY_item=new JRadioButtonMenuItem(theApp.MODENAMES[10],theApp.isRTTY()));
@@ -310,6 +321,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="Add,Edit or Delete a Trigger")	{
 			DialogTriggerModify();
 		}
+		// Change mixer
+		if (event_name.equalsIgnoreCase("mixer")){
+			changeMixer(((JRadioButtonMenuItem)event.getSource()).getText());
+		}
 		
 		menuItemUpdate();
 		statusBarUpdate();
@@ -341,6 +356,16 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		for (a=0;a<trigList.size();a++)	{
 			trigger_items.get(a).setSelected(trigList.get(a).isActive());
 		}
+		// Audio sources
+		MenuElement[] devs=audioDevicesMenu.getSubElements();
+		if (devs.length>0){
+				for (MenuElement m : devs[0].getSubElements()){
+					if (((JRadioButtonMenuItem)m).getText().equals(theApp.inputThread.getMixerName())){
+						((JRadioButtonMenuItem)m).setSelected(true);
+						break;
+					}
+				}
+			}
 	}
 	
 	// Display a dialog box so the user can select a WAV file they wish to process
@@ -542,6 +567,53 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			JOptionPane.showMessageDialog(null,"Error saving the Triggers","Rivet", JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
+
+	private JMenu buildAudioDevices(){
+		JMenu ret=new JMenu("Audio Devices");
+		ButtonGroup group=new ButtonGroup();
+		ArrayList<AudioMixer> deviceList=getCompatibleDevices();
+		int i;
+		for (i=0; i<deviceList.size(); i++){
+			//Line.Info l[]=AudioSystem.getTargetLineInfo(deviceList.get(i).lineInfo);
+			JRadioButtonMenuItem dev=new JRadioButtonMenuItem(deviceList.get(i).description);
+			dev.setActionCommand("mixer");
+			dev.addActionListener(this);
+			if (i==0) dev.setSelected(true);
+			group.add(dev);
+			ret.add(dev);
+		}
+		return ret;
+	}
+	
+	private ArrayList<AudioMixer> getCompatibleDevices(){
+		devices=new ArrayList<AudioMixer>();
+		//list the available mixers
+		Mixer.Info mixers[]=AudioSystem.getMixerInfo();
+		int i;
+		//iterate the mixers and display TargetLines
+		for (i=0;i<mixers.length;i++){
+			Mixer m = AudioSystem.getMixer(mixers[i]);
+			Line.Info l[]=m.getTargetLineInfo();
+			if(l.length>0){
+				int x;
+				for (x=0;x<l.length;x++){
+					if (l[0].getLineClass().getName().equals("javax.sound.sampled.TargetDataLine")){
+						AudioMixer mc=new AudioMixer(mixers[i].getName(),m,l[x]);
+						devices.add(mc);			
+					}
+				}
+			}
+		}
+		return devices;
+	}
+	
+	// Signal to the main program to change its audio mixer
+	private void changeMixer(String mixerName){
+		if (theApp.changeMixer(mixerName)==false)	{
+			JOptionPane.showMessageDialog(null,"Error changing mixer\n"+theApp.inputThread.getMixerErrorMessage(),"Rivet",JOptionPane.ERROR_MESSAGE);
+		}
+	}	
+
 	
 	
 }
