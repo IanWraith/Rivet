@@ -27,6 +27,7 @@ public class GW extends FSK {
 	private boolean receivingPositionReport=false;
 	private String lastPositionFragment;
 	private int positionFragmentCounter=0;
+	private long fragmentStartTime=0;
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
@@ -306,6 +307,12 @@ public class GW extends FSK {
 			// Display the binary
 			lo.append(dataBitSet.extractSectionFromStart(0,62));
 			
+			// If we have been in receiving position report for over 30 seconds it is never going to come so reset
+			if (receivingPositionReport==true)	{
+				long difTime=(System.currentTimeMillis()/1000)-fragmentStartTime;
+				if (difTime>30) receivingPositionReport=false;
+			}
+			
 			// Is this the start of a position report ?
 			if ((type==5)&&(subType==102))	{
 				// Clear the position report StringBuilder object
@@ -313,6 +320,8 @@ public class GW extends FSK {
 				lastPositionFragment="";
 				receivingPositionReport=true;
 				positionFragmentCounter=0;
+				// Record the fragment starting time
+				fragmentStartTime=System.currentTimeMillis()/1000;
 				positionReport.append(theApp.getTimeStamp()+" "+displayGWAsAscii(0));
 				return;
 			}
