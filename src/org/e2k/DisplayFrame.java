@@ -31,7 +31,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private Rivet theApp;
 	public static final long serialVersionUID=1;
 	private JStatusBar statusBar=new JStatusBar();
-	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,2000);
+	public JScrollBar vscrollbar=new JScrollBar(JScrollBar.VERTICAL,0,1,0,6000);
 	private JMenu triggersMenu=new JMenu("Triggers");
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item,bitstream_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
