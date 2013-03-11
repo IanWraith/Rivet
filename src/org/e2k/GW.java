@@ -307,10 +307,10 @@ public class GW extends FSK {
 			// Display the binary
 			lo.append(dataBitSet.extractSectionFromStart(0,62));
 			
-			// If we have been in receiving position report for over 30 seconds it is never going to come so reset
+			// If we have been in receiving position report for over 60 seconds it is never going to come so reset
 			if (receivingPositionReport==true)	{
 				long difTime=(System.currentTimeMillis()/1000)-fragmentStartTime;
-				if (difTime>30) receivingPositionReport=false;
+				if (difTime>60) receivingPositionReport=false;
 			}
 			
 			// Is this the start of a position report ?
