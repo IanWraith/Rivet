@@ -24,7 +24,7 @@ import java.awt.Graphics2D;
 public class DisplayView extends JComponent implements Observer {
 	
 	public static final long serialVersionUID=1;
-	private static final int DISPLAYCOUNT=323;
+	private static final int DISPLAYCOUNT=329;
 	private String displayString[]=new String[DISPLAYCOUNT];
 	private Color displayColour[]=new Color[DISPLAYCOUNT];
 	private Font displayFont[]=new Font[DISPLAYCOUNT];
@@ -33,7 +33,7 @@ public class DisplayView extends JComponent implements Observer {
 	
 	public DisplayView (Rivet theApp) {
 		this.theApp=theApp;	
-		///screenTest();
+		//screenTest();
 	}
 			
 	public void update (Observable o,Object rectangle)	{			
@@ -75,10 +75,7 @@ public class DisplayView extends JComponent implements Observer {
 		displayString[displayCounter]=line;
 		displayColour[displayCounter]=tcol;
 		displayFont[displayCounter]=tfont;
-		// Increment the circular buffer
-		displayCounter++;
-		// Check it hasn't reached its maximum size
-		if (displayCounter==DISPLAYCOUNT) displayCounter=0;
+		// Repaint the screen
 		repaint();
 	}
 	
@@ -136,9 +133,7 @@ public class DisplayView extends JComponent implements Observer {
 		int a;
 		for (a=0;a<DISPLAYCOUNT;a++)	{
 			String line="Line "+Integer.toString(a)+" test";
-			displayString[a]=line;
-			if (a%2==0) displayFont[a]=theApp.italicFont;
-			else displayFont[a]=theApp.boldFont;
+			addLine(line,Color.BLACK,theApp.italicFont);
 		}
 	}
 
