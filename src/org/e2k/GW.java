@@ -336,7 +336,9 @@ public class GW extends FSK {
 				lastPositionFragment=curFrag;
 				// Count the number of fragment sent
 				positionFragmentCounter++;
-				return;
+				//return;
+				// For now always display partial position reports
+				theApp.writeLine(displayGWAsAscii(0),Color.BLUE,theApp.boldFont);
 			}
 			// An orphan position report
 			else if ((type==5)&&(subType==86)&&(receivingPositionReport==false)) orphanFragment=displayGWAsAscii(0);	
@@ -369,6 +371,14 @@ public class GW extends FSK {
 				theApp.writeLine(displayGWAsAscii(0),Color.BLUE,theApp.boldFont);
 				return;
 			}
+			// Type 2 Subtype 101
+			else if ((type==2)&&(subType==101))	{
+				// Display the packet details
+				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+				// Display the content 
+				theApp.writeLine(displayGWAsHex(0),Color.BLUE,theApp.boldFont);
+				return;
+			}
 			
 			// Display everything else
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
@@ -399,6 +409,18 @@ public class GW extends FSK {
 		int a;
 		for (a=0;a<6;a++)	{
 			lo.append(getGWChar(aInts.get(a)));
+		}
+		return lo.toString();
+	}
+	
+	// Display a GW packet as hex
+	private String displayGWAsHex (int sPos)	{
+		StringBuilder lo=new StringBuilder();
+		List<Integer> aInts=dataBitSet.returnIntsFromStart(sPos+14);
+		int a;
+		for (a=0;a<6;a++)	{
+			if (a>0) lo.append(",");
+			lo.append("0x"+Integer.toHexString(aInts.get(a)));
 		}
 		return lo.toString();
 	}

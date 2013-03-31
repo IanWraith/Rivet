@@ -104,6 +104,7 @@ Build 55 Fix a bug in the trigger code which allowed a STOP to activate before a
 Build 56 Increase the number of display lines , add a audio selection source menu item and a GW position report time out
 Build 57 Fix a bug in the screen display which meant certain lines weren't being displayed.
 Build 58 Fix yet another bug in the screen display code. Hope this is it !
+Build 59 Display GW 2/101 contents as hex. Always display the contents of 5/86 packets.
 
 Reported Bugs
 -------------
@@ -114,4 +115,4 @@ these modes.
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (11th March 2013) 
+Ian Wraith (31st March 2013) 
