@@ -15,14 +15,11 @@ public class GW extends FSK {
 	private int lowTone;
 	private int highBin;
 	private int lowBin;
-	private double adjBuffer[]=new double[8];
+	private double adjBuffer[]=new double[1];
 	private int adjCounter=0;
 	private CircularBitSet dataBitSet=new CircularBitSet();
 	private int characterCount=0;
 	private int bitCount;
-	private double symbolTotal;
-	private double previousSymbolTotal;
-	private double oldSymbolPercentage[]=new double[4];
 	private StringBuilder positionReport=new StringBuilder();
 	private boolean receivingPositionReport=false;
 	private String lastPositionFragment;
@@ -89,20 +86,6 @@ public class GW extends FSK {
 						theApp.newLineWrite();
 					}
 				}
-				
-				// Shuffle the old stored percentage values
-				oldSymbolPercentage[3]=oldSymbolPercentage[2];
-				oldSymbolPercentage[2]=oldSymbolPercentage[1];
-				oldSymbolPercentage[1]=oldSymbolPercentage[0];
-				// Calculate the current percentage value
-				if (symbolTotal<previousSymbolTotal) oldSymbolPercentage[0]=100.0-((symbolTotal/previousSymbolTotal)*100.0);
-				else oldSymbolPercentage[0]=100.0-((previousSymbolTotal/symbolTotal)*100.0);
-				double av=(oldSymbolPercentage[0]+oldSymbolPercentage[1]+oldSymbolPercentage[2]+oldSymbolPercentage[3])/4;
-				// If the percentage different is over 30% and more than 3 bits have been received then the signal has been lost
-				if ((av>30.0)&&(bitCount>3))	{
-					processGWData();
-					setState(1);
-				}
 				// Increment the bit counter
 				bitCount++;	
 			}	
@@ -146,9 +129,6 @@ public class GW extends FSK {
 		// Now work out the binary state represented by this symbol
 		double lowTotal=early[0]+late[0];
 		double highTotal=early[1]+late[1];
-		// Store the previous symbol energy total
-		previousSymbolTotal=symbolTotal;
-		symbolTotal=lowTotal+highTotal;
 		// Calculate the bit value
 		if (theApp.isInvertSignal()==false)	{
 			if (lowTotal>highTotal) out=true;
@@ -169,9 +149,16 @@ public class GW extends FSK {
 
 	// Add a comparator output to a circular buffer of values
 	private void addToAdjBuffer (double in)	{
-		adjBuffer[adjCounter]=in;
-		adjCounter++;
-		if (adjCounter==adjBuffer.length) adjCounter=0;
+		// If the percentage difference is more than 45% then we have lost the signal
+		if (in>45.0)	{
+			processGWData();
+			setState(1);
+		}
+		else	{
+			adjBuffer[adjCounter]=in;
+			adjCounter++;
+			if (adjCounter==adjBuffer.length) adjCounter=0;
+		}
 	}
 	
 	// Return the average of the circular buffer
@@ -192,7 +179,7 @@ public class GW extends FSK {
 		return (int)r;
 	}
 	
-	// Hunt for a four bit alternating sequence with a 200 Hz difference
+	// Hunt for a two bit alternating sequence with a 200 Hz difference
 	private boolean syncSequenceHunt(CircularDataBuffer circBuf,WaveData waveData)	{
 		int pos=0,b0,b1;
 		int f0=getSymbolFreq(circBuf,waveData,pos);
@@ -398,8 +385,6 @@ public class GW extends FSK {
 			}
 			return;
 		}
-		
-		
 	}
 	
 	// Display a GW packet as ASCII
