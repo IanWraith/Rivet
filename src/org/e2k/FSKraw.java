@@ -54,7 +54,6 @@ public class FSKraw extends FSK {
 	}
 	
 	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
-
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
@@ -92,6 +91,9 @@ public class FSKraw extends FSK {
 				sRet=syncSequenceHunt(circBuf,waveData);
 				if (sRet!=null)	{
 					theApp.writeLine(sRet,Color.BLACK,theApp.italicFont);
+					// Add a newline
+					theApp.newLineWrite();
+					// Change the state
 					setState(2);
 					characterCounter=0;
 					energyBuffer.setBufferCounter(0);
@@ -154,29 +156,20 @@ public class FSKraw extends FSK {
 		return -1;
 	}
 	
-	// Look for a sequence of 4 alternating tones with a certain shift
+	// Look for a sequence of 2 alternating tones with a certain shift
 	private String syncSequenceHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		int difference;
-		// Get 4 symbols
+		// Get 2 symbols
 		int freq1=rttyFreq(circBuf,waveData,0);
 		int bin1=getFreqBin();
 		// Check this first tone isn't just noise
-		if (getPercentageOfTotal()<5.0) return null;
+		if (getPercentageOfTotal()<10.0) return null;
 		int freq2=rttyFreq(circBuf,waveData,(int)samplesPerSymbol*1);
 		int bin2=getFreqBin();
-		// Check we have a high low
-		if (freq2>freq1) return null;
-		// Check there is around shift (+25 and -25 Hz) of difference between the tones
-		difference=freq1-freq2;
+		// Calculate the difference between these tones
+		if (freq2>freq1) difference=freq2-freq1;
+		else difference=freq1-freq2;
 		if ((difference<(shift-25))||(difference>(shift+25))) return null;
-		int freq3=rttyFreq(circBuf,waveData,(int)samplesPerSymbol*2);
-		// Don't waste time carrying on if freq1 isn't the same as freq3
-		if (freq1!=freq3) return null;
-		int freq4=rttyFreq(circBuf,waveData,(int)samplesPerSymbol*3);
-		// Check 2 of the symbol frequencies are different
-		if ((freq1!=freq3)||(freq2!=freq4)) return null;
-		// Check that 2 of the symbol frequencies are the same
-		if ((freq1==freq2)||(freq3==freq4)) return null;
 		// Store the bin numbers
 		if (freq1>freq2)	{
 			highBin=bin1;
@@ -195,9 +188,15 @@ public class FSKraw extends FSK {
 	
 	// Add a comparator output to a circular buffer of values
 	private void addToAdjBuffer (double in)	{
-		adjBuffer[adjCounter]=in;
-		adjCounter++;
-		if (adjCounter==adjBuffer.length) adjCounter=0;
+		// If the percentage difference is more than 45% then we have lost the signal
+		if (in>45.0)	{
+			setState(1);
+		}
+		else	{
+			adjBuffer[adjCounter]=in;
+			adjCounter++;
+			if (adjCounter==adjBuffer.length) adjCounter=0;
+		}
 	}
 	
 	// Return the average of the circular buffer
@@ -213,10 +212,9 @@ public class FSKraw extends FSK {
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
 		double av=adjAverage();
-		double r=Math.abs(av)/5;
+		// was 5
+		double r=Math.abs(av)/15;
 		if (av<0) r=0-r;
-		//theApp.debugDump(Double.toString(av)+","+Double.toString(r));
-		//r=0;
 		return (int)r;
 	}	
 
