@@ -100,6 +100,8 @@ public class RTTY extends FSK {
 					energyBuffer.setBufferCounter(0);
 					bcount=0;
 					missingCharCounter=0;
+					// Display on a newline from now on
+					theApp.newLineWrite();
 				}
 			}
 		}
