@@ -330,53 +330,56 @@ public class FSK2001000 extends FSK {
 	
 	// Extract addressee
 	private String extractAddressee (int da[])	{
-		int addr=(da[14]&240)+((da[20]&240)>>4);
-		String r="(Addressee Identifier ? 0x"+Integer.toHexString(addr)+")";
+		int a1=(da[14]&240)>>4;
+		int a2=da[18]&240;
+		int a3=(da[20]&240)>>4;
+		int addr=(a1<<8)+a2+a3;
+		String r=",Addressee Identifier ? "+Integer.toString(addr);
 		return r;
 	}
 	
 	// Extract message number
 	private String extractMsgNumber (int da[])	{
 		int num=((da[18]&15)<<4)+(da[20]&15);
-		String r="(Msg Number "+Integer.toString(num)+")";
+		String r=",Msg Number "+Integer.toString(num);
 		return r;
 	}
 	
 	// Extract and display the date as a string
 	private String extractDate (int d[])	{
 		int dval=extractDateNum(d);
-		if (dval==1) return "(1st of month)";
-		else if (dval==2) return "(2nd of month)";
-		else if (dval==3) return "(3rd of month)";
-		else if (dval==4) return "(4th of month)";
-		else if (dval==5) return "(5th of month)";
-		else if (dval==6) return "(6th of month)";
-		else if (dval==7) return "(7th of month)";
-		else if (dval==8) return "(8th of month)";
-		else if (dval==9) return "(9th of month)";
-		else if (dval==10) return "(10th of month)";
-		else if (dval==11) return "(11th of month)";
-		else if (dval==12) return "(12th of month)";
-		else if (dval==13) return "(13th of month)";
-		else if (dval==14) return "(14th of month)";
-		else if (dval==15) return "(15th of month)";
-		else if (dval==16) return "(16th of month)";
-		else if (dval==17) return "(17th of month)";
-		else if (dval==18) return "(18th of month)";
-		else if (dval==19) return "(19th of month)";
-		else if (dval==20) return "(20th of month)";
-		else if (dval==21) return "(21st of month)";
-		else if (dval==22) return "(22nd of month)";
-		else if (dval==23) return "(23rd of month)";
-		else if (dval==24) return "(24th of month)";
-		else if (dval==25) return "(25th of month)";
-		else if (dval==26) return "(26th of month)";
-		else if (dval==27) return "(27th of month)";
-		else if (dval==28) return "(28th of month)";
-		else if (dval==29) return "(29th of month)";
-		else if (dval==30) return "(30th of month)";
-		else if (dval==31) return "(31st of month)";
-		else return "(Corrupt Date)";
+		if (dval==1) return ",1st of month";
+		else if (dval==2) return ",2nd of month";
+		else if (dval==3) return ",3rd of month";
+		else if (dval==4) return ",4th of month";
+		else if (dval==5) return ",5th of month";
+		else if (dval==6) return ",6th of month";
+		else if (dval==7) return ",7th of month";
+		else if (dval==8) return ",8th of month";
+		else if (dval==9) return ",9th of month";
+		else if (dval==10) return ",10th of month";
+		else if (dval==11) return ",11th of month";
+		else if (dval==12) return ",12th of month";
+		else if (dval==13) return ",13th of month";
+		else if (dval==14) return ",14th of month";
+		else if (dval==15) return ",15th of month";
+		else if (dval==16) return ",16th of month";
+		else if (dval==17) return ",17th of month";
+		else if (dval==18) return ",18th of month";
+		else if (dval==19) return ",19th of month";
+		else if (dval==20) return ",20th of month";
+		else if (dval==21) return ",21st of month";
+		else if (dval==22) return ",22nd of month";
+		else if (dval==23) return ",23rd of month";
+		else if (dval==24) return ",24th of month";
+		else if (dval==25) return ",25th of month";
+		else if (dval==26) return ",26th of month";
+		else if (dval==27) return ",27th of month";
+		else if (dval==28) return ",28th of month";
+		else if (dval==29) return ",29th of month";
+		else if (dval==30) return ",30th of month";
+		else if (dval==31) return ",31st of month";
+		else return ",Corrupt Date";
 		
 	}
 	
