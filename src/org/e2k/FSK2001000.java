@@ -303,6 +303,8 @@ public class FSK2001000 extends FSK {
 				linesOut[0]=linesOut[0]+" "+line;
 				// Extract the date
 				linesOut[0]=linesOut[0]+" "+extractDate(data);
+				// Extract the message number
+				linesOut[0]=linesOut[0]+" "+extractMsgNumber(data);
 			}
 			
 			linesOut[1]=circularBitSet.extractBitSetasHex();
@@ -333,6 +335,12 @@ public class FSK2001000 extends FSK {
 		return r;
 	}
 	
+	// Extract message number
+	private String extractMsgNumber (int da[])	{
+		int num=((da[18]&15)<<4)+(da[20]&15);
+		String r="(Msg Number "+Integer.toString(num)+")";
+		return r;
+	}
 	
 	// Extract and display the date as a string
 	private String extractDate (int d[])	{
