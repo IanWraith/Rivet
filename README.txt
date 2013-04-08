@@ -106,6 +106,9 @@ Build 57 Fix a bug in the screen display which meant certain lines weren't being
 Build 58 Fix yet another bug in the screen display code. Hope this is it !
 Build 59 Display GW 2/101 contents as hex. Always display the contents of 5/86 packets.
 Build 60 Improve the detection and decoding of GW FSK packets.
+Build 61 Add a newline after the RTTY sync info line.
+         Decode and display FSK200/1000 message numbers
+         Decode FSK200/1000 addressesee identifier as a 12 bit number instead of as an 8 bit number and display as decimal not hex.
 
 Reported Bugs
 -------------
