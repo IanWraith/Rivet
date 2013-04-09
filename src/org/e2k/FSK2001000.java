@@ -330,11 +330,12 @@ public class FSK2001000 extends FSK {
 	
 	// Extract addressee
 	private String extractAddressee (int da[])	{
-		int a1=(da[14]&240)>>4;
-		int a2=da[18]&240;
-		int a3=(da[20]&240)>>4;
-		int addr=(a1<<8)+a2+a3;
-		String r=",Addressee Identifier ? "+Integer.toString(addr);
+		int a1=(da[14]&240)<<8;
+		int a2=(da[16]&240)<<4;
+		int a3=da[18]&240;
+		int a4=(da[20]&240)>>4;
+		int addr=a1+a2+a3+a4;
+		String r=",Addressee Identifier ? "+String.format("%05d",addr);
 		return r;
 	}
 	
