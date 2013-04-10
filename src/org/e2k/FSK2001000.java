@@ -298,13 +298,8 @@ public class FSK2001000 extends FSK {
 			}
 			// If block 1 display the block 1 special information
 			else if (lineNos==1)	{
-				// Addressee identifier
-				String line=extractAddressee(data);
-				linesOut[0]=linesOut[0]+" "+line;
-				// Extract the date
-				linesOut[0]=linesOut[0]+" "+extractDate(data);
-				// Extract the message number
-				linesOut[0]=linesOut[0]+" "+extractMsgNumber(data);
+				
+				linesOut[0]=linesOut[0]+" "+extractAddressee(data)+" "+extractDate(data)+" "+extractMsgNumber(data)+extractMsgType(data)+extractGroupCount(data)+extractBlock1Mys(data);
 			}
 			
 			linesOut[1]=circularBitSet.extractBitSetasHex();
@@ -313,7 +308,7 @@ public class FSK2001000 extends FSK {
 		bitsSinceLastBlockHeader=0;
 		blockCount++;
 		// Display the decoded info
-		theApp.writeLine(linesOut[0],Color.BLACK,theApp.boldFont);
+		theApp.writeLine(linesOut[0],Color.BLUE,theApp.boldFont);
 		theApp.writeLine(linesOut[1],Color.BLACK,theApp.boldFont);
 		return;
 	}
@@ -335,52 +330,106 @@ public class FSK2001000 extends FSK {
 		int a3=da[18]&240;
 		int a4=(da[20]&240)>>4;
 		int addr=a1+a2+a3+a4;
-		String r=",Addressee Identifier ? "+String.format("%05d",addr);
+		String r=" : Link ID "+String.format("%05d",addr);
+		return r;
+	}
+	
+	// Message Type
+	private String extractMsgType (int da[])	{
+		int a1=(da[6]&240)<<8;
+		int a2=(da[8]&240)<<4;
+		int a3=da[10]&240;
+		int a4=(da[12]&240)>>4;
+		int type=a1+a2+a3+a4;
+		String r=" : Msg Type "+String.format("%05d",type);
 		return r;
 	}
 	
 	// Extract message number
 	private String extractMsgNumber (int da[])	{
 		int num=((da[18]&15)<<4)+(da[20]&15);
-		String r=",Msg Number "+Integer.toString(num);
+		String r=" : Msg Number "+String.format("%03d",num);
+		return r;
+	}
+	
+	// Extract the group count
+	private String extractGroupCount (int da[])	{
+		int gc=(da[7]&240)+((da[9]&240)>>4);
+		String r=" : Group Count (?) "+Integer.toString(gc);
+		return r;
+	}
+	
+	// Extract the mystery bits
+	private String extractBlock1Mys (int da[])	{
+		int a1,a2,a3,a4;
+		// W bits
+		// Low nibbles from bytes 6,8,10,12
+		a1=(da[6]&15)<<12;
+		a2=(da[8]&15)<<8;
+		a3=(da[10]&15)<<4;
+		a4=da[12]&15;
+		int w=a1+a2+a3+a4;
+		// E bits
+		// Low nibbles from bytes 7,9,11,13
+		a1=(da[7]&15)<<12;
+		a2=(da[9]&15)<<8;
+		a3=(da[11]&15)<<4;
+		a4=da[13]&15;
+		int e=a1+a2+a3+a4;
+		// G bits
+		// High nibbles from bytes 15,17,19,21
+		a1=(da[15]&240)<<8;
+		a2=(da[17]&240)<<4;
+		a3=da[19]&240;
+		a4=(da[21]&240)>>4;
+		int g=a1+a2+a3+a4;
+		// H bits
+		// Low nibbles from bytes 15,17,19,21
+		a1=(da[15]&15)<<12;
+		a2=(da[17]&15)<<8;
+		a3=(da[19]&15)<<4;
+		a4=da[21]&15;
+		int h=a1+a2+a3+a4;
+		// Display these
+		String r=" : Unknown "+String.format("%05d",w)+" "+String.format("%05d",e)+" "+String.format("%05d",g)+" "+String.format("%05d",h);
 		return r;
 	}
 	
 	// Extract and display the date as a string
 	private String extractDate (int d[])	{
 		int dval=extractDateNum(d);
-		if (dval==1) return ",1st of month";
-		else if (dval==2) return ",2nd of month";
-		else if (dval==3) return ",3rd of month";
-		else if (dval==4) return ",4th of month";
-		else if (dval==5) return ",5th of month";
-		else if (dval==6) return ",6th of month";
-		else if (dval==7) return ",7th of month";
-		else if (dval==8) return ",8th of month";
-		else if (dval==9) return ",9th of month";
-		else if (dval==10) return ",10th of month";
-		else if (dval==11) return ",11th of month";
-		else if (dval==12) return ",12th of month";
-		else if (dval==13) return ",13th of month";
-		else if (dval==14) return ",14th of month";
-		else if (dval==15) return ",15th of month";
-		else if (dval==16) return ",16th of month";
-		else if (dval==17) return ",17th of month";
-		else if (dval==18) return ",18th of month";
-		else if (dval==19) return ",19th of month";
-		else if (dval==20) return ",20th of month";
-		else if (dval==21) return ",21st of month";
-		else if (dval==22) return ",22nd of month";
-		else if (dval==23) return ",23rd of month";
-		else if (dval==24) return ",24th of month";
-		else if (dval==25) return ",25th of month";
-		else if (dval==26) return ",26th of month";
-		else if (dval==27) return ",27th of month";
-		else if (dval==28) return ",28th of month";
-		else if (dval==29) return ",29th of month";
-		else if (dval==30) return ",30th of month";
-		else if (dval==31) return ",31st of month";
-		else return ",Corrupt Date";
+		if (dval==1) return " : 1st of month";
+		else if (dval==2) return " : 2nd of month";
+		else if (dval==3) return " : 3rd of month";
+		else if (dval==4) return " : 4th of month";
+		else if (dval==5) return " : 5th of month";
+		else if (dval==6) return " : 6th of month";
+		else if (dval==7) return " : 7th of month";
+		else if (dval==8) return " : 8th of month";
+		else if (dval==9) return " : 9th of month";
+		else if (dval==10) return " : 10th of month";
+		else if (dval==11) return " : 11th of month";
+		else if (dval==12) return " : 12th of month";
+		else if (dval==13) return " : 13th of month";
+		else if (dval==14) return " : 14th of month";
+		else if (dval==15) return " : 15th of month";
+		else if (dval==16) return " : 16th of month";
+		else if (dval==17) return " : 17th of month";
+		else if (dval==18) return " : 18th of month";
+		else if (dval==19) return " : 19th of month";
+		else if (dval==20) return " : 20th of month";
+		else if (dval==21) return " : 21st of month";
+		else if (dval==22) return " : 22nd of month";
+		else if (dval==23) return " : 23rd of month";
+		else if (dval==24) return " : 24th of month";
+		else if (dval==25) return " : 25th of month";
+		else if (dval==26) return " : 26th of month";
+		else if (dval==27) return " : 27th of month";
+		else if (dval==28) return " : 28th of month";
+		else if (dval==29) return " : 29th of month";
+		else if (dval==30) return " : 30th of month";
+		else if (dval==31) return " : 31st of month";
+		else return " : Corrupt Date";
 		
 	}
 	
