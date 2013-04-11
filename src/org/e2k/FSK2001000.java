@@ -33,7 +33,7 @@
 // 10 080 TTTXXXXX 
 // 
 // 11 088 
-// 12 096
+// 12 096 NNNNXXXX The N bits appear to contain the number of messages contained
 // 13 104
 // 14 112 
 // 15 120
@@ -91,12 +91,12 @@
 // 27 216 LLLLMMMM
 // 28 224 JJJJKKKK
 // 29 232 LLLLMMMM
-// 30 240 
-// 31 248
-// 32 256
-// 33 264
-// 34 272
-// 35 280
+// 30 240 UUUUVVVV
+// 31 248 PPPPTTTT
+// 32 256 UUUUVVVV
+// 33 264 PPPPTTTT
+// 34 272 UUUUVVVV
+// 35 280 PPPPTTTT
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 package org.e2k;
@@ -376,7 +376,8 @@ public class FSK2001000 extends FSK {
 	
 	// Process a FSK200/1000 block
 	private void processBlock()	{
-		String linesOut[]=new String[2];
+		String linesOut[]=new String[3];
+		boolean divider=false;
 		// Convert the block to an array of ints
 		int data[]=circularBitSet.returnInts();
 		// Data[4] and [5] contain the line number (bits 32 to 41)
@@ -387,6 +388,7 @@ public class FSK2001000 extends FSK {
 		if (checkDividerBlock(data)==true)	{
 			// Divide the messages with this //
 			linesOut[0]="----------------------------------------------------------";
+			divider=true;
 		}
 		else	{
 			// Display the block
@@ -396,11 +398,15 @@ public class FSK2001000 extends FSK {
 				// Display the total number of blocks which is encoded into block 0 bits 64,65,66,67,80,81,82
 				messageTotalBlockCount=((data[8]&240)>>1)+((data[10]&224)>>5)+1;
 				linesOut[0]=linesOut[0]+" : Total Message Size "+Integer.toString(messageTotalBlockCount)+" blocks";
+				// Display the number of messages contained
+				int mcount=(data[12]&240)>>4;
+				if (mcount==1)	linesOut[0]=linesOut[0]+" : This transmission contains one message.";
+				else linesOut[0]=linesOut[0]+" : This transmission contains "+Integer.toString(mcount)+" messages.";
 			}
 			// If block 1 display the block 1 special information
 			else if (lineNos==1)	{
-				
-				linesOut[0]=linesOut[0]+" "+extractAddressee(data)+" "+extractDate(data)+" "+extractMsgNumber(data)+extractMsgType(data)+extractGroupCount(data)+extractBlock1Mys(data);
+				linesOut[0]=linesOut[0]+" "+extractAddressee(data)+" "+extractDate(data)+" "+extractMsgNumber(data)+extractMsgType(data)+extractGroupCount(data);
+				linesOut[2]=extractBlock1Mys(data);
 			}
 			
 			linesOut[1]=circularBitSet.extractBitSetasHex();
@@ -409,7 +415,9 @@ public class FSK2001000 extends FSK {
 		bitsSinceLastBlockHeader=0;
 		blockCount++;
 		// Display the decoded info
-		theApp.writeLine(linesOut[0],Color.BLUE,theApp.boldFont);
+		if (divider==false) theApp.writeLine(linesOut[0],Color.BLUE,theApp.boldFont);
+		else theApp.writeLine(linesOut[0],Color.RED,theApp.boldFont);
+		theApp.writeLine(linesOut[2],Color.BLUE,theApp.boldFont);
 		theApp.writeLine(linesOut[1],Color.BLACK,theApp.boldFont);
 		return;
 	}
@@ -491,8 +499,37 @@ public class FSK2001000 extends FSK {
 		a3=(da[19]&15)<<4;
 		a4=da[21]&15;
 		int h=a1+a2+a3+a4;
+		// J bits
+		// High nibbles from bytes 22,24,26,28
+		a1=(da[22]&240)<<8;
+		a2=(da[24]&240)<<4;
+		a3=da[26]&240;
+		a4=(da[28]&240)>>4;
+		int j=a1+a2+a3+a4;
+		// K bits
+		// Low nibbles from bytes 22,24,26,28
+		a1=(da[22]&15)<<12;
+		a2=(da[24]&15)<<8;
+		a3=(da[26]&15)<<4;
+		a4=da[28]&15;
+		int k=a1+a2+a3+a4;
+		// L bits
+		// High nibbles from bytes 23,25,27,29
+		a1=(da[23]&240)<<8;
+		a2=(da[25]&240)<<4;
+		a3=da[27]&240;
+		a4=(da[29]&240)>>4;
+		int l=a1+a2+a3+a4;
+		// M bits
+		// Low nibbles from bytes 23,25,27,29
+		a1=(da[23]&15)<<12;
+		a2=(da[25]&15)<<8;
+		a3=(da[27]&15)<<4;
+		a4=da[29]&15;
+		int m=a1+a2+a3+a4;		
+		
 		// Display these
-		String r=" : Unknown "+String.format("%05d",w)+" "+String.format("%05d",e)+" "+String.format("%05d",g)+" "+String.format("%05d",h);
+		String r="Unknown "+String.format("%05d",w)+" "+String.format("%05d",e)+" "+String.format("%05d",g)+" "+String.format("%05d",h)+" "+String.format("%05d",j)+" "+String.format("%05d",k)+" "+String.format("%05d",l)+" "+String.format("%05d",m);
 		return r;
 	}
 	
