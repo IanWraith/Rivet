@@ -11,6 +11,94 @@
 // Rivet Copyright (C) 2011 Ian Wraith
 // This program comes with ABSOLUTELY NO WARRANTY
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FSK200/1000 Protocol Description
+// 
+// BLOCK 000
+// ---------
+// 
+// 00 000 SSSSSSSS These are the sync bytes always 
+// 01 008 SSSSSSSS 0x7d12b0e6
+// 02 016 SSSSSSSS
+// 03 024 SSSSSSSS
+// 
+// 04 032 CCCCCCCC The C bits make up the line number
+// 05 040 CCCXXXXX X bits are unknown but are always the same depending on the line number
+// 
+// 06 048 XXXXXXXX
+// 07 056 XXXXXXXX
+// 
+// 08 064 TTTTXXXX In block 0 the bits T show the number of blocks to follow
+// 09 072 XXXXXXXX
+// 10 080 TTTXXXXX 
+// 
+// 11 088 
+// 12 096
+// 13 104
+// 14 112 
+// 15 120
+// 16 128 
+// 17 136
+// 18 144 
+// 19 152
+// 20 160 
+// 21 168
+// 22 176
+// 23 184
+// 24 192
+// 25 200
+// 26 208
+// 27 216
+// 28 224
+// 29 232
+// 30 240
+// 31 248
+// 32 256
+// 33 264
+// 34 272
+// 35 280
+// 
+// BLOCK 001
+// ---------
+// 
+// 00 000 SSSSSSSS These are the sync bytes always 
+// 01 008 SSSSSSSS 0x7d12b0e6
+// 02 016 SSSSSSSS
+// 03 024 SSSSSSSS
+// 04 032 CCCCCCCC The C bits make up the line number
+// 05 040 CCCXXXXX X bits are unknown but are always the same depending on the line number
+// 06 048 OOOOWWWW W bits have an unknown purpose
+// 07 056 BBBBEEEE
+// 08 064 OOOOWWWW 
+// 09 072 BBBBEEEE B bits appear to be a group count ?
+// 10 080 OOOOWWWW  
+// 11 088 XXXXXXXX
+// 12 096 OOOOWWWW O bits appear to usually be 0x1be9 = 07145 but in 0x00 specials can be 0x1bc0 = 07109 : Possible message type
+// 13 104 XXXXEEEE
+// 14 112 IIIIDDDD 
+// 15 120 GGGGHHHH
+// 16 128 IIIIDDDD The bits D are the message date
+// 17 136 GGGGHHHH
+// 18 144 IIIINNNN The bits N are the message number
+// 19 152 GGGGHHHH
+// 20 160 IIIINNNN The bits I appear to be the link identifier
+// 21 168 GGGGHHHH
+// 22 176 JJJJKKKK
+// 23 184 LLLLMMMM
+// 24 192 JJJJKKKK
+// 25 200 LLLLMMMM
+// 26 208 JJJJKKKK
+// 27 216 LLLLMMMM
+// 28 224 JJJJKKKK
+// 29 232 LLLLMMMM
+// 30 240 
+// 31 248
+// 32 256
+// 33 264
+// 34 272
+// 35 280
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 package org.e2k;
 
 import java.awt.Color;
