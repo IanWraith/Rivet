@@ -29,8 +29,7 @@ public class XPA extends MFSK {
 	private StringBuilder lineBuffer=new StringBuilder();
 	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private long syncFoundPoint;
-	private int longCorrectionFactor;
-	private int shortCorrectionFactor;
+	private int correctionFactor;
 	
 	public XPA (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -87,8 +86,7 @@ public class XPA extends MFSK {
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
-			longCorrectionFactor=0;
-			shortCorrectionFactor=0;
+			correctionFactor=0;
 			previousCharacter=null;
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
@@ -97,7 +95,8 @@ public class XPA extends MFSK {
 		// Hunting for a start tone
 		if (state==1)	{
 			String dout;
-			if (sampleCount>=0) dout=startToneHunt(circBuf,waveData);
+			// To speed things up only do this every 100 samples
+			if ((sampleCount>=0)&&(sampleCount%100==0)) dout=startToneHunt(circBuf,waveData);
 			else dout=null;
 			if (dout!=null)	{
 				// Have start tone
@@ -109,18 +108,24 @@ public class XPA extends MFSK {
 		// Look for a sync high (1120 Hz) 
 		if (state==2)	{
 			final int ERRORALLOWANCE=40;
-			// First do a short FFT to check for the sync high tone
-			int sfft1=do128FFT (circBuf,waveData,0);
-			sfft1=sfft1+shortCorrectionFactor;
-			if (toneTest(sfft1,1120,ERRORALLOWANCE)==false)	{
+			// Only do this every 100 samples to speed things up
+			if (sampleCount%100>0)	{
 				sampleCount++;
 				symbolCounter++;
 				return;
 			}
-			// If that passes to a proper long FFT to ensure the tone is really there
+			// Check for a sync high
 			int lfft=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
-			lfft=lfft+longCorrectionFactor;
+			lfft=lfft+correctionFactor;
 			if (toneTest(lfft,1120,ERRORALLOWANCE)==false)	{
+				sampleCount++;
+				symbolCounter++;
+				return;
+			}
+			// & double check
+			int lfft2=symbolFreq(circBuf,waveData,(int)samplesPerSymbol,(samplesPerSymbol*2));
+			lfft2=lfft2+correctionFactor;
+			if (toneTest(lfft2,1120,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
 				return;
@@ -156,7 +161,7 @@ public class XPA extends MFSK {
 			if (symbolCounter>=(long)samplesPerSymbol)	{
 				symbolCounter=0;				
 				int freq=symbolFreq(circBuf,waveData,0,samplesPerSymbol);
-				freq=freq+longCorrectionFactor;
+				freq=freq+correctionFactor;
 				displayMessage(freq,waveData.isFromFile());
 			}
 		}
@@ -192,12 +197,9 @@ public class XPA extends MFSK {
 	    if ((difference<(toneDIFFERENCE-ErrorALLOWANCE)||(difference>(toneDIFFERENCE+ErrorALLOWANCE)))) return null;
 	    // Tones found
 	    // Calculate the long error correction factor
-	    longCorrectionFactor=LowTONE-tone1;
-	    // Calculate the short error correction factor
-	    int stone=do128FFT(circBuf,waveData,0);
-	    shortCorrectionFactor=LowTONE-stone;
+	    correctionFactor=LowTONE-tone1;
 	    // Tell the user
-	    line=theApp.getTimeStamp()+" XPA Start Tones Found (correcting by "+Integer.toString(longCorrectionFactor)+" Hz)";
+	    line=theApp.getTimeStamp()+" XPA Start Tones Found (correcting by "+Integer.toString(correctionFactor)+" Hz)";
 	    return line;
 	}
 	
