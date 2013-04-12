@@ -91,8 +91,8 @@ public class XPA2 extends MFSK {
 		// Hunting for a start tone
 		if (state==1)	{
 			String dout;
-			// Do the tone hunt every 100 samples to speed things up
-			if ((sampleCount>=0)&&(sampleCount%100==0)) dout=startToneHunt(circBuf,waveData);
+			// Do the tone hunt every 200 samples to speed things up
+			if ((sampleCount>=0)&&(sampleCount%200==0)) dout=startToneHunt(circBuf,waveData);
 			else dout=null;
 			if (dout!=null)	{
 				// Have start tone
@@ -105,8 +105,8 @@ public class XPA2 extends MFSK {
 		if (state==2)	{
 			final int SYNCLOW=1037;
 			final int ERRORALLOWANCE=30;
-			// Only do this every 100 samples so as not to slow things down
-			if (sampleCount%100>0)	{
+			// Only do this every 200 samples so as not to slow things down
+			if (sampleCount%200>0)	{
 				sampleCount++;
 				symbolCounter++;
 				return;
@@ -296,14 +296,15 @@ public class XPA2 extends MFSK {
 		
 		private int xpa2Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 			if (waveData.getSampleRate()==8000.0)	{
-				int freq=doXPAFFT(circBuf,waveData,pos);
+				int freq=symbolFreq(circBuf,waveData,pos,samplesPerSymbol);
 				if (theApp.isInvertSignal()==false) freq=freq+correctionFactor;
 				else freq=PIVOT-freq+correctionFactor;
 				return freq;
 			}
 			else if (waveData.getSampleRate()==11025.0)	{
-				int freq=doXPAFFT(circBuf,waveData,pos);
-				freq=freq+correctionFactor;
+				int freq=symbolFreq(circBuf,waveData,pos,samplesPerSymbol);
+				if (theApp.isInvertSignal()==false) freq=freq+correctionFactor;
+				else freq=PIVOT-freq+correctionFactor;
 				return freq;
 			}
 			return -1;
