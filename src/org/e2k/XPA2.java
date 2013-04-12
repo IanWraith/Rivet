@@ -91,7 +91,8 @@ public class XPA2 extends MFSK {
 		// Hunting for a start tone
 		if (state==1)	{
 			String dout;
-			if (sampleCount>=0) dout=startToneHunt(circBuf,waveData);
+			// Do the tone hunt every 100 samples to speed things up
+			if ((sampleCount>=0)&&(sampleCount%100==0)) dout=startToneHunt(circBuf,waveData);
 			else dout=null;
 			if (dout!=null)	{
 				// Have start tone
@@ -104,8 +105,21 @@ public class XPA2 extends MFSK {
 		if (state==2)	{
 			final int SYNCLOW=1037;
 			final int ERRORALLOWANCE=30;
+			// Only do this every 100 samples so as not to slow things down
+			if (sampleCount%100>0)	{
+				sampleCount++;
+				symbolCounter++;
+				return;
+			}
+			// Look for two symbols worth of sync tones to prevent false starts
 			int freq=xpa2Freq(circBuf,waveData,0);
 			if (toneTest(freq,SYNCLOW,ERRORALLOWANCE)==false)	{
+				sampleCount++;
+				symbolCounter++;
+				return;
+			}
+			int freq2=xpa2Freq(circBuf,waveData,(int)samplesPerSymbol);
+			if (toneTest(freq2,SYNCLOW,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
 				return;
@@ -133,6 +147,7 @@ public class XPA2 extends MFSK {
 			setState(4);
 			theApp.setStatusLabel("Symbol Timing Achieved");
 			theApp.writeLine((theApp.getTimeStamp()+" Symbol timing found"),Color.BLACK,theApp.italicFont);
+			theApp.newLineWrite();
 			return;
 		}
 		// Get valid data
@@ -219,6 +234,8 @@ public class XPA2 extends MFSK {
         if (tChar=="UNID")	{
         	groupCount=0;
         	theApp.writeLine(("UNID "+freq+" Hz"),Color.BLACK,theApp.boldFont);
+        	// Add a newline here
+        	theApp.newLineWrite();
         	return;
         	}
         // Count the group spaces
@@ -279,13 +296,13 @@ public class XPA2 extends MFSK {
 		
 		private int xpa2Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{
 			if (waveData.getSampleRate()==8000.0)	{
-				int freq=do1024FFT(circBuf,waveData,pos);
+				int freq=doXPAFFT(circBuf,waveData,pos);
 				if (theApp.isInvertSignal()==false) freq=freq+correctionFactor;
 				else freq=PIVOT-freq+correctionFactor;
 				return freq;
 			}
 			else if (waveData.getSampleRate()==11025.0)	{
-				int freq=do1024FFT(circBuf,waveData,pos);
+				int freq=doXPAFFT(circBuf,waveData,pos);
 				freq=freq+correctionFactor;
 				return freq;
 			}
