@@ -147,5 +147,20 @@ public class MFSK extends FSK {
 		return freq;
 	}
 	
+	public int doXPAFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+	    double datao[]=circBuf.extractDataDouble(start,FFT_1024_SIZE);
+	    double datar[]=new double[FFT_1024_SIZE];
+	    // Run this through a Blackman filter
+	    int a;
+	    for (a=0;a<datar.length;a++)	{
+			datar[a]=windowBlackman(datao[a],a,datao.length);
+	    }
+	    fft1024.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
+	}
+	
 	
 }
