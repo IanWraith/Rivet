@@ -529,7 +529,7 @@ public class FSK2001000 extends FSK {
 		int m=a1+a2+a3+a4;		
 		
 		// Display these
-		String r="Unknown "+String.format("%05d",w)+" "+String.format("%05d",e)+" "+String.format("%05d",g)+" "+String.format("%05d",h)+" "+String.format("%05d",j)+" "+String.format("%05d",k)+" "+String.format("%05d",l)+" "+String.format("%05d",m);
+		String r=String.format("%05d",w)+" "+String.format("%05d",e)+" "+String.format("%05d",g)+" "+String.format("%05d",h)+" "+String.format("%05d",j)+" "+String.format("%05d",k)+" "+String.format("%05d",l)+" "+String.format("%05d",m);
 		return r;
 	}
 	
