@@ -46,7 +46,7 @@ public class MFSK extends FSK {
 		}
 		else	{
 			int fftStart=start+(((int)samplePerSymbol-FFT_1024_SIZE)/2);
-			freq=do1024FFT(circBuf,waveData,fftStart);
+			freq=doXPAFFT(circBuf,waveData,fftStart);
 		}
 		return (int)freq;
 	}
@@ -147,7 +147,7 @@ public class MFSK extends FSK {
 		return freq;
 	}
 	
-	public int doXPAFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+	private int doXPAFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
 	    double datao[]=circBuf.extractDataDouble(start,FFT_1024_SIZE);
 	    double datar[]=new double[FFT_1024_SIZE];
