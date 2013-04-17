@@ -1,46 +1,35 @@
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// Rivet Copyright (C) 2011 Ian Wraith
-// This program comes with ABSOLUTELY NO WARRANTY
-
 package org.e2k;
 
-// RDFT has 8 carriers spaced 230 Hz apart
+// AT-3004D & AT-3014
+// has 12 * 120Bd BPSK or QPSK modulated carriers
+// these carriers are 200 Hz apart with a pilot tone 400 Hz higher than the last carrier
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 
-public class RDFT extends OFDM {
+public class AT3x04 extends OFDM {
 	
 	private int state=0;
 	private Rivet theApp;
 	private long sampleCount=0;
 	private long symbolCounter=0;
 	private double samplesPerSymbol;
-	private int carrierBinNos[][][]=new int[8][23][2];
+	private int carrierBinNos[][][]=new int[12][23][2];
 	private double totalCarriersEnergy;
 	
 	private double pastEnergyBuffer[]=new double[3];
 	private int pastEnergyBufferCounter=0;
 	
-	public RDFT (Rivet tapp)	{
+	public AT3x04 (Rivet tapp)	{
 		theApp=tapp;
 	}
 
 	public int getState() {
 		return state;
 	}
-
+	
 	// Set the state and change the contents of the status label
 	public void setState(int state) {
 		this.state=state;
@@ -49,6 +38,7 @@ public class RDFT extends OFDM {
 		else if (state==2) theApp.setStatusLabel("Msg Hunt");
 	}
 	
+	
 	// The main decode routine
 	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Initial startup
@@ -56,7 +46,7 @@ public class RDFT extends OFDM {
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
-				JOptionPane.showMessageDialog(null,"WAV files containing\nRDFT recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(null,"WAV files containing\nAT3x04 recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
 				return;
 			}
 			// Check this is a mono recording
@@ -74,31 +64,33 @@ public class RDFT extends OFDM {
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
-			samplesPerSymbol=samplesPerSymbol(122.5,waveData.getSampleRate());
-			// Add a user warning that RDFT doesn't yet decode
+			samplesPerSymbol=samplesPerSymbol(120.0,waveData.getSampleRate());
+			// Add a user warning that AT3x04 doesn't yet decode
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			theApp.writeLine("Please note that this mode is experimental and doesn't work yet !",Color.RED,theApp.italicFont);
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			setState(1);
 			return;
 		}
-		// Look for the constant 8 carriers that signal a RDFT start
+		// Look for the 12 carriers from this mode
 		else if (state==1)	{
 			sampleCount++;
 			if (sampleCount<0) return;
 			// Only run this check every 50 samples as this is rather maths intensive
 			if (sampleCount%50==0)	{
 				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true,650,true);
-			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.2);
-			    // Look for an RDFT start sequence
-			    if (RDFTCheck(clist)==true)	{
+			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.4);
+			    // Look for an AT3x04 start sequence
+			    if (AT3x04Check(clist)==true)	{
 			    	// Display this carrier info
 			    	StringBuilder sb=new StringBuilder();
-			    	sb.append(theApp.getTimeStamp()+" RDFT lead in tones found. Carrier 1 at "+Double.toString(clist.get(0).getFrequencyHZ())+" Hz");
-			    	sb.append(" & Carrier 8 at "+Double.toString(clist.get(7).getFrequencyHZ())+" Hz");
-			    	theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont);		
+			    	sb.append(theApp.getTimeStamp()+" AT3x04 tones found. Carrier 1 at "+Double.toString(clist.get(0).getFrequencyHZ())+" Hz");
+			    	sb.append(" & Carrier 12 at "+Double.toString(clist.get(11).getFrequencyHZ())+" Hz");
+			    	theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont);	
+			    	
 			    	// Populate the carrier bins
-			    	populateCarrierTonesBins(clist.get(0).getBinFFT());
+			    	//populateCarrierTonesBins(clist.get(0).getBinFFT());
+			    	
 			    	// All done detecting
 			    	setState(2);
 			    }
@@ -117,8 +109,10 @@ public class RDFT extends OFDM {
 			
 			// Get the complex spectrum
 			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
+			
+			
 			// Extract each carrier symbol as a complex number
-			List<Complex> symbolComplex=extractCarrierSymbols(ri);
+			//List<Complex> symbolComplex=extractCarrierSymbols(ri);
 			
 			StringBuilder sb=new StringBuilder();
 			sb.append(Long.toString(sampleCount));
@@ -140,84 +134,28 @@ public class RDFT extends OFDM {
 				
 		}
 		
-	}
-	
-	private List<Complex> extractCarrierSymbols (double fdata[])	{
-		List<Complex> complexList=new ArrayList<Complex>();
-		int carrierNo;
-		totalCarriersEnergy=0.0;
-		// Run through each carrier
-		for (carrierNo=0;carrierNo<8;carrierNo++)	{
-			int b;
-			Complex total=new Complex();
-			for (b=0;b<23;b++)	{
-				int rBin=carrierBinNos[carrierNo][b][0];
-				int iBin=carrierBinNos[carrierNo][b][1];
-				Complex tbin=new Complex(fdata[rBin],fdata[iBin]);
-				total=total.add(tbin);
-			}
-			// Add this to the list
-			complexList.add(total);
-			// Calculate the total energy
-			totalCarriersEnergy=totalCarriersEnergy+total.getMagnitude();
-		}
-		return complexList;
-	}
-	
+	}	
 
-	// Check we have a RDFT wave form here
-	private boolean RDFTCheck (List<CarrierInfo> carrierList)	{
-		// Check there are 8 carriers
-		if (carrierList.size()!=8) return false;
-		int a,leadCarrierNos[]=new int[8];
+	// Check we have a AT3x04 wave form here
+	private boolean AT3x04Check (List<CarrierInfo> carrierList)	{
+		
+		// TODO : Detect a AT3x04 waveform reliably
+		
+		// Check there are 12 carriers
+		if (carrierList.size()!=12) return false;
+		int a,leadCarrierNos[]=new int[12];
 		// Check the difference between the highest carrier bin and the lowest is within an allowable range
-		int totalDifference=carrierList.get(7).getBinFFT()-carrierList.get(0).getBinFFT();
-		if ((totalDifference<159)||(totalDifference>162)) return false;
+		double totalDifference=carrierList.get(11).getFrequencyHZ()-carrierList.get(0).getFrequencyHZ();
+		if ((totalDifference<2150)||(totalDifference>2250)) return false;
 		// Check the average spacing of the carriers is more than 190 Hz and less than 250 Hz
 		double spacing=averageCarrierSpacing(carrierList);
 		if ((spacing<190.0)||(spacing>250.0)) return false;
 		// Calculate the central bins used by each carrier
-		for (a=0;a<8;a++)	{
+		for (a=0;a<12;a++)	{
 			leadCarrierNos[a]=carrierList.get(0).getBinFFT()+(a*23);
 		}
 		return true;
-	}
-		
-	// Populate the carrierBinNos[][][] variable
-	private void populateCarrierTonesBins (int carrierCentre)	{
-		int binNos,mod,carrierNos;
-		// Run though each carrier
-		for (carrierNos=0;carrierNos<8;carrierNos++)	{
-			mod=-11;
-			for (binNos=0;binNos<23;binNos++)	{
-				carrierBinNos[carrierNos][binNos][0]=returnRealBin(carrierCentre+mod);
-				carrierBinNos[carrierNos][binNos][1]=returnImagBin(carrierCentre+mod);
-				mod++;
-			}
-			carrierCentre=carrierCentre+23;
-		}
-		
-	}
-
-	// Do an inverse FFT to recover one particular carrier
-	private double[] recoverCarrier (int carrierNo,double spectrumIn[])	{
-		double spectrum[]=new double[spectrumIn.length];
-		int b;
-		for (b=0;b<23;b++)	{
-				int rBin=carrierBinNos[carrierNo][b][0];
-				int iBin=carrierBinNos[carrierNo][b][1];	
-				spectrum[rBin]=spectrumIn[rBin];
-				spectrum[iBin]=spectrumIn[iBin];
-			}
-		RDFTfft.realInverse(spectrum,false);		
-		return spectrum;
-	}
+	}	
 	
+
 }
-
-
-
-
-
-
-

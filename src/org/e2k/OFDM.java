@@ -43,14 +43,14 @@ public class OFDM extends FFT {
 		}
 	
 	// Find the peaks in the spectrum data and return them as CarrierInfo objects
-	public List<CarrierInfo> findOFDMCarriers (double spectrum[],double sampleRate,int binCount)	{
+	public List<CarrierInfo> findOFDMCarriers (double spectrum[],double sampleRate,int binCount,double multiFactor)	{
 		List<CarrierInfo> cList=new ArrayList<CarrierInfo>();
 		int a;
 		double dPoint=-1.0;
 		for (a=0;a<(spectrum.length-1);a++)	{
 			if (spectrum[a]>dPoint) dPoint=spectrum[a];
 		}
-		dPoint=dPoint*0.2;
+		dPoint=dPoint*multiFactor;
 		for (a=1;a<(spectrum.length-1);a++)	{
 			// Check the current spectrum value is higher than the last one and the next one
 			// if it is then this is a peak so classify this as a carrier

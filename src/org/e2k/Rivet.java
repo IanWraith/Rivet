@@ -67,6 +67,7 @@ public class Rivet {
     public GW gwHandler=new GW(this);
     public FSKraw fskHandler=new FSKraw(this);
     public RDFT rdftHandler=new RDFT(this);
+    public AT3x04 at3x04Handler=new AT3x04(this);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -339,6 +340,8 @@ public class Rivet {
 			// XPA2
 			else if (system==2)	xpa2Handler.decode(circBuffer,waveData);
 			// Experimental
+			else if (system==4)	at3x04Handler.decode(circBuffer,waveData);
+			// CIS36-50
 			else if (system==5)	cis3650Handler.decode(circBuffer,waveData);
 			// FSK200/500
 			else if (system==6)	fsk200500Handler.decode(circBuffer,waveData);
@@ -486,8 +489,8 @@ public class Rivet {
 			this.soundCardInput=false;
 		}
 		else	{
-			// CROWD36 , XPA , XPA2 , CIS36-50 , FSK200/500 , FSK200/1000 , CCIR493-4 , GW , RTTY , RDFT
-			if ((system==0)||(system==1)||(system==2)||(system==3)||(system==5)||(system==6)||(system==8)||(system==7)||(system==9)||(system==10)||(system==11)||(system==12))	{
+			// CROWD36 , XPA , XPA2 , CIS36-50 , FSK200/500 , FSK200/1000 , CCIR493-4 , GW , RTTY , RDFT , Experimental
+			if ((system==0)||(system==1)||(system==2)||(system==3)||(system==4)||(system==5)||(system==6)||(system==8)||(system==7)||(system==9)||(system==10)||(system==11)||(system==12))	{
 				WaveData waveSetting=new WaveData();
 				waveSetting.setChannels(1);
 				waveSetting.setEndian(true);
@@ -515,6 +518,8 @@ public class Rivet {
 		else if ((system==1)||(system==3)) xpaHandler.setState(0);
 		// XPA2
 		else if (system==2)	xpa2Handler.setState(0);
+		// Experimental
+		else if (system==4)	at3x04Handler.setState(0);
 		// CIS36-50
 		else if (system==5)	cis3650Handler.setState(0);
 		// FSK200/500
