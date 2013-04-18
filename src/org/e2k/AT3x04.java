@@ -22,6 +22,12 @@ public class AT3x04 extends OFDM {
 	private double pastEnergyBuffer[]=new double[3];
 	private int pastEnergyBufferCounter=0;
 	
+	List<CarrierInfo> startCarrierList1=new ArrayList<CarrierInfo>();
+	List<CarrierInfo> startCarrierList2=new ArrayList<CarrierInfo>();
+	List<CarrierInfo> startCarrierList3=new ArrayList<CarrierInfo>();
+	private int startCarrierCounter=0;
+	private int pilotToneBin=0;
+	
 	public AT3x04 (Rivet tapp)	{
 		theApp=tapp;
 	}
@@ -65,6 +71,7 @@ public class AT3x04 extends OFDM {
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			samplesPerSymbol=samplesPerSymbol(120.0,waveData.getSampleRate());
+			startCarrierCounter=0;
 			// Add a user warning that AT3x04 doesn't yet decode
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			theApp.writeLine("Please note that this mode is experimental and doesn't work yet !",Color.RED,theApp.italicFont);
@@ -76,23 +83,36 @@ public class AT3x04 extends OFDM {
 		else if (state==1)	{
 			sampleCount++;
 			if (sampleCount<0) return;
-			// Only run this check every 50 samples as this is rather maths intensive
-			if (sampleCount%50==0)	{
-				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true,650,true);
-			    List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.4);
-			    // Look for an AT3x04 start sequence
-			    if (AT3x04Check(clist)==true)	{
-			    	// Display this carrier info
-			    	StringBuilder sb=new StringBuilder();
-			    	sb.append(theApp.getTimeStamp()+" AT3x04 tones found. Carrier 1 at "+Double.toString(clist.get(0).getFrequencyHZ())+" Hz");
-			    	sb.append(" & Carrier 12 at "+Double.toString(clist.get(11).getFrequencyHZ())+" Hz");
-			    	theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont);	
-			    	
-			    	// Populate the carrier bins
-			    	//populateCarrierTonesBins(clist.get(0).getBinFFT());
-			    	
-			    	// All done detecting
-			    	setState(2);
+			// Only run this check every 100 samples as this is rather maths intensive
+			if (sampleCount%100==0)	{
+				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true,800,true);
+				// Collect three lots of carrier info lists searching between 2500 Hz and 3500 Hz
+			    if (startCarrierCounter==0)	{
+			    	startCarrierList1=findOFDMCarriersWithinRange(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.8,250,350);
+			    	startCarrierCounter++;
+			    }
+			    else if (startCarrierCounter==1)	{
+			    	startCarrierList2=findOFDMCarriersWithinRange(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.8,250,350);
+			    	startCarrierCounter++;
+			    }
+			    else if (startCarrierCounter==2)	{
+			    	startCarrierList3=findOFDMCarriersWithinRange(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.8,250,350);
+			    	startCarrierCounter++;
+			    }    
+			    else if (startCarrierCounter==3)	{
+			    	// Look for the AT3x04 pilot tone
+			    	if (AT3x04PilotToneHunt(spr)==true)	{
+			    		// Get a full list of carriers present
+			    		List<CarrierInfo> clist=findOFDMCarriers(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.8);
+			    		// Check this list of carriers looks like a AT3x04 waveform
+			    		if (AT3x04CarrierConfirm(clist)==true)	{
+			    			setState(2);
+				    		//calculateBins();
+			    		}
+			    	}
+			    	else	{
+			    		startCarrierCounter=0;
+			    	}	
 			    }
 			}
 		}
@@ -136,26 +156,73 @@ public class AT3x04 extends OFDM {
 		
 	}	
 
-	// Check we have a AT3x04 wave form here
-	private boolean AT3x04Check (List<CarrierInfo> carrierList)	{
-		
-		// TODO : Detect a AT3x04 waveform reliably
-		
-		// Check there are 12 carriers
-		if (carrierList.size()!=12) return false;
-		int a,leadCarrierNos[]=new int[12];
-		// Check the difference between the highest carrier bin and the lowest is within an allowable range
-		double totalDifference=carrierList.get(11).getFrequencyHZ()-carrierList.get(0).getFrequencyHZ();
-		if ((totalDifference<2150)||(totalDifference>2250)) return false;
-		// Check the average spacing of the carriers is more than 190 Hz and less than 250 Hz
-		double spacing=averageCarrierSpacing(carrierList);
-		if ((spacing<190.0)||(spacing>250.0)) return false;
-		// Calculate the central bins used by each carrier
-		for (a=0;a<12;a++)	{
-			leadCarrierNos[a]=carrierList.get(0).getBinFFT()+(a*23);
+	// Check we have a AT3x04 pilot tone here
+	private boolean AT3x04PilotToneHunt (double spectrum[])	{
+		int a,pbin;
+		// Look if a particular bin in startCarrierList1 also exists in startCarrierList2 and startCarrierList3
+		for (a=startCarrierList1.size()-1;a>=0;a--)	{
+			pbin=startCarrierList1.get(a).getBinFFT();
+			if (checkBinExists(startCarrierList2,pbin)==true)	{
+				if (checkBinExists(startCarrierList3,pbin)==true)	{
+					// Store this bin and return true
+					pilotToneBin=pbin;
+					return true;	
+				}
+			}
 		}
-		return true;
+		return false;
 	}	
+	
+	
+	// A method for checking in a bin exists in a carrier info list
+	private boolean checkBinExists (List<CarrierInfo> cil,int bin)	{
+		int a;
+		for (a=0;a<cil.size();a++)	{
+			if (cil.get(a).getBinFFT()==bin) return true;
+		}
+		return false;
+	}
+	
+	// Look if we have at least half of the AT3x04 carriers in their expected places 
+	// from what we believe is the pilot tone bin
+	private boolean AT3x04CarrierConfirm (List<CarrierInfo> clist)	{
+		int expectedCarrierBins[]=new int[12];
+		int p=pilotToneBin-40;
+		expectedCarrierBins[11]=p;
+		p=p-20;
+		expectedCarrierBins[10]=p;
+		p=p-20;
+		expectedCarrierBins[9]=p;
+		p=p-20;
+		expectedCarrierBins[8]=p;
+		p=p-20;
+		expectedCarrierBins[7]=p;
+		p=p-20;
+		expectedCarrierBins[6]=p;
+		p=p-20;
+		expectedCarrierBins[5]=p;
+		p=p-20;
+		expectedCarrierBins[4]=p;
+		p=p-20;
+		expectedCarrierBins[3]=p;
+		p=p-20;
+		expectedCarrierBins[2]=p;
+		p=p-20;
+		expectedCarrierBins[1]=p;
+		p=p-20;
+		expectedCarrierBins[0]=p;
+		int findCounter=0,a,b;
+		
+		for (a=0;a<clist.size();a++)	{
+			for (b=0;b<12;b++)	{
+				double dif=Math.abs(clist.get(a).getBinFFT()-expectedCarrierBins[b]);
+				if (dif<2) findCounter++;
+			}
+		}
+		
+		if (findCounter>=6) return true;
+		else return false;
+	}
 	
 
 }

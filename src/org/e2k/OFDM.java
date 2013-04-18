@@ -101,5 +101,31 @@ public class OFDM extends FFT {
 		return average;
 	}
 	
+	// Find the peaks in the spectrum data within a certain range and return them as CarrierInfo objects
+	public List<CarrierInfo> findOFDMCarriersWithinRange (double spectrum[],double sampleRate,int binCount,double multiFactor,int startBin,int endBin)	{
+		List<CarrierInfo> cList=new ArrayList<CarrierInfo>();
+		int a;
+		double dPoint=-1.0;
+		for (a=startBin;a<endBin;a++)	{
+			if (spectrum[a]>dPoint) dPoint=spectrum[a];
+		}
+		dPoint=dPoint*multiFactor;
+		for (a=startBin;a<endBin;a++)	{
+			// Check the current spectrum value is higher than the last one and the next one
+			// if it is then this is a peak so classify this as a carrier
+			if ((spectrum[a]>spectrum[a-1])&&(spectrum[a]>spectrum[a+1])&&(spectrum[a]>dPoint))	{
+				CarrierInfo cInfo=new CarrierInfo();
+				cInfo.setBinFFT(a);
+				cInfo.setEnergy(spectrum[a]);
+				// Calculate the actual frequency of the carrier
+				double freq=(double)a*(sampleRate/(double)binCount);
+				cInfo.setFrequencyHZ(freq);
+				// Add this carrier object to the list
+				cList.add(cInfo);
+			}
+		}
+		return cList;
+	}
+	
 	
 }

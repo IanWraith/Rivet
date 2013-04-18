@@ -136,5 +136,14 @@ public class FFT extends Core {
 		return sb.toString();
 	}
 	
+	// Save spectrum information to the debug file for analysis
+	public void saveSpectrumtoFile (Rivet rTheApp,double s[])	{
+		int a;
+		rTheApp.debugDump("#");
+		for (a=0;a<s.length;a++)	{
+			rTheApp.debugDump(Double.toString(s[a]));
+		}
+	}
+	
 	
 }
