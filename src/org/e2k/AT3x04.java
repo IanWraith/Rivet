@@ -120,7 +120,7 @@ public class AT3x04 extends OFDM {
 			sampleCount++;
 			
 			
-			// TODO: Work out how to do symbol timing with 9-PSK
+			
 			
 			symbolCounter++;
 			//if (symbolCounter<samplesPerSymbol) return;
@@ -187,32 +187,13 @@ public class AT3x04 extends OFDM {
 	// from what we believe is the pilot tone bin
 	private boolean AT3x04CarrierConfirm (List<CarrierInfo> clist)	{
 		int expectedCarrierBins[]=new int[12];
-		int p=pilotToneBin-40;
-		expectedCarrierBins[11]=p;
-		p=p-20;
-		expectedCarrierBins[10]=p;
-		p=p-20;
-		expectedCarrierBins[9]=p;
-		p=p-20;
-		expectedCarrierBins[8]=p;
-		p=p-20;
-		expectedCarrierBins[7]=p;
-		p=p-20;
-		expectedCarrierBins[6]=p;
-		p=p-20;
-		expectedCarrierBins[5]=p;
-		p=p-20;
-		expectedCarrierBins[4]=p;
-		p=p-20;
-		expectedCarrierBins[3]=p;
-		p=p-20;
-		expectedCarrierBins[2]=p;
-		p=p-20;
-		expectedCarrierBins[1]=p;
-		p=p-20;
-		expectedCarrierBins[0]=p;
-		int findCounter=0,a,b;
-		
+		int a,b,p=pilotToneBin-40;
+		int findCounter=0;
+		for (a=11;a>=0;a--){
+			expectedCarrierBins[a]=p;
+			p=p-20;
+		}
+		// Check if there are carriers where we think there should be
 		for (a=0;a<clist.size();a++)	{
 			for (b=0;b<12;b++)	{
 				double dif=Math.abs(clist.get(a).getBinFFT()-expectedCarrierBins[b]);
