@@ -16,7 +16,7 @@ public class AT3x04 extends OFDM {
 	private long sampleCount=0;
 	private long symbolCounter=0;
 	private double samplesPerSymbol;
-	private int carrierBinNos[][][]=new int[12][23][2];
+	private int carrierBinNos[][][]=new int[12][20][2];
 	private double totalCarriersEnergy;
 	
 	private double pastEnergyBuffer[]=new double[3];
@@ -86,17 +86,17 @@ public class AT3x04 extends OFDM {
 			// Only run this check every 100 samples as this is rather maths intensive
 			if (sampleCount%100==0)	{
 				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true,800,true);
-				// Collect three lots of carrier info lists searching between 2500 Hz and 3500 Hz
+				// Collect three lots of carrier info lists searching between 2700 Hz and 3500 Hz
 			    if (startCarrierCounter==0)	{
-			    	startCarrierList1=findOFDMCarriersWithinRange(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.8,250,350);
+			    	startCarrierList1=findOFDMCarriersWithinRange(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.8,270,350);
 			    	startCarrierCounter++;
 			    }
 			    else if (startCarrierCounter==1)	{
-			    	startCarrierList2=findOFDMCarriersWithinRange(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.8,250,350);
+			    	startCarrierList2=findOFDMCarriersWithinRange(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.8,270,350);
 			    	startCarrierCounter++;
 			    }
 			    else if (startCarrierCounter==2)	{
-			    	startCarrierList3=findOFDMCarriersWithinRange(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.8,250,350);
+			    	startCarrierList3=findOFDMCarriersWithinRange(spr,waveData.getSampleRate(),RDFT_FFT_SIZE,0.8,270,350);
 			    	startCarrierCounter++;
 			    }    
 			    else if (startCarrierCounter==3)	{
@@ -107,7 +107,18 @@ public class AT3x04 extends OFDM {
 			    		// Check this list of carriers looks like a AT3x04 waveform
 			    		if (AT3x04CarrierConfirm(clist)==true)	{
 			    			setState(2);
-				    		//calculateBins();
+			    			// Calculate the carrier tone bins
+			    			populateCarrierTonesBins();
+			    			// Tell the user
+			    			StringBuilder sb=new StringBuilder();
+			    			double toneFreq=pilotToneBin*10;
+					    	sb.append(theApp.getTimeStamp()+" AT3x04 Pilot Tone found at "+Double.toString(toneFreq)+" Hz");
+					    	toneFreq=toneFreq-400;
+					    	sb.append(" , Carrier 12 at "+Double.toString(toneFreq)+" Hz");
+					    	toneFreq=toneFreq-2200;
+					    	sb.append(" + Carrier 1 at "+Double.toString(toneFreq)+" Hz");
+					    	theApp.writeLine(sb.toString(),Color.BLACK,theApp.boldFont);	
+			    			
 			    		}
 			    	}
 			    	else	{
@@ -203,6 +214,23 @@ public class AT3x04 extends OFDM {
 		
 		if (findCounter>=6) return true;
 		else return false;
+	}
+	
+	// Populate the carrierBinNos[][][] variable
+	private void populateCarrierTonesBins ()	{
+		int binNos,carrierNos,lastCarrierBin=pilotToneBin-40;
+		// Run though each carrier
+		for (carrierNos=11;carrierNos>=0;carrierNos--)	{
+			int mod=-10;
+			for (binNos=0;binNos<20;binNos++)	{
+				int rb=lastCarrierBin+mod;
+				carrierBinNos[carrierNos][binNos][0]=returnRealBin(rb);
+				carrierBinNos[carrierNos][binNos][1]=returnImagBin(rb);
+				mod++;
+			}
+			lastCarrierBin=lastCarrierBin-20;
+		}
+		
 	}
 	
 
