@@ -456,61 +456,54 @@ public class GW extends FSK {
 	}
 	
 	// Convert a List of Ints from a 2/101 packet into an MMSI
-	private String displayGW_MMSI (List<Integer> mm)	{
+	public String displayGW_MMSI (List<Integer> mm)	{
 		StringBuilder sb=new StringBuilder();
-		StringBuilder sc=new StringBuilder();
-		int a;
+		int a,digitCounter=0;
 		sb.append("MMSI : ");
 		for (a=0;a<mm.size();a++)	{
-			sc.append(convertMMSI(mm.get(a)));
+			// Byte
+			int by=mm.get(a);
+			// Low nibble
+			int ln=by&15;
+			sb.append(convertMMSI(ln));
+			digitCounter++;
+			if (digitCounter==9) sb.append(" ");
+			// High nibble
+			int hn=(by&240)>>4;
+			sb.append(convertMMSI(hn));
+			digitCounter++;
+			if (digitCounter==9) sb.append(" ");
 		}
-		sb.append(sc);
 		return sb.toString();
 	}
 	
-	private String convertMMSI (int v)	{
-		if (v==0x00) return "33";
-		else if (v==0x01) return "73";
-		else if (v==0x02) return "93";
-		else if (v==0x03) return "53";
-		else if (v==0x04) return "23";
-		else if (v==0x05) return "63";
-		else if (v==0x06) return "56";
-		else if (v==0x10) return "62";
-		else if (v==0x11) return "77";
-		else if (v==0x12) return "97";
-		else if (v==0x13) return "57";
-		else if (v==0x14) return "27";
-		else if (v==0x15) return "67";
-		else if (v==0x16) return "87";
-		else if (v==0x17) return "01";
-		else if (v==0x20) return "31";
-		else if (v==0x21) return "71";
-		else if (v==0x22) return "91";
-		else if (v==0x23) return "51";
-		else if (v==0x24) return "21";
-		else if (v==0x25) return "61";
-		else if (v==0x26) return "81";
-		else if (v==0x27) return "41";
-		else if (v==0x28) return "39";
-		else if (v==0x29) return "79";
-		else if (v==0x2a) return "99";
-		else if (v==0x2b) return "59";
-		else if (v==0x2c) return "29";
-		else if (v==0x2d) return "69";
-		else if (v==0x2e) return "89";
-		else if (v==0x2f) return "49";
-		else if (v==0x30) return "35";
-		else if (v==0x31) return "75";
-		else if (v==0x32) return "15";
-		else if (v==0x33) return "55";
-		else if (v==0x34) return "25";
-		else if (v==0x35) return "65";
-		else if (v==0x36) return "85";
-		else if (v==0x37) return "45";
-		
-		
-		else return ("(0x"+Integer.toHexString(v)+")");
+	private String convertMMSI (int n)	{
+		// 0x0 match with text
+		if (n==0x0) return "3";
+		// 0x1 match with text
+		else if (n==0x1) return "7";
+		// 0x2 match with text
+		else if (n==0x2) return "1";
+		// 0x3 match with text
+		else if (n==0x3) return "5";
+		// 0x4 match with text
+		else if (n==0x4) return "2";
+		// 0x5 match with text
+		else if (n==0x5) return "6";
+		// 0x6 match with text
+		else if (n==0x6) return "0";
+		// 0x7 match with text
+		else if (n==0x7) return "4";
+		//////
+		else if (n==0x8) return "3";
+		else if (n==0x9) return "7";
+		else if (n==0xa) return "A";
+		else if (n==0xb) return "B";
+		else if (n==0xc) return "C";
+		else if (n==0xd) return "D";
+		else if (n==0xe) return "0";
+		else if (n==0xf) return "F";
+		else return ("[0x"+Integer.toHexString(n)+"]");
 	}
 	
 	
