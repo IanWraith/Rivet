@@ -69,7 +69,22 @@ public class testGW extends TestCase {
 		}
 		String rs8=gw.displayGW_MMSI(testData);
 		
-		String ent="rs1="+rs1+"\nrs2="+rs2+"\nrs3="+rs3+"\nrs4="+rs4+"\nrs5="+rs5+"\nrs6="+rs6+"\nrs7="+rs7+"\nrs8="+rs8;
+		final int loadData9[]={0x85,0x65,0x62,0x83,0x67,0x66};
+		testData.clear();
+		for (a=0;a<6;a++) {
+			testData.add(loadData9[a]);
+		}
+		String rs9=gw.displayGW_MMSI(testData);
+		
+		final int loadData10[]={0x84,0x63,0x22,0x56,0xe6,0x66};
+		testData.clear();
+		for (a=0;a<6;a++) {
+			testData.add(loadData10[a]);
+		}
+		String rs10=gw.displayGW_MMSI(testData);
+		
+		
+		String ent="rs1="+rs1+"\nrs2="+rs2+"\nrs3="+rs3+"\nrs4="+rs4+"\nrs5="+rs5+"\nrs6="+rs6+"\nrs7="+rs7+"\nrs8="+rs8+"\nrs9="+rs9+"\nrs10="+rs10;
 		
 		fail("Not yet implemented");
 	}

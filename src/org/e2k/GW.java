@@ -497,12 +497,12 @@ public class GW extends FSK {
 		//////
 		else if (n==0x8) return "3";
 		else if (n==0x9) return "7";
-		else if (n==0xa) return "A";
-		else if (n==0xb) return "B";
-		else if (n==0xc) return "C";
-		else if (n==0xd) return "D";
+		else if (n==0xa) return "1";
+		else if (n==0xb) return "5";
+		else if (n==0xc) return "2";
+		else if (n==0xd) return "6";
 		else if (n==0xe) return "0";
-		else if (n==0xf) return "F";
+		else if (n==0xf) return "4";
 		else return ("[0x"+Integer.toHexString(n)+"]");
 	}
 	
