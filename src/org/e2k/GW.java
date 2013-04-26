@@ -375,12 +375,11 @@ public class GW extends FSK {
 			else if ((type==2)&&(subType==101))	{
 				// Display the packet details
 				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
-				// Display the content 
-				theApp.writeLine(displayGWAsHex(0),Color.BLUE,theApp.boldFont);
 				// Convert to ints
 				List<Integer> mInts=dataBitSet.returnIntsFromStart(14);
-				// Display the MMSI
-				theApp.writeLine(displayGW_MMSI(mInts),Color.BLUE,theApp.boldFont);
+				// Display the MMSI and contents
+				String mLine=displayGW_MMSI(mInts)+" ("+displayGWAsHex(0)+")";
+				theApp.writeLine(mLine,Color.BLUE,theApp.boldFont);
 				return;
 			}
 			
@@ -477,6 +476,10 @@ public class GW extends FSK {
 		return sb.toString();
 	}
 	
+	// Convert a 4 bit nibble into a number
+	// GW use this method for encoding ships MMSIs in 2/101 FSK packets
+	// I really don't understand the theory behind this encoding method.
+	// Even worse there don't appear to be any 8s or 9s
 	private String convertMMSI (int n)	{
 		// 0x0 match with text
 		if (n==0x0) return "3";

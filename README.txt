@@ -109,6 +109,7 @@ Build 60 Improve the detection and decoding of GW FSK packets.
 Build 61 Add a newline after the RTTY sync info line.
          Decode and display much more information from FSK200/1000 data.
          Improve the speed and generally accuracy of the XPA and XPA2 decoders.
+         Display ships MMSIs in GW FSK 2/101 packets
 
 Reported Bugs
 -------------
@@ -119,4 +120,4 @@ these modes.
 Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
 has problems with messages from stations which idle constantly.
 
-Ian Wraith (12th April 2013) 
+Ian Wraith (26th April 2013) 
