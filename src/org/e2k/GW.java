@@ -284,7 +284,6 @@ public class GW extends FSK {
 			// Ensure this starts with 10 which seems to be a part of the sync sequence
 			if ((sData.charAt(0)!='1')||(sData.charAt(1)!='0')) return;
 			StringBuilder lo=new StringBuilder();
-			String orphanFragment="";
 			lo.append(theApp.getTimeStamp()+" GW");
 			int type=0,packetCounter=0,subType=0;
 			// Type
@@ -303,14 +302,19 @@ public class GW extends FSK {
 			if (sData.charAt(12)=='1') subType=subType+2;
 			if (sData.charAt(13)=='1') subType++;
 			// Setup the display
-			lo.append(" (Type="+Integer.toString(type)+" count="+Integer.toString(packetCounter)+" Subtype="+Integer.toString(subType)+") : ");
-			// Display the binary
-			lo.append(dataBitSet.extractSectionFromStart(0,62));
+			lo.append(" Type="+Integer.toString(type)+" Count="+Integer.toString(packetCounter)+" Subtype="+Integer.toString(subType)+" (");
+			// Display the header as binary
+			lo.append(dataBitSet.extractSectionFromStart(0,14));
+			lo.append(") ("+displayGWAsHex(0)+")");
 			
 			// If we have been in receiving position report for over 60 seconds it is never going to come so reset
 			if (receivingPositionReport==true)	{
 				long difTime=(System.currentTimeMillis()/1000)-fragmentStartTime;
-				if (difTime>60) receivingPositionReport=false;
+				if (difTime>60)	{
+					String line=theApp.getTimeStamp()+" position report timeout.";
+					theApp.writeLine(line,Color.RED,theApp.boldFont);
+					receivingPositionReport=false;
+				}
 			}
 			
 			// Is this the start of a position report ?
@@ -322,37 +326,43 @@ public class GW extends FSK {
 				positionFragmentCounter=0;
 				// Record the fragment starting time
 				fragmentStartTime=System.currentTimeMillis()/1000;
-				positionReport.append(theApp.getTimeStamp()+" "+displayGWAsAscii(0));
+				//positionReport.append(theApp.getTimeStamp()+" "+displayGWAsAscii(0));
+				// Display the packet details
+				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+				// Display the content 
+				theApp.writeLine(displayGWAsAscii(0),Color.BLUE,theApp.boldFont);
 				return;
 			}
 			// An ongoing position report
-			else if ((type==5)&&((subType==86))&&(receivingPositionReport==true))	{
+			else if ((type==5)&&(subType==86))	{
 				// Check if this fragment of the position report is a repeat and can be ignored
 				String curFrag=displayGWAsAscii(0);
-				if (curFrag.equals(lastPositionFragment)) return;
+				// If this starts with a "$" then clear everything
+				if (curFrag.startsWith("$")==true)	{
+					positionFragmentCounter=0;
+					positionReport.delete(0,positionReport.length());
+				}
+				// Check if this is a repeat
+				else if (curFrag.equals(lastPositionFragment)) return;
 				// It isn't so add this to the position report StringBuilder
-				else positionReport.append(curFrag);
+				positionReport.append(curFrag);
 				// Store this fragment to check against the next fragment
 				lastPositionFragment=curFrag;
 				// Count the number of fragment sent
 				positionFragmentCounter++;
-				//return;
-				// For now always display partial position reports
+				// Display the packet details
+				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
 				theApp.writeLine(displayGWAsAscii(0),Color.BLUE,theApp.boldFont);
+				return;
 			}
-			// An orphan position report
-			else if ((type==5)&&(subType==86)&&(receivingPositionReport==false)) orphanFragment=displayGWAsAscii(0);	
 			// End of a position report
-			else if ((type==5)&&(subType==118)&&(receivingPositionReport==true))	{
-				receivingPositionReport=false;
-				// Check enough position fragments have been received
-				if (positionFragmentCounter<10) return;
-				String curFrag=displayGWAsAscii(0);
-				if (curFrag.equals(lastPositionFragment)) return;
-				// It isn't so add this to the position report StringBuilder
-				else positionReport.append(curFrag);
-				// Display this position report
-				theApp.writeLine(positionReport.toString(),Color.BLUE,theApp.boldFont);
+			else if ((type==5)&&(subType==118))	{
+				// Display the packet details
+				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+				// Display the content 
+				theApp.writeLine(displayGWAsAscii(0),Color.BLUE,theApp.boldFont);
+				// Have we a complete position report here ?
+				createPositionReportLine();
 				return;
 			}
 			// Type 5 Subtype 54 
@@ -361,6 +371,8 @@ public class GW extends FSK {
 				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
 				// Display the content 
 				theApp.writeLine(displayGWAsAscii(0),Color.BLUE,theApp.boldFont);
+				// Have we a complete position report here ?
+				createPositionReportLine();
 				return;
 			}
 			// Type 2 Subtype 106
@@ -375,18 +387,15 @@ public class GW extends FSK {
 			else if ((type==2)&&(subType==101))	{
 				// Display the packet details
 				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
-				// Convert to ints
+				// Convert the payload to ints
 				List<Integer> mInts=dataBitSet.returnIntsFromStart(14);
 				// Display the MMSI and contents
-				String mLine=displayGW_MMSI(mInts)+" ("+displayGWAsHex(0)+")";
-				theApp.writeLine(mLine,Color.BLUE,theApp.boldFont);
+				theApp.writeLine(displayGW_MMSI(mInts),Color.BLUE,theApp.boldFont);
 				return;
 			}
 			
 			// Display everything else
 			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
-			// Display an Orphan Fragment if there is one
-			if (orphanFragment.length()>1) theApp.writeLine(orphanFragment,Color.BLUE,theApp.boldFont);
 			return;
 		}
 		// Handle very short packets
@@ -459,7 +468,7 @@ public class GW extends FSK {
 		StringBuilder sb=new StringBuilder();
 		int a,digitCounter=0;
 		sb.append("MMSI : ");
-		for (a=0;a<mm.size();a++)	{
+		for (a=0;a<6;a++)	{
 			// Byte
 			int by=mm.get(a);
 			// Low nibble
@@ -507,6 +516,24 @@ public class GW extends FSK {
 		else if (n==0xe) return "0";
 		else if (n==0xf) return "4";
 		else return ("[0x"+Integer.toHexString(n)+"]");
+	}
+	
+	// Check if we have a complete position report and if we have then display it
+	private void createPositionReportLine ()	{
+		if (receivingPositionReport==false) return;
+		else receivingPositionReport=false;
+		// Check enough position fragments have been received
+		if (positionFragmentCounter<10)	{
+			String line="Position fragment count is "+Integer.toString(positionFragmentCounter);
+			theApp.writeLine(line,Color.RED,theApp.boldFont);
+			return;
+		}
+		String curFrag=displayGWAsAscii(0);
+		if (curFrag.equals(lastPositionFragment)) return;
+		// It isn't so add this to the position report StringBuilder
+		else positionReport.append(curFrag);
+		// Display this position report
+		theApp.writeLine(positionReport.toString(),Color.BLUE,theApp.boldFont);
 	}
 	
 	
