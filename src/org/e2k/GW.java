@@ -311,7 +311,7 @@ public class GW extends FSK {
 			if (receivingPositionReport==true)	{
 				long difTime=(System.currentTimeMillis()/1000)-fragmentStartTime;
 				if (difTime>60)	{
-					String line=theApp.getTimeStamp()+" position report timeout.";
+					String line=theApp.getTimeStamp()+" position report timeout (fragment Count is "+Integer.toString(positionFragmentCounter)+")";
 					theApp.writeLine(line,Color.RED,theApp.boldFont);
 					receivingPositionReport=false;
 				}
