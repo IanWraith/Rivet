@@ -447,7 +447,7 @@ public class GW extends FSK {
 		else if (c==0x10) return "7";
 		else if (c==0x68) return "8";
 		else if (c==0x28) return "9";
-		else if ((c==0x78)||(c==0x3e)||(c==0x4e)) return "<";
+		else if ((c==0x78)||(c==0x3e)||(c==0x4e)||(c==0xf8)) return "<";
 		else if ((c==0x2e)||(c==0x7c)) return ",";
 		else if (c==0x5c) return ".";
 		else if (c==0x74) return "$";
