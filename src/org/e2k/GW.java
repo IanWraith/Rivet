@@ -471,47 +471,80 @@ public class GW extends FSK {
 		for (a=0;a<6;a++)	{
 			// Byte
 			int by=mm.get(a);
+			boolean alternateSet=false;
+			// Decide if we are using the alernate numbering scheme
+			if ((by>=0x28)&&(by<=0x2f)) alternateSet=true;
+			else if ((by>=0x68)&&(by<=0x6f)) alternateSet=true;	
+			else if (by==0x82) alternateSet=true;	
+			else if (by==0x92) alternateSet=true;
+			else if (by==0xa2) alternateSet=true;	
+			else if (by==0xb2) alternateSet=true;
+			else if (by==0xc2) alternateSet=true;
+			else if (by==0xd2) alternateSet=true;
+			else if (by==0xe2) alternateSet=true;
+			else if (by==0xf2) alternateSet=true;
+			else if (by==0x86) alternateSet=true;	
+			else if (by==0x96) alternateSet=true;
+			else if (by==0xa6) alternateSet=true;	
+			else if (by==0xb6) alternateSet=true;
+			else if (by==0xc6) alternateSet=true;
+			else if (by==0xd6) alternateSet=true;
+			else if (by==0xe6) alternateSet=true;
+			else if (by==0xf6) alternateSet=true;
 			// Low nibble
 			int ln=by&15;
-			sb.append(convertMMSI(ln));
+			sb.append(convertMMSI(ln,alternateSet));
 			digitCounter++;
-			if (digitCounter==9) sb.append(" ");
+			// Put the mystery 3 digits into brackets
+			if (digitCounter==9) sb.append(" (");
 			// High nibble
 			int hn=(by&240)>>4;
-			sb.append(convertMMSI(hn));
+			sb.append(convertMMSI(hn,alternateSet));
 			digitCounter++;
-			if (digitCounter==9) sb.append(" ");
+			// Put the mystery 3 digits into brackets
+			if (digitCounter==9) sb.append(" (");
 		}
+		sb.append(")");
 		return sb.toString();
 	}
 	
 	// Convert a 4 bit nibble into a number
 	// GW use this method for encoding ships MMSIs in 2/101 FSK packets
 	// I really don't understand the theory behind this encoding method.
-	// Even worse there don't appear to be any 8s or 9s
-	private String convertMMSI (int n)	{
-		// 0x0 match with text
+	// Big thanks to Alan W for all his help working out the encoding method used here
+	private String convertMMSI (int n,boolean alternate)	{
+		// 0x0 match with text and Alan W confirm
 		if (n==0x0) return "3";
-		// 0x1 match with text
+		// 0x1 match with text and Alan W confirm
 		else if (n==0x1) return "7";
-		// 0x2 match with text
-		else if (n==0x2) return "1";
-		// 0x3 match with text
+		// 0x2 match with text and Alan W confirm
+		else if (n==0x2)	{
+			if (alternate==true) return "9";
+			else return "1";
+		}
+		// 0x3 match with text and Alan W confirm
 		else if (n==0x3) return "5";
-		// 0x4 match with text
+		// 0x4 match with text and Alan W confirm
 		else if (n==0x4) return "2";
-		// 0x5 match with text
+		// 0x5 match with text and Alan W confirm
 		else if (n==0x5) return "6";
-		// 0x6 match with text
-		else if (n==0x6) return "0";
-		// 0x7 match with text
+		// 0x6 match with text and Alan W confirm
+		else if (n==0x6)	{
+			if (alternate==true) return "8";
+			else return "0";
+		}
+		// 0x7 match with text and Alan W confirm
 		else if (n==0x7) return "4";
-		//////
+		// 0x8 Alan W confirm
 		else if (n==0x8) return "3";
 		else if (n==0x9) return "7";
+		// 0xa limited Alan W confirmation
 		else if (n==0xa) return "1";
+		// 0xb limited Alan W confirmation
 		else if (n==0xb) return "5";
+		// 0xc limited Alan W confirmation
 		else if (n==0xc) return "2";
+		// 0xd limited Alan W confirmation
 		else if (n==0xd) return "6";
 		else if (n==0xe) return "0";
 		else if (n==0xf) return "4";
