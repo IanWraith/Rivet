@@ -475,13 +475,14 @@ public class GW extends FSK {
 			// Decide if we are using the alernate numbering scheme
 			if ((by>=0x28)&&(by<=0x2f)) alternateSet=true;
 			else if ((by>=0x68)&&(by<=0x6f)) alternateSet=true;	
+			else if (by==0x72) alternateSet=true;	
 			else if (by==0x82) alternateSet=true;	
 			else if (by==0x92) alternateSet=true;
 			else if (by==0xa2) alternateSet=true;	
 			else if (by==0xb2) alternateSet=true;
 			else if (by==0xc2) alternateSet=true;
 			else if (by==0xd2) alternateSet=true;
-			else if (by==0xe2) alternateSet=true;
+			//else if (by==0xe2) alternateSet=true;
 			else if (by==0xf2) alternateSet=true;
 			else if (by==0x86) alternateSet=true;	
 			else if (by==0x96) alternateSet=true;
@@ -489,8 +490,11 @@ public class GW extends FSK {
 			else if (by==0xb6) alternateSet=true;
 			else if (by==0xc6) alternateSet=true;
 			else if (by==0xd6) alternateSet=true;
-			else if (by==0xe6) alternateSet=true;
+			//else if (by==0xe6) alternateSet=true;
 			else if (by==0xf6) alternateSet=true;
+			// For reasons unknown have alternate numbering scheme exception for 0x6e
+			if (by==0x6e) alternateSet=false;	
+			
 			// Low nibble
 			int ln=by&15;
 			sb.append(convertMMSI(ln,alternateSet));
@@ -539,14 +543,20 @@ public class GW extends FSK {
 		else if (n==0x8) return "3";
 		else if (n==0x9) return "7";
 		// 0xa limited Alan W confirmation
-		else if (n==0xa) return "1";
+		else if (n==0xa)	{
+			if (alternate==true) return "9";
+			else return "1";
+		}
 		// 0xb limited Alan W confirmation
 		else if (n==0xb) return "5";
 		// 0xc limited Alan W confirmation
 		else if (n==0xc) return "2";
 		// 0xd limited Alan W confirmation
 		else if (n==0xd) return "6";
-		else if (n==0xe) return "0";
+		else if (n==0xe)	{
+			if (alternate==true) return "8";
+			else return "0";
+		}
 		else if (n==0xf) return "4";
 		else return ("[0x"+Integer.toHexString(n)+"]");
 	}
