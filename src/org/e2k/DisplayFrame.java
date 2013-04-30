@@ -36,7 +36,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item,bitstream_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
-	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,ClearScreen_item,AddEditTrigger_item;
+	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,ClearScreen_item,AddEditTrigger_item,credits_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
 	private JMenu audioDevicesMenu;
 	private static ArrayList<AudioMixer> devices;
@@ -139,14 +139,16 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		JMenu helpMenu=new JMenu("Help");
 		helpMenu.add(about_item=new JMenuItem("About"));		
 		about_item.addActionListener(this);
+		helpMenu.add(credits_item=new JMenuItem("Credits"));		
+		credits_item.addActionListener(this);
+		helpMenu.add(sample_item=new JMenuItem("Download the latest version of Rivet or sound sample files"));		
+		sample_item.addActionListener(this);
 		helpMenu.add(e2k_item=new JMenuItem("Enigma2000"));
 		e2k_item.addActionListener(this);
 		helpMenu.add(twitter_item=new JMenuItem("Follow Rivet Progress on Twitter"));		
 		twitter_item.addActionListener(this);
 		helpMenu.add(help_item=new JMenuItem("Help"));		
 		help_item.addActionListener(this);
-		helpMenu.add(sample_item=new JMenuItem("Download the latest version of Rivet or sound sample files"));		
-		sample_item.addActionListener(this);
 		menuBar.add(helpMenu);
 		// Add the vertical scroll bar
 		add(vscrollbar,BorderLayout.EAST);
@@ -324,6 +326,13 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// Change mixer
 		if (event_name.equalsIgnoreCase("mixer")){
 			changeMixer(((JRadioButtonMenuItem)event.getSource()).getText());
+		}
+		// Credits 
+		if (event_name=="Credits")	{
+			StringBuilder sb=new StringBuilder();
+			sb.append("Thanks to ..");
+			sb.append("\r\nAlan W for his help with the GW MMSI decoding");
+			JOptionPane.showMessageDialog(null,sb.toString(),"Rivet", JOptionPane.INFORMATION_MESSAGE);
 		}
 		
 		menuItemUpdate();
