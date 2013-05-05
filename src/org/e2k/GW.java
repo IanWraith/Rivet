@@ -472,7 +472,7 @@ public class GW extends FSK {
 			// Byte
 			int by=mm.get(a);
 			boolean alternateSet=false;
-			// Decide if we are using the alernate numbering scheme
+			// Decide if we are using the alternate numbering scheme
 			if ((by>=0x28)&&(by<=0x2f)) alternateSet=true;
 			else if ((by>=0x68)&&(by<=0x6f)) alternateSet=true;	
 			else if (by==0x72) alternateSet=true;	
@@ -482,7 +482,7 @@ public class GW extends FSK {
 			else if (by==0xb2) alternateSet=true;
 			else if (by==0xc2) alternateSet=true;
 			else if (by==0xd2) alternateSet=true;
-			//else if (by==0xe2) alternateSet=true;
+			else if (by==0xe2) alternateSet=true;
 			else if (by==0xf2) alternateSet=true;
 			else if (by==0x86) alternateSet=true;	
 			else if (by==0x96) alternateSet=true;
@@ -490,10 +490,8 @@ public class GW extends FSK {
 			else if (by==0xb6) alternateSet=true;
 			else if (by==0xc6) alternateSet=true;
 			else if (by==0xd6) alternateSet=true;
-			//else if (by==0xe6) alternateSet=true;
+			else if (by==0xe6) alternateSet=true;
 			else if (by==0xf6) alternateSet=true;
-			// For reasons unknown have alternate numbering scheme exception for 0x6e
-			if (by==0x6e) alternateSet=false;	
 			
 			// Low nibble
 			int ln=by&15;
