@@ -36,6 +36,18 @@ public class testGW extends TestCase {
 		final int loadData05[]={0x84,0x63,0x2D,0x14,0x62,0x66};
 		ships.add(createShip("235069271",loadData05));
 		
+		// 477090000
+		final int loadData06[]={0x97,0x61,0x62,0xE6,0x66,0x66};
+		ships.add(createShip("477090000",loadData06));
+		
+		// 636090405
+		final int loadData07[]={0x85,0x65,0x62,0xE7,0x63,0x66};
+		ships.add(createShip("636090405",loadData07));
+		
+		// 308574000
+		final int loadData08[]={0xE0,0x36,0xF1,0x66,0x66,0x66};
+		ships.add(createShip("308574000",loadData08));
+		
 		// Test each member of the ships list
 		for (a=0;a<ships.size();a++)	{
 			String ret=gw.displayGW_MMSI(getGWIdentasArrayList(ships.get(a)));
