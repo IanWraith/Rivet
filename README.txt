@@ -88,8 +88,8 @@ Build 39 Improve the detection of loss of baudot signals. Use the same code in t
          packets correctly.    
 Build 40 Add the FSK (Raw) decoding mode.
 Build 41 Add further FSK/Baudot shifts and baud rates plus the new trigger feature
-Build 42 Change some of the GW identifiers , add date and addressee identfiers to the FSK200/1000 decode module
-Build 43 Display CIS36-50 messages as hexidecimal bytes , display the date in block 1 FSK200/1000 msgs of any size
+Build 42 Change some of the GW identifiers , add date and addressee identifiers to the FSK200/1000 decode module
+Build 43 Display CIS36-50 messages as hexadecimal bytes , display the date in block 1 FSK200/1000 msgs of any size
 Build 44 Fix a spelling mistake in the GW identifiers and add a menu item to link to the new upload page. 
 Build 45 Add RDFT detection , a 625 Hz FSK shift and very basic ASCII decoding of GW FSK traffic.
 Build 46 Improve the decoding and display of GW ship side packets.
@@ -110,14 +110,19 @@ Build 61 Add a newline after the RTTY sync info line.
          Decode and display much more information from FSK200/1000 data.
          Improve the speed and generally accuracy of the XPA and XPA2 decoders.
          Display ships MMSIs in GW FSK 2/101 packets
+Build 62 Improve the decoding of MMSI data in GW 2/101 packets         
 
 Reported Bugs
 -------------
+Still problems with ..
 
-Still problems with CROWD36 , GW 100 baud and FSK200/1000 decoding. Not a bug as such but more a lack of understanding of 
-these modes.
+CWOWD36 - Lack a fundamental understanding of this mode. Suspect a unknown tone to alphabet map is in use.
 
-Also while the program decodes CIS36-50 messages OK from stations that start transmitting idle briefly but
-has problems with messages from stations which idle constantly.
+GW FSK - Still don't understand the principles behind the alphabet and numbers encoding.
 
-Ian Wraith (26th April 2013) 
+FSK200/1000 - Isn't fully decoded but the key externals now are.
+
+CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
+messages from stations which idle constantly.
+
+Ian Wraith (11th May 2013) 
