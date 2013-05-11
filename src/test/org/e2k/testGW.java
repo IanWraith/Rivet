@@ -10,6 +10,9 @@ public class testGW extends TestCase {
 
 	// A test case to check that the data from GW 2/101 packets is being decoded into correct MMSIs
 	// Here are some test case payloads which are then check against what myself and Alan W think are the correct MMSIs
+	////////////////////////////////////////////////////////////////////////////////
+	// Yes I know some of these test cases fail ! That I'm afraid is the problem. //
+    ////////////////////////////////////////////////////////////////////////////////
 	public void testMMSI() {
 		int a,errorCount=0;
 		GW gw=new GW(null);
