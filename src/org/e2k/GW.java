@@ -471,42 +471,28 @@ public class GW extends FSK {
 		for (a=0;a<6;a++)	{
 			// Byte
 			int by=mm.get(a);
-			boolean alternateSet=false;
+			boolean alternateSet1=false,alternateSet2=false;
 			// Decide if we are using the alternate numbering scheme
-			if ((by>=0x28)&&(by<=0x2f)) alternateSet=true;
-			else if ((by>=0x68)&&(by<=0x6f)) alternateSet=true;	
-			else if (by==0x72) alternateSet=true;	
-			else if (by==0x82) alternateSet=true;	
-			else if (by==0x92) alternateSet=true;
-			else if (by==0xa2) alternateSet=true;	
-			else if (by==0xb2) alternateSet=true;
-			else if (by==0xc2) alternateSet=true;
-			else if (by==0xd2) alternateSet=true;
-			else if (by==0xe2) alternateSet=true;
-			else if (by==0xf2) alternateSet=true;
-			else if (by==0x86) alternateSet=true;	
-			else if (by==0x96) alternateSet=true;
-			else if (by==0xa6) alternateSet=true;	
-			else if (by==0xb6) alternateSet=true;
-			else if (by==0xc6) alternateSet=true;
-			else if (by==0xd6) alternateSet=true;
-			else if (by==0xe6) alternateSet=true;
-			else if (by==0xf6) alternateSet=true;
+			if ((by>=0x28)&&(by<=0x2f)) alternateSet1=true;
+			else if ((by>=0x68)&&(by<=0x6f)) alternateSet1=true;	
+			
+			// The "funnies"
+			//if (by==0x62) alternateSet2=true;
+			//else if (by==0x36) alternateSet2=true;
 			
 			// Low nibble
 			int ln=by&15;
-			sb.append(convertMMSI(ln,alternateSet));
+			sb.append(convertMMSI(ln,alternateSet2));
 			digitCounter++;
-			// Put the mystery 3 digits into brackets
-			if (digitCounter==9) sb.append(" (");
+			//Once digit counter is 9 then we are done
+			if (digitCounter==9) return sb.toString();
 			// High nibble
 			int hn=(by&240)>>4;
-			sb.append(convertMMSI(hn,alternateSet));
+			sb.append(convertMMSI(hn,alternateSet1));
 			digitCounter++;
-			// Put the mystery 3 digits into brackets
-			if (digitCounter==9) sb.append(" (");
+			//Once digit counter is 9 then we are done
+			if (digitCounter==9) return sb.toString();
 		}
-		sb.append(")");
 		return sb.toString();
 	}
 	
@@ -521,8 +507,8 @@ public class GW extends FSK {
 		else if (n==0x1) return "7";
 		// 0x2 match with text and Alan W confirm
 		else if (n==0x2)	{
-			if (alternate==true) return "9";
-			else return "1";
+			if (alternate==false) return "1";
+			else return "9";
 		}
 		// 0x3 match with text and Alan W confirm
 		else if (n==0x3) return "5";
@@ -532,8 +518,8 @@ public class GW extends FSK {
 		else if (n==0x5) return "6";
 		// 0x6 match with text and Alan W confirm
 		else if (n==0x6)	{
-			if (alternate==true) return "8";
-			else return "0";
+			if (alternate==false) return "0";
+			else return "8";
 		}
 		// 0x7 match with text and Alan W confirm
 		else if (n==0x7) return "4";
@@ -542,8 +528,8 @@ public class GW extends FSK {
 		else if (n==0x9) return "7";
 		// 0xa limited Alan W confirmation
 		else if (n==0xa)	{
-			if (alternate==true) return "9";
-			else return "1";
+			if (alternate==false) return "1";
+			else return "9";
 		}
 		// 0xb limited Alan W confirmation
 		else if (n==0xb) return "5";
@@ -552,8 +538,8 @@ public class GW extends FSK {
 		// 0xd limited Alan W confirmation
 		else if (n==0xd) return "6";
 		else if (n==0xe)	{
-			if (alternate==true) return "8";
-			else return "0";
+			if (alternate==false) return "0";
+			else return "8";
 		}
 		else if (n==0xf) return "4";
 		else return ("[0x"+Integer.toHexString(n)+"]");
