@@ -84,6 +84,9 @@ public class JStatusBar extends JPanel implements ChangeListener {
 	
 	// Set the volume bar display
 	public void setVolumeBar(int val) {
+		// Check that val is never to large
+		if (val>100) val=100;
+		// Update the volume bar
 		volumeBar.setValue(val);
 		volumeBar.repaint();
 	}
