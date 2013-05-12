@@ -297,7 +297,7 @@ public class InputThread extends Thread {
 		for (a=0;a<ISIZE;a=a+2)	{
 			sample=(buffer[a]<<8)+buffer[a+1];
 			// If inputLevel is positive then multiply the sample with it
-			// If it is negatibe then divide the sample by it
+			// If it is negative then divide the sample by it
 			if (inputLevel>0) sample=sample*inputLevel;
 			else if (inputLevel<0) sample=sample/Math.abs(inputLevel);
 			// Add this sample to the circular volume buffer
