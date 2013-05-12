@@ -110,7 +110,10 @@ Build 61 Add a newline after the RTTY sync info line.
          Decode and display much more information from FSK200/1000 data.
          Improve the speed and generally accuracy of the XPA and XPA2 decoders.
          Display ships MMSIs in GW FSK 2/101 packets
-Build 62 Improve the decoding of MMSI data in GW 2/101 packets         
+Build 62 Improve the decoding of MMSI data in GW 2/101 packets  
+Build 63 Fix a bug handling GW channel free markers
+         Improve the usability of the volume bar
+                
 
 Reported Bugs
 -------------
