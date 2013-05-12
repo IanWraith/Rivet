@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 62) by Ian Wraith";
+	public String program_version="Rivet (Build 63) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -390,9 +390,12 @@ public class Rivet {
 		window.progressBarUpdate(inputThread.returnFileLoadPercentage());
 	}
 	
+	// Get the average current volume and modify this so it is a number between 0 and 100
+	// which is then passed to the progress indicator on the status bar
 	private void updateVolumeBar ()	{
 		// Calculate as a percentage of 18000 (the max value)
-		int pval=(int)(((float)inputThread.returnVolumeAverage()/(float)18000.0)*(float)100);
+		// Reduce this to 3500 to give a more useful display
+		int pval=(int)(((float)inputThread.returnVolumeAverage()/(float)3000.0)*(float)100);
 		window.progressBarUpdate(pval);
 	}
 	
