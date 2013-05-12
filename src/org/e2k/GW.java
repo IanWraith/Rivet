@@ -265,7 +265,9 @@ public class GW extends FSK {
 			int pos=sData.indexOf("0011100010100011");
 			if (pos<8) return;
 			pos=pos-8;
-			List<Integer> frame=dataBitSet.returnIntsFromStart(pos);			
+			List<Integer> frame=dataBitSet.returnIntsFromStart(pos);
+			// Make sure the frame collection contains more than 18 elements
+			if (frame.size()<18) return;
 			// Free Channel Marker
 			// frame[] 8 to 10 should be 0xf2 & frame[] 11 to 16 should all be the same
 			if ((frame.get(8).equals(0xf2))&&(frame.get(9).equals(0xf2))&&(frame.get(10).equals(0xf2))&&(frame.get(11).equals(frame.get(12)))&&(frame.get(12).equals(frame.get(13)))&&(frame.get(13).equals(frame.get(14)))&&(frame.get(14).equals(frame.get(15)))&&(frame.get(15).equals(frame.get(16)))&&(frame.get(17).equals(0xff)))	{
