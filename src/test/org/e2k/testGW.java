@@ -69,7 +69,20 @@ public class testGW extends TestCase {
 		
 		// 211233290
 		final int loadData13[]={0xA4,0x42,0x00,0x2C,0x66,0x66};
-		ships.add(createShip("211233290",loadData13));		
+		ships.add(createShip("211233290",loadData13));	
+		
+		// 477981000
+		final int loadData14[]={0x97,0x29,0x26,0xE6,0x66,0x66 };
+		ships.add(createShip("477981000",loadData14));	
+		
+		// 636090616
+		final int loadData15[]={0x85,0x65,0x62,0xA5,0x65,0x66};
+		ships.add(createShip("636090616",loadData15));	
+		
+		// 636090821
+		final int loadData16[]={0x85,0x65,0x62,0xC6,0xE2,0x66};
+		ships.add(createShip("636090821",loadData16));			
+		
 		
 		// Test each member of the ships list
 		for (a=0;a<ships.size();a++)	{
