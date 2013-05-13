@@ -471,28 +471,33 @@ public class GW extends FSK {
 		int a,digitCounter=0;
 		sb.append("MMSI : ");
 		for (a=0;a<6;a++)	{
-			// Byte
-			int by=mm.get(a);
-			boolean alternateSet1=false,alternateSet2=false;
-			// Decide if we are using the alternate numbering scheme
-			if ((by>=0x28)&&(by<=0x2f)) alternateSet1=true;
-			else if ((by>=0x68)&&(by<=0x6f)) alternateSet1=true;	
-			
-			// The "funnies"
-			//if (by==0x62) alternateSet2=true;
-			//else if (by==0x36) alternateSet2=true;
-			
+			// High nibble
+			int hn=(mm.get(a)&240)>>4;
 			// Low nibble
-			int ln=by&15;
-			sb.append(convertMMSI(ln,alternateSet2));
+			int ln=mm.get(a)&15;
+			// The following nibble
+			int followingNibble;
+			// Look at the next byte for this unless this is the last byte
+			if (a<5) followingNibble=(mm.get(a+1)&240)>>4;
+			else followingNibble=0;
+			boolean alternate;
+			// Low nibble
+			// If the nibble following the low nibble (which is in the next byte) is 0x8 or greater
+			// then we use the alternate numbering method
+			if (followingNibble>=0x8) alternate=true;
+			else alternate=false;
+			sb.append(convertMMSI(ln,alternate));
 			digitCounter++;
-			//Once digit counter is 9 then we are done
+			// Once digit counter is 9 then we are done
 			if (digitCounter==9) return sb.toString();
 			// High nibble
-			int hn=(by&240)>>4;
-			sb.append(convertMMSI(hn,alternateSet1));
+			// If the nibble following the high nibble (which is the low nibble) is 0x8 or greater
+			// then we use the alternate numbering scheme
+			if (ln>=0x8) alternate=true;
+			else alternate=false;
+			sb.append(convertMMSI(hn,alternate));
 			digitCounter++;
-			//Once digit counter is 9 then we are done
+			// Once the digit counter is 9 then we are done
 			if (digitCounter==9) return sb.toString();
 		}
 		return sb.toString();
