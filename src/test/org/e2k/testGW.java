@@ -24,12 +24,8 @@ public class testGW extends TestCase {
 		ships.add(createShip("304653000",loadData01));
 		
 		// 565494000 SIGAS SILVIA
-		//final int loadData02[]={0xD3,0x73,0x72,0xE6,0x66,0x66};
-		//ships.add(createShip("565494000",loadData02));
-		
-		// 236313000 STEN MOSTER
-		//final int loadData03[]={0x84,0x05,0x02,0x6E,0x66,0x66};
-		//ships.add(createShip("236313000",loadData03));
+		final int loadData02[]={0xD3,0x73,0x72,0xE6,0x66,0x66};
+		ships.add(createShip("565494000",loadData02));
 		
 		// 477824000 DARYA TARA
 		final int loadData04[]={0x97,0x69,0x74,0x66,0x66,0x66};
