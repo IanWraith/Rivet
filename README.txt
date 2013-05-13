@@ -113,6 +113,7 @@ Build 61 Add a newline after the RTTY sync info line.
 Build 62 Improve the decoding of MMSI data in GW 2/101 packets  
 Build 63 Fix a bug handling GW channel free markers
          Improve the usability of the volume bar
+         Hopefully fix the GW MMSI decoding problems
                 
 
 Reported Bugs
@@ -128,4 +129,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (11th May 2013) 
+Ian Wraith (13th May 2013) 
