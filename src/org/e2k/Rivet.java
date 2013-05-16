@@ -87,6 +87,7 @@ public class Rivet {
 	private int bitStreamOutCount=0;
 	private List<Trigger> listTriggers=new ArrayList<Trigger>();
 	private int activeTriggerCount=0;
+	private boolean pauseDisplay=false;
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)",
 			"Experimental","CIS 36-50","FSK200/500",
@@ -991,14 +992,14 @@ public class Rivet {
 	public void writeLine(String line,Color col,Font font) {
 		if (line!=null)	{
 			if (logging==true) fileWriteLine(line);
-			display_view.addLine(line,col,font);
+			if (pauseDisplay==false) display_view.addLine(line,col,font);
 		}
 	}
 	
 	// Adds a single char to the current line on the display
 	public void writeChar (String ct,Color col,Font font)	{
 		if (ct!=null)	{
-			display_view.addChar(ct,col,font);
+			if (pauseDisplay==false) display_view.addChar(ct,col,font);
 			if (logging==true) fileWriteChar(ct);
 		}
 	}
@@ -1010,7 +1011,7 @@ public class Rivet {
 	
 	// Writes a new line to the screen
 	public void newLineWrite()	{
-		display_view.newLine();
+		if (pauseDisplay==false) display_view.newLine();
 		if (logging==true) fileWriteNewline();
 	}
 
@@ -1162,6 +1163,14 @@ public class Rivet {
 	public boolean changeMixer(String mixerName)	{
 		// Tell the audio in thread to change its mixer
 		return inputThread.changeMixer(mixerName);
+	}
+
+	public boolean isPauseDisplay() {
+		return pauseDisplay;
+	}
+
+	public void setPauseDisplay(boolean pauseDisplay) {
+		this.pauseDisplay = pauseDisplay;
 	}	
 	
 }

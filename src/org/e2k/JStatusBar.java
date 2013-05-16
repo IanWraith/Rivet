@@ -32,6 +32,7 @@ public class JStatusBar extends JPanel implements ChangeListener {
 	private Rivet TtheApp;
 	private JSlider inputLevelSlider;
 	private JButton clearDisplayButton=new JButton("Clear Display");
+	private JButton pauseDisplayButton=new JButton("Pause Display");
 	
 	public JStatusBar() {
 		final int FONTSIZE=20;
@@ -66,12 +67,14 @@ public class JStatusBar extends JPanel implements ChangeListener {
 		inputLevelSlider.setBorder(BorderFactory.createTitledBorder("Input Level Adjust"));
 		// Buttons
 		clearDisplayButton.addActionListener(new ButtonListener());
+		pauseDisplayButton.addActionListener(new ButtonListener());
 		// Give the volume progress bar a border //
 		volumeBar.setBorder(BorderFactory.createTitledBorder("Input Level"));
 		volumeBar.setForeground(Color.GREEN);
 		// Ensure the elements of the status bar are displayed from the left
 		this.setLayout(new FlowLayout(FlowLayout.LEFT));
 		this.add(clearDisplayButton,BorderLayout.CENTER);
+		this.add(pauseDisplayButton,BorderLayout.CENTER);
 		this.add(volumeBar,BorderLayout.CENTER);
 		this.add(inputLevelSlider,BorderLayout.CENTER);
 		this.add(modeLabel,BorderLayout.CENTER);
@@ -132,7 +135,17 @@ public class JStatusBar extends JPanel implements ChangeListener {
 			if (e.getActionCommand().equals("Clear Display")) {
 		    	if (TtheApp!=null) TtheApp.clearScreen();
 		    }
-		   
+			// The user wants to pause the display
+			if (e.getActionCommand().equals("Pause Display")) {
+		    	if (TtheApp!=null) TtheApp.setPauseDisplay(true);
+		    	pauseDisplayButton.setText("Restart Display");
+		    }
+			// The user wants to restart the display
+			if (e.getActionCommand().equals("Restart Display")) {
+		    	if (TtheApp!=null) TtheApp.setPauseDisplay(false);
+		    	pauseDisplayButton.setText("Pause Display");
+		    }		   
+			
 		  }
 		}	
 

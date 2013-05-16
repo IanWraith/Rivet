@@ -115,6 +115,7 @@ Build 63 Fix a bug handling GW channel free markers
          Improve the usability of the volume bar
          Hopefully fix the GW MMSI decoding problems
 Build 64 Add a clear display button
+         Add a pause display button
                 
 
 Reported Bugs
