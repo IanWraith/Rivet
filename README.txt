@@ -114,6 +114,7 @@ Build 62 Improve the decoding of MMSI data in GW 2/101 packets
 Build 63 Fix a bug handling GW channel free markers
          Improve the usability of the volume bar
          Hopefully fix the GW MMSI decoding problems
+Build 64 Add a clear display button
                 
 
 Reported Bugs
@@ -122,7 +123,7 @@ Still problems with ..
 
 CWOWD36 - Lack a fundamental understanding of this mode. Suspect a unknown tone to alphabet map is in use.
 
-GW FSK - Still don't understand the principles behind the alphabet and numbers encoding.
+GW FSK - Still don't understand the principles behind the alphabet encoding.
 
 FSK200/1000 - Isn't fully decoded but the key externals now are.
 

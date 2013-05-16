@@ -14,6 +14,9 @@
 package org.e2k;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
@@ -28,6 +31,7 @@ public class JStatusBar extends JPanel implements ChangeListener {
 	private JProgressBar volumeBar=new JProgressBar(0,100);
 	private Rivet TtheApp;
 	private JSlider inputLevelSlider;
+	private JButton clearDisplayButton=new JButton("Clear Display");
 	
 	public JStatusBar() {
 		final int FONTSIZE=20;
@@ -60,11 +64,14 @@ public class JStatusBar extends JPanel implements ChangeListener {
 		inputLevelSlider.setPaintTicks(true);
 		inputLevelSlider.setPaintLabels(true);
 		inputLevelSlider.setBorder(BorderFactory.createTitledBorder("Input Level Adjust"));
+		// Buttons
+		clearDisplayButton.addActionListener(new ButtonListener());
 		// Give the volume progress bar a border //
 		volumeBar.setBorder(BorderFactory.createTitledBorder("Input Level"));
 		volumeBar.setForeground(Color.GREEN);
 		// Ensure the elements of the status bar are displayed from the left
 		this.setLayout(new FlowLayout(FlowLayout.LEFT));
+		this.add(clearDisplayButton,BorderLayout.CENTER);
 		this.add(volumeBar,BorderLayout.CENTER);
 		this.add(inputLevelSlider,BorderLayout.CENTER);
 		this.add(modeLabel,BorderLayout.CENTER);
@@ -114,5 +121,19 @@ public class JStatusBar extends JPanel implements ChangeListener {
 		inputLevelSlider.setValue(scl);
 	}
 	
+	
+	// This class listens for button events
+	class ButtonListener implements ActionListener {
+		  ButtonListener() {
+		  }
+
+		  public void actionPerformed(ActionEvent e) {
+			// The user wants to clear the display
+			if (e.getActionCommand().equals("Clear Display")) {
+		    	if (TtheApp!=null) TtheApp.clearScreen();
+		    }
+		   
+		  }
+		}	
 
 }
