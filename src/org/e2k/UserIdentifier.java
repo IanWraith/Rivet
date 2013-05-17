@@ -11,10 +11,26 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class UserIdentifier {
 	
+	public Ship getShipDetails (String mmsi)	{
+		
+		try	{
+			Ship xship=getShipFromXML(mmsi);
+			if (xship!=null) return xship;
+		}
+		catch (Exception e)	{
+			String err=e.getMessage();
+			return null;
+		}
+		
+		
+		return null;
+	}
+	
+	
 	
 	// Return a ship object from the ships.xml file given an MMSI
 	// if no ship exists then return a null
-	public Ship getShipFromMMSI(String Tmmsi) throws SAXException, IOException,ParserConfigurationException {
+	private Ship getShipFromXML(String Tmmsi) throws SAXException, IOException,ParserConfigurationException {
 			// Create a parser factory and use it to create a parser
 			SAXParserFactory parserFactory=SAXParserFactory.newInstance();
 			SAXParser parser=parserFactory.newSAXParser();
@@ -73,7 +89,7 @@ public class UserIdentifier {
 					}					
 					// Flag
 					if (qName.equals("flag"))	{
-						name=aval;
+						flag=aval;
 					}
 					
 				}	

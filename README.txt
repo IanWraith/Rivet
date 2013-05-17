@@ -116,6 +116,7 @@ Build 63 Fix a bug handling GW channel free markers
          Hopefully fix the GW MMSI decoding problems
 Build 64 Add a clear display button
          Add a pause display button
+         Add support for the ships.xml file
                 
 
 Reported Bugs
@@ -131,4 +132,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (13th May 2013) 
+Ian Wraith (17th May 2013) 

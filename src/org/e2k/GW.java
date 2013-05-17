@@ -392,7 +392,7 @@ public class GW extends FSK {
 				// Convert the payload to ints
 				List<Integer> mInts=dataBitSet.returnIntsFromStart(14);
 				// Display the MMSI and contents
-				theApp.writeLine(displayGW_MMSI(mInts),Color.BLUE,theApp.boldFont);
+				theApp.writeLine(getGW_MMSI(mInts),Color.BLUE,theApp.boldFont);
 				return;
 			}
 			
@@ -465,11 +465,29 @@ public class GW extends FSK {
 		else return ("[0x"+Integer.toHexString(c)+"]");
 	}
 	
+	// Decode the 2/101 packets contents into a MMSI and see if we have any details of this ship
+	private String getGW_MMSI (List<Integer> mm)	{
+		UserIdentifier uid=new UserIdentifier();
+		// Decode the MMSI
+		String sMMSI=displayGW_MMSI(mm);
+		// See if we have a match for this MMSI
+		Ship ship=uid.getShipDetails(sMMSI);
+		// If nothing returned just return the MMSI
+		if (ship==null)	{
+			String ret="MMSI : "+sMMSI;
+			return ret;
+		}
+		else	{
+			StringBuilder sb=new StringBuilder();
+			sb.append("MMSI : "+sMMSI+" ("+ship.getName()+","+ship.getFlag()+")");
+			return sb.toString();
+		}
+	}
+	
 	// Convert a List of Ints from a 2/101 packet into an MMSI
 	public String displayGW_MMSI (List<Integer> mm)	{
 		StringBuilder sb=new StringBuilder();
 		int a,digitCounter=0;
-		sb.append("MMSI : ");
 		for (a=0;a<6;a++)	{
 			// High nibble
 			int hn=(mm.get(a)&240)>>4;
