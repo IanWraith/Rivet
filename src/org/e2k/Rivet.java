@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 64) by Ian Wraith";
+	public String program_version="Rivet (Build 65) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -125,7 +125,17 @@ public class Rivet {
 		window=new DisplayFrame(program_version,this);
 		Toolkit theKit=window.getToolkit();
 		Dimension wndsize=theKit.getScreenSize();
-		window.setBounds(wndsize.width/6,wndsize.height/6,2*wndsize.width/3,2*wndsize.height/3);
+		// Calculate the screen position and size in the form x,y,width,height
+		int x=wndsize.width/6;
+		int y=wndsize.height/6;
+		int width=2*wndsize.width/3;
+		int height=2*wndsize.height/3;
+		// We need a width of at least 1000
+		if (width<1000)	{
+			width=1000;
+			if (x>100) x=x-100;
+		}
+		window.setBounds(x,y,width,height);
 		window.addWindowListener(new WindowHandler());
 		display_model=new DisplayModel();
 		display_view=new DisplayView(this);
