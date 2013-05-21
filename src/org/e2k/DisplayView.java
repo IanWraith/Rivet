@@ -62,6 +62,14 @@ public class DisplayView extends JComponent implements Observer {
 			if (i==DISPLAYCOUNT) i=0;
 			count++;
 		}	
+		// Detect if the last line written was outside the current viewing area
+		if ((theApp.isAutoScroll()==true)&&(theApp.isAdjusting()==false))	{
+			if ((pos-theApp.vertical_scrollbar_value)>theApp.getCurrentHeight())	{
+				theApp.scrollDown(pos);
+				repaint();
+			}
+		}
+		
 	}
 	
 	// Add a line to the display circular buffer //
@@ -75,6 +83,8 @@ public class DisplayView extends JComponent implements Observer {
 		displayString[displayCounter]=line;
 		displayColour[displayCounter]=tcol;
 		displayFont[displayCounter]=tfont;
+		// Test if autoscroll needs to be on
+		theApp.setAutoScroll(autoScrollSet());
 		// Repaint the screen
 		repaint();
 	}
@@ -105,6 +115,9 @@ public class DisplayView extends JComponent implements Observer {
 		displayColour[displayCounter]=col;
 		displayFont[displayCounter]=font;
 		displayString[displayCounter]=sb.toString();
+		// Test if autoscroll needs to be on
+		theApp.setAutoScroll(autoScrollSet());
+		// Redraw
 		repaint();
 	}
 	
@@ -115,6 +128,9 @@ public class DisplayView extends JComponent implements Observer {
 		// Check it hasn't reached its maximum size
 		if (displayCounter==DISPLAYCOUNT) displayCounter=0;
 		displayString[displayCounter]="";
+		// Test if autoscroll needs to be on
+		theApp.setAutoScroll(autoScrollSet());
+		// Redraw
 		repaint();
 	}
 	
@@ -136,5 +152,16 @@ public class DisplayView extends JComponent implements Observer {
 			addLine(line,Color.BLACK,theApp.italicFont);
 		}
 	}
+	
+	// Check if autoscroll should be turned on
+	private boolean autoScrollSet()	{
+		// Get the current time
+		long currentTime=System.currentTimeMillis()/1000;
+		// Is it 30 seconds or more since the last user scroll operation
+		// if so return true
+		if (currentTime-theApp.getLastUserScroll()>=30) return true;
+		else return false;
+	}
+	
 
 }

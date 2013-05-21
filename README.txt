@@ -117,6 +117,8 @@ Build 63 Fix a bug handling GW channel free markers
 Build 64 Add a clear display button
          Add a pause display button
          Add support for the ships.xml file
+Build 65 Ensure the display is set wide enough for the entire status bar
+         Add the autoscrolling feature
                 
 
 Reported Bugs

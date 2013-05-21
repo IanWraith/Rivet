@@ -183,9 +183,16 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			// Vertical scrollbar
 			if (e.getSource()==vscrollbar) {
 				theApp.vertical_scrollbar_value=e.getValue();
+				// Is this a user scroll operation
+				if (vscrollbar.getValueIsAdjusting()==true)	{
+					// Record the time that this occurred
+					theApp.setLastUserScroll(System.currentTimeMillis()/1000);
+					// Turn off auto scroll
+					theApp.setAutoScroll(false);
+				}
+				// Redraw
 				repaint();   
 			}
-			
 		}
 	 }
 	
@@ -618,5 +625,12 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	}	
 
 	
+	public void scrollDown(int v)	{
+		vscrollbar.setValue(v);
+	}
+	
+	public boolean isAdjusting()	{
+		return vscrollbar.getValueIsAdjusting();
+	}
 	
 }

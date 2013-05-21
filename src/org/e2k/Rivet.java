@@ -88,6 +88,8 @@ public class Rivet {
 	private List<Trigger> listTriggers=new ArrayList<Trigger>();
 	private int activeTriggerCount=0;
 	private boolean pauseDisplay=false;
+	private boolean autoScroll=true;
+	private long lastUserScroll=0;
 	
 	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)",
 			"Experimental","CIS 36-50","FSK200/500",
@@ -1181,6 +1183,38 @@ public class Rivet {
 
 	public void setPauseDisplay(boolean pauseDisplay) {
 		this.pauseDisplay = pauseDisplay;
+	}
+
+	public boolean isAutoScroll() {
+		return autoScroll;
+	}
+
+	public void setAutoScroll(boolean autoScroll) {
+		this.autoScroll = autoScroll;
 	}	
+	
+	// Return the current height of the window
+	public int getCurrentHeight ()	{
+		return window.getBounds().height;
+	}
+	
+	// Tell the window to scroll down by a set amount
+	public void scrollDown(int v)	{
+		window.scrollDown((v-window.getBounds().height)+200);
+	}
+	
+	// Return if the vertical scroll bar is being adjusted
+	public boolean isAdjusting()	{
+		return window.isAdjusting();
+	}
+
+	public long getLastUserScroll() {
+		return lastUserScroll;
+	}
+
+	public void setLastUserScroll(long lastUserScroll) {
+		this.lastUserScroll = lastUserScroll;
+	}
+	
 	
 }
