@@ -132,10 +132,12 @@ public class Rivet {
 		int y=wndsize.height/6;
 		int width=2*wndsize.width/3;
 		int height=2*wndsize.height/3;
-		// We need a width of at least 1000
-		if (width<1000)	{
-			width=1000;
-			if (x>100) x=x-100;
+		// We need a width of at least 1200
+		if (width<1200)	{
+			width=1200;
+			// Calculate the x position if forcing a width of 1200
+            x=(wndsize.width-1200)/2;
+            if (x<0) x=0;
 		}
 		window.setBounds(x,y,width,height);
 		window.addWindowListener(new WindowHandler());
