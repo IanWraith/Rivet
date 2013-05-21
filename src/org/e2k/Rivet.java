@@ -91,9 +91,22 @@ public class Rivet {
 	private boolean autoScroll=true;
 	private long lastUserScroll=0;
 	
-	public final String MODENAMES[]={"CROWD36","XPA (10 Baud)","XPA2","XPA (20 Baud)",
-			"Experimental","CIS 36-50","FSK200/500",
-			"CCIR493-4","FSK200/1000","GW FSK (100 Baud)","Baudot","FSK (Raw)","RDFT"};
+	// Mode names
+	public final String MODENAMES[]={
+			"CROWD36",
+			"XPA (10 Baud)",
+			"XPA2",
+			"XPA (20 Baud)",
+			"Experimental",
+			"CIS 36-50",
+			"FSK200/500",
+			"CCIR493-4",
+			"FSK200/1000",
+			"GW FSK (100 Baud)",
+			"Baudot",
+			"FSK (Raw)",
+			"RDFT"
+			};
     
 	public static void main(String[] args) {
 		theApp=new Rivet();
