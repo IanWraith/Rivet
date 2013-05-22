@@ -16,7 +16,6 @@ package org.e2k;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
@@ -71,10 +70,13 @@ public class JStatusBar extends JPanel implements ChangeListener {
 		// Give the volume progress bar a border //
 		volumeBar.setBorder(BorderFactory.createTitledBorder("Input Level"));
 		volumeBar.setForeground(Color.GREEN);
+		// Create a pane to hold just the buttons so we can stack them on top of each other
+		JPanel buttonPane=new JPanel(new BorderLayout());
+		buttonPane.add(clearDisplayButton,BorderLayout.NORTH);
+		buttonPane.add(pauseDisplayButton,BorderLayout.SOUTH);
 		// Ensure the elements of the status bar are displayed from the left
 		this.setLayout(new FlowLayout(FlowLayout.LEFT));
-		this.add(clearDisplayButton,BorderLayout.CENTER);
-		this.add(pauseDisplayButton,BorderLayout.CENTER);
+		this.add(buttonPane,BorderLayout.CENTER);
 		this.add(volumeBar,BorderLayout.CENTER);
 		this.add(inputLevelSlider,BorderLayout.CENTER);
 		this.add(modeLabel,BorderLayout.CENTER);
