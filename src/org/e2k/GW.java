@@ -392,7 +392,13 @@ public class GW extends FSK {
 				// Convert the payload to ints
 				List<Integer> mInts=dataBitSet.returnIntsFromStart(14);
 				// Display the MMSI and contents
-				theApp.writeLine(getGW_MMSI(mInts),Color.BLUE,theApp.boldFont);
+				Color colour;
+				// Does this line contain an error report ?
+				String mLine=getGW_MMSI(mInts);
+				// Display in red if there is an error with ships.xml and blue otherwise
+				if (mLine.contains("ERROR")) colour=Color.RED;
+				else colour=Color.BLUE;
+				theApp.writeLine(mLine,colour,theApp.boldFont);
 				return;
 			}
 			
@@ -475,6 +481,8 @@ public class GW extends FSK {
 		// If nothing returned just return the MMSI
 		if (ship==null)	{
 			String ret="MMSI : "+sMMSI;
+			// Do we have an error from the identifier
+			if (uid.getErrorMessage()!=null) ret=ret+" (ERROR "+uid.getErrorMessage()+" )";
 			return ret;
 		}
 		else	{

@@ -11,22 +11,20 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class UserIdentifier {
 	
+	private String errorMessage=null;
+	
+	// A public wrapper method that given a MMSI returns a ship object
 	public Ship getShipDetails (String mmsi)	{
-		
 		try	{
 			Ship xship=getShipFromXML(mmsi);
 			if (xship!=null) return xship;
 		}
 		catch (Exception e)	{
-			String err=e.getMessage();
+			setErrorMessage(e.getMessage());
 			return null;
 		}
-		
-		
 		return null;
 	}
-	
-	
 	
 	// Return a ship object from the ships.xml file given an MMSI
 	// if no ship exists then return a null
@@ -45,6 +43,17 @@ public class UserIdentifier {
 	}
 	
 	
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+
+
 	// This class handles the ships.xml SAX events
 	public class ShipsXMLFileHandler extends DefaultHandler {
 			String value,mmsi,name,flag;

@@ -121,6 +121,7 @@ Build 65 Ensure the display is set wide enough for the entire status bar
          Add the autoscrolling feature
 Build 66 Display the Clear and Pause display buttons on the status bar in their own pane on top of each other to make more room.
          Remove the code which made sure the Rivet window was of a certain size
+Build 67 Display error messages from parsing the ships.xml file
                 
 
 Reported Bugs
@@ -136,4 +137,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (22nd May 2013) 
+Ian Wraith (23rd May 2013) 
