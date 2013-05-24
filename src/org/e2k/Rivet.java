@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public String program_version="Rivet (Build 67) by Ian Wraith";
+	public final String program_version="Rivet (Build 68) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -1222,6 +1222,37 @@ public class Rivet {
 
 	public void setLastUserScroll(long lastUserScroll) {
 		this.lastUserScroll = lastUserScroll;
+	}
+	
+	// Write system information for diagnostic purposes to the screen
+	public void displaySystemInfo ()	{
+		// First clear the screen
+		clearScreen();
+		// Version
+		writeLine(program_version,Color.BLACK,theApp.boldFont);
+		// Cores
+		String cores="Available processors (cores): "+Runtime.getRuntime().availableProcessors();
+		writeLine(cores,Color.BLACK,theApp.boldFont);
+		// Memory available to the JVM
+		String jmem="JVM Free memory (bytes): "+Runtime.getRuntime().freeMemory();
+		writeLine(jmem,Color.BLACK,theApp.boldFont);
+		// OS
+		String os="OS : "+System.getProperty("os.name")+" ("+System.getProperty("os.version")+")";
+		writeLine(os,Color.BLACK,theApp.boldFont);
+		// Screen info
+		Toolkit theKit=window.getToolkit();
+		Dimension wndsize=theKit.getScreenSize();
+		String res="Screen Resolution - Width "+Integer.toString(wndsize.width)+" : Height "+Integer.toString(wndsize.height);
+		writeLine(res,Color.BLACK,theApp.boldFont);
+		// Java version
+		String jver="Java : "+System.getProperty("java.vendor")+" ("+System.getProperty("java.version")+")";
+		writeLine(jver,Color.BLACK,theApp.boldFont);
+		// Folder
+		String folder="Working directory : "+System.getProperty("user.dir");
+		writeLine(folder,Color.BLACK,theApp.boldFont);
+		// Write all of this to clipboard
+		String contents=getAllText();
+		window.setClipboard(contents);
 	}
 	
 	

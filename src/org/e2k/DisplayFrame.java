@@ -36,7 +36,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem exit_item,wavLoad_item,save_to_file,about_item,help_item,debug_item,soundcard_item,reset_item,copy_item,bitstream_item;
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
-	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,AddEditTrigger_item,credits_item;
+	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,AddEditTrigger_item,credits_item,system_info_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
 	private JMenu audioDevicesMenu;
 	private static ArrayList<AudioMixer> devices;
@@ -147,6 +147,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		twitter_item.addActionListener(this);
 		helpMenu.add(help_item=new JMenuItem("Help"));		
 		help_item.addActionListener(this);
+		helpMenu.add(system_info_item=new JMenuItem("System Information"));	
+		system_info_item.addActionListener(this);
 		menuBar.add(helpMenu);
 		// Add the vertical scroll bar
 		add(vscrollbar,BorderLayout.EAST);
@@ -294,6 +296,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// Save Settings
 		if (event_name=="Save the Current Settings")	{
 			theApp.saveSettings();
+		}
+		// System Information
+		if (event_name=="System Information")	{
+			theApp.displaySystemInfo();
 		}
 		// View GW Free Channel Markers
 		if (event_name=="View GW Free Channel Markers")	{
@@ -496,7 +502,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	}
 	
 	// This sets the clipboard with a string passed to it
-	private void setClipboard(String str) {
+	public void setClipboard(String str) {
 	    StringSelection ss=new StringSelection(str);
 	    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, null);
 	}
