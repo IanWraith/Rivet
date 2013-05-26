@@ -32,6 +32,7 @@ public class JStatusBar extends JPanel implements ChangeListener {
 	private JSlider inputLevelSlider;
 	private JButton clearDisplayButton=new JButton("Clear Display");
 	private JButton pauseDisplayButton=new JButton("Pause Display");
+	private JPanel buttonPane=new JPanel(new BorderLayout());
 	
 	public JStatusBar() {
 		final int FONTSIZE=20;
@@ -71,7 +72,6 @@ public class JStatusBar extends JPanel implements ChangeListener {
 		volumeBar.setBorder(BorderFactory.createTitledBorder("Input Level"));
 		volumeBar.setForeground(Color.GREEN);
 		// Create a pane to hold just the buttons so we can stack them on top of each other
-		JPanel buttonPane=new JPanel(new BorderLayout());
 		buttonPane.add(clearDisplayButton,BorderLayout.NORTH);
 		buttonPane.add(pauseDisplayButton,BorderLayout.SOUTH);
 		// Ensure the elements of the status bar are displayed from the left
@@ -126,6 +126,14 @@ public class JStatusBar extends JPanel implements ChangeListener {
 		inputLevelSlider.setValue(scl);
 	}
 	
+	// This is called when the display screen is very small and certain components need removing
+	// to make a little remove for the important components
+	public void setSmallScreen()	{
+		// Remove the button pane
+		this.remove(buttonPane);
+		// Repaint
+		this.repaint();
+	}
 	
 	// This class listens for button events
 	class ButtonListener implements ActionListener {

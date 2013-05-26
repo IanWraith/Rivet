@@ -123,8 +123,8 @@ Build 66 Display the Clear and Pause display buttons on the status bar in their 
          Remove the code which made sure the Rivet window was of a certain size
 Build 67 Display error messages from parsing the ships.xml file
 Build 68 Display system information for diagnostics
+Build 69 Add a small screen mode which removes the buttons from the status bar to make space
                 
-
 Reported Bugs
 -------------
 Still problems with ..
@@ -138,4 +138,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (24th May 2013) 
+Ian Wraith (26th May 2013) 

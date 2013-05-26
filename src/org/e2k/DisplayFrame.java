@@ -639,4 +639,9 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		return vscrollbar.getValueIsAdjusting();
 	}
 	
+	// Tell the status bar that this is a small screen
+	public void setSmallScreen()	{
+		statusBar.setSmallScreen();
+	}
+	
 }

@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public final String program_version="Rivet (Build 68) by Ian Wraith";
+	public final String program_version="Rivet (Build 69) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -90,6 +90,7 @@ public class Rivet {
 	private boolean pauseDisplay=false;
 	private boolean autoScroll=true;
 	private long lastUserScroll=0;
+	private boolean smallScreen=false;
 	
 	// Mode names
 	public final String MODENAMES[]={
@@ -152,6 +153,9 @@ public class Rivet {
 		display_model.addObserver(display_view);
 		window.getContentPane().add(display_view,BorderLayout.CENTER);
 		window.setVisible(true);
+		// If this width is less than 600 then this is a very small screen
+		// so certain elements may need to be removed
+		if (width<600) window.setSmallScreen();		
 		// Make certain the program knows the GUI is ready
 		pReady=true;
 		}
@@ -1253,6 +1257,14 @@ public class Rivet {
 		// Write all of this to clipboard
 		String contents=getAllText();
 		window.setClipboard(contents);
+	}
+
+	public boolean isSmallScreen() {
+		return smallScreen;
+	}
+
+	public void setSmallScreen(boolean smallScreen) {
+		this.smallScreen = smallScreen;
 	}
 	
 	
