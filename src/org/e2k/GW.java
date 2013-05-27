@@ -312,7 +312,9 @@ public class GW extends FSK {
 			// If we have been in receiving position report for over 60 seconds it is never going to come so reset
 			if (receivingPositionReport==true)	{
 				long difTime=(System.currentTimeMillis()/1000)-fragmentStartTime;
-				if (difTime>60)	{
+				// Only do this if positionFragmentCounter>0 to preven this appearing when monitoring
+				// shore side GW broadcasts
+				if ((difTime>60)&&(positionFragmentCounter>0))	{
 					String line=theApp.getTimeStamp()+" position report timeout (fragment Count is "+Integer.toString(positionFragmentCounter)+")";
 					theApp.writeLine(line,Color.RED,theApp.boldFont);
 					receivingPositionReport=false;
@@ -393,8 +395,15 @@ public class GW extends FSK {
 				List<Integer> mInts=dataBitSet.returnIntsFromStart(14);
 				// Display the MMSI and contents
 				Color colour;
-				// Does this line contain an error report ?
-				String mLine=getGW_MMSI(mInts);
+				String mLine;
+				// Is this a shore side 2/101 ? (0xe2,0x72,0xff,0xff,0xe7,0xe6)
+				if ((mInts.get(0)==0xe2)&&(mInts.get(1)==0x72)&&(mInts.get(2)==0xff)&&(mInts.get(3)==0xff)&&(mInts.get(4)==0xe7)&&(mInts.get(5)==0xe6))	{
+					mLine="GW Network ID 1094";
+				}
+				else	{
+					// Does this line contain an error report ?
+					mLine=getGW_MMSI(mInts);
+				}
 				// Display in red if there is an error with ships.xml and blue otherwise
 				if (mLine.contains("ERROR")) colour=Color.RED;
 				else colour=Color.BLUE;
