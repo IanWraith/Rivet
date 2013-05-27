@@ -37,6 +37,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
 	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,AddEditTrigger_item,credits_item,system_info_item;
+	private JMenuItem ClearDisplay_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
 	private JMenu audioDevicesMenu;
 	private static ArrayList<AudioMixer> devices;
@@ -130,6 +131,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		menuBar.add(triggersMenu);
 		// View
 		JMenu viewMenu=new JMenu("View");
+		viewMenu.add(ClearDisplay_item=new JMenuItem("Clear Display"));	
+		ClearDisplay_item.addActionListener(this);
 		viewMenu.add(freeChannelMarkerGW_item=new JRadioButtonMenuItem("View GW Free Channel Markers", theApp.isViewGWChannelMarkers()));
 		freeChannelMarkerGW_item.addActionListener(this);
 		menuBar.add(viewMenu);
@@ -300,6 +303,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// System Information
 		if (event_name=="System Information")	{
 			theApp.displaySystemInfo();
+		}
+		// Clear Display
+		if (event_name=="Clear Display")	{
+			theApp.clearScreen();
 		}
 		// View GW Free Channel Markers
 		if (event_name=="View GW Free Channel Markers")	{
