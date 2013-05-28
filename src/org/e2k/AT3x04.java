@@ -1,8 +1,10 @@
 package org.e2k;
 
 // AT-3004D & AT-3014
-// has 12 * 120Bd BPSK or QPSK modulated carriers
+// has 12 * 120Bd BPSK or QPSK modulated carriers *
 // these carriers are 200 Hz apart with a pilot tone 400 Hz higher than the last carrier
+//
+// * See http://signals.radioscanner.ru/base/signal37/ for further information
 
 import java.awt.Color;
 import java.util.ArrayList;
