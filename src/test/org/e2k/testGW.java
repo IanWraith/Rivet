@@ -79,7 +79,7 @@ public class testGW extends TestCase {
 		
 		// Test each member of the ships list
 		for (a=0;a<ships.size();a++)	{
-			String ret=gw.displayGW_MMSI(getGWIdentasArrayList(ships.get(a)));
+			String ret=gw.displayGW_MMSI(getGWIdentasArrayList(ships.get(a)),9);
 			if (ret.indexOf(ships.get(a).getMmsi())==-1)	{
 				errorCount++;
 				String s="Bad decode of MMSI "+ships.get(a).getMmsi()+" have "+ret;

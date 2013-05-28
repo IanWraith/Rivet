@@ -484,7 +484,7 @@ public class GW extends FSK {
 	private String getGW_MMSI (List<Integer> mm)	{
 		UserIdentifier uid=new UserIdentifier();
 		// Decode the MMSI
-		String sMMSI=displayGW_MMSI(mm);
+		String sMMSI=displayGW_MMSI(mm,9);
 		// See if we have a match for this MMSI
 		Ship ship=uid.getShipDetails(sMMSI);
 		// If nothing returned just return the MMSI
@@ -502,7 +502,7 @@ public class GW extends FSK {
 	}
 	
 	// Convert a List of Ints from a 2/101 packet into an MMSI
-	public String displayGW_MMSI (List<Integer> mm)	{
+	public String displayGW_MMSI (List<Integer> mm,int totalDigits)	{
 		StringBuilder sb=new StringBuilder();
 		int a,digitCounter=0;
 		for (a=0;a<6;a++)	{
@@ -523,8 +523,8 @@ public class GW extends FSK {
 			else alternate=false;
 			sb.append(convertMMSI(ln,alternate));
 			digitCounter++;
-			// Once digit counter is 9 then we are done
-			if (digitCounter==9) return sb.toString();
+			// Once digit counter is totalDigits then we are done
+			if (digitCounter==totalDigits) return sb.toString();
 			// High nibble
 			// If the nibble following the high nibble (which is the low nibble) is 0x8 or greater
 			// then we use the alternate numbering scheme
@@ -532,8 +532,8 @@ public class GW extends FSK {
 			else alternate=false;
 			sb.append(convertMMSI(hn,alternate));
 			digitCounter++;
-			// Once the digit counter is 9 then we are done
-			if (digitCounter==9) return sb.toString();
+			// Once the digit counter is totalDigits then we are done
+			if (digitCounter==totalDigits) return sb.toString();
 		}
 		return sb.toString();
 	}
