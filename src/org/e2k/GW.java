@@ -543,41 +543,28 @@ public class GW extends FSK {
 	// I really don't understand the theory behind this encoding method.
 	// Big thanks to Alan W for all his help working out the encoding method used here
 	private String convertMMSI (int n,boolean alternate)	{
-		// 0x0 match with text and Alan W confirm
 		if (n==0x0) return "3";
-		// 0x1 match with text and Alan W confirm
 		else if (n==0x1) return "7";
-		// 0x2 match with text and Alan W confirm
 		else if (n==0x2)	{
 			if (alternate==false) return "1";
 			else return "9";
 		}
-		// 0x3 match with text and Alan W confirm
 		else if (n==0x3) return "5";
-		// 0x4 match with text and Alan W confirm
 		else if (n==0x4) return "2";
-		// 0x5 match with text and Alan W confirm
 		else if (n==0x5) return "6";
-		// 0x6 match with text and Alan W confirm
 		else if (n==0x6)	{
 			if (alternate==false) return "0";
 			else return "8";
 		}
-		// 0x7 match with text and Alan W confirm
 		else if (n==0x7) return "4";
-		// 0x8 Alan W confirm
 		else if (n==0x8) return "3";
 		else if (n==0x9) return "7";
-		// 0xa limited Alan W confirmation
 		else if (n==0xa)	{
 			if (alternate==false) return "1";
 			else return "9";
 		}
-		// 0xb limited Alan W confirmation
 		else if (n==0xb) return "5";
-		// 0xc limited Alan W confirmation
 		else if (n==0xc) return "2";
-		// 0xd limited Alan W confirmation
 		else if (n==0xd) return "6";
 		else if (n==0xe)	{
 			if (alternate==false) return "0";
