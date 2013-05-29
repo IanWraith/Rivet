@@ -360,6 +360,7 @@ public class GW extends FSK {
 				return;
 			}
 			// End of a position report
+			// Type 5 Subtype 118
 			else if ((type==5)&&(subType==118))	{
 				// Display the packet details
 				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
@@ -410,9 +411,18 @@ public class GW extends FSK {
 				theApp.writeLine(mLine,colour,theApp.boldFont);
 				return;
 			}
-			
-			// Display everything else
-			theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			// Type 5 Subtype 41
+			else if ((type==5)&&(subType==41))	{
+				// Display the packet details
+				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			}
+			// Type 5 Subtype 63
+			else if ((type==5)&&(subType==63))	{
+				// Display the packet details
+				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+			}
+			// If selected display possible bad packets
+			if (theApp.isDisplayBadPackets()==true) theApp.writeLine(lo.toString(),Color.RED,theApp.boldFont);
 			return;
 		}
 		// Handle very short packets

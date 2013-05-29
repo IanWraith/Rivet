@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public final String program_version="Rivet (Build 70) by Ian Wraith";
+	public final String program_version="Rivet (Build 71) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -91,6 +91,7 @@ public class Rivet {
 	private boolean autoScroll=true;
 	private long lastUserScroll=0;
 	private boolean smallScreen=false;
+	private boolean displayBadPackets=false;
 	
 	// Mode names
 	public final String MODENAMES[]={
@@ -862,6 +863,10 @@ public class Rivet {
 			// Save the current audio source
 			line="<audioDevice val='"+inputThread.getMixerName()+"'/>";
 			xmlfile.write(line);
+			// Display bad packets
+			if (displayBadPackets==true) line="<display_bad_packets val='1'/>";
+			else line="<display_bad_packets val='0'/>";
+			xmlfile.write(line);
 			// All done so close the root item //
 			line="</settings>";
 			xmlfile.write(line);
@@ -962,6 +967,11 @@ public class Rivet {
 						if (inputThread.changeMixer(aval)==false) {
 							JOptionPane.showMessageDialog(null,"Error changing mixer\n"+inputThread.getMixerErrorMessage(),"Rivet",JOptionPane.ERROR_MESSAGE);
 						}
+					}
+					// Display bad packets
+					else if (qName.equals("display_bad_packets"))	{
+						if (Integer.parseInt(aval)==1) displayBadPackets=true;
+						else displayBadPackets=false;
 					}
 					
 				}	
@@ -1265,6 +1275,14 @@ public class Rivet {
 
 	public void setSmallScreen(boolean smallScreen) {
 		this.smallScreen = smallScreen;
+	}
+
+	public boolean isDisplayBadPackets() {
+		return displayBadPackets;
+	}
+
+	public void setDisplayBadPackets(boolean displayBadPackets) {
+		this.displayBadPackets = displayBadPackets;
 	}
 	
 	

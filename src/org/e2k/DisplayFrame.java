@@ -37,7 +37,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
 	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,AddEditTrigger_item,credits_item,system_info_item;
-	private JMenuItem ClearDisplay_item;
+	private JMenuItem ClearDisplay_item,DisplayBad_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
 	private JMenu audioDevicesMenu;
 	private static ArrayList<AudioMixer> devices;
@@ -133,6 +133,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		JMenu viewMenu=new JMenu("View");
 		viewMenu.add(ClearDisplay_item=new JMenuItem("Clear Display"));	
 		ClearDisplay_item.addActionListener(this);
+		viewMenu.add(DisplayBad_item=new JRadioButtonMenuItem("Display Possible Bad Data", theApp.isDisplayBadPackets()));
+		DisplayBad_item.addActionListener(this);
 		viewMenu.add(freeChannelMarkerGW_item=new JRadioButtonMenuItem("View GW Free Channel Markers", theApp.isViewGWChannelMarkers()));
 		freeChannelMarkerGW_item.addActionListener(this);
 		menuBar.add(viewMenu);
@@ -308,6 +310,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		if (event_name=="Clear Display")	{
 			theApp.clearScreen();
 		}
+		// Display possible bad data
+		if (event_name=="Display Possible Bad Data")	{
+			if (theApp.isDisplayBadPackets()==true) theApp.setDisplayBadPackets(false);
+			else theApp.setDisplayBadPackets(true);
+		}
 		// View GW Free Channel Markers
 		if (event_name=="View GW Free Channel Markers")	{
 			if (theApp.isViewGWChannelMarkers()==true) theApp.setViewGWChannelMarkers(false);
@@ -371,6 +378,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		invert_item.setSelected(theApp.isInvertSignal());
 		bitstream_item.setSelected(theApp.isBitStreamOut());
 		freeChannelMarkerGW_item.setSelected(theApp.isViewGWChannelMarkers());
+		DisplayBad_item.setSelected(theApp.isDisplayBadPackets());
 		RTTY_item.setSelected(theApp.isRTTY());
 		RDFT_item.setSelected(theApp.isRDFT());
 		// Triggers
