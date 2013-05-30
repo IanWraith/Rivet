@@ -27,6 +27,7 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -48,7 +49,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public final String program_version="Rivet (Build 71) by Ian Wraith";
+	public final String program_version="Rivet (Build 72) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -92,6 +93,7 @@ public class Rivet {
 	private long lastUserScroll=0;
 	private boolean smallScreen=false;
 	private boolean displayBadPackets=false;
+	private boolean logInUTC=false;
 	
 	// Mode names
 	public final String MODENAMES[]={
@@ -409,6 +411,9 @@ public class Rivet {
 	public String getTimeStamp() {
 		Date now=new Date();
 		DateFormat df=DateFormat.getTimeInstance();
+		// If we are logging in UTC time then set the time zone to that
+		// Other wise logs will be in local time
+		if (logInUTC==true) df.setTimeZone(TimeZone.getTimeZone("UTC"));
 		return df.format(now);
 	}
 	
@@ -867,6 +872,10 @@ public class Rivet {
 			if (displayBadPackets==true) line="<display_bad_packets val='1'/>";
 			else line="<display_bad_packets val='0'/>";
 			xmlfile.write(line);
+			// Show UTC time
+			if (logInUTC==true) line="<UTC val='1'/>";
+			else line="<UTC val='0'/>";
+			xmlfile.write(line);
 			// All done so close the root item //
 			line="</settings>";
 			xmlfile.write(line);
@@ -972,6 +981,11 @@ public class Rivet {
 					else if (qName.equals("display_bad_packets"))	{
 						if (Integer.parseInt(aval)==1) displayBadPackets=true;
 						else displayBadPackets=false;
+					}
+					// Show UTC time
+					else if (qName.equals("UTC"))	{
+						if (Integer.parseInt(aval)==1) logInUTC=true;
+						else logInUTC=false;
 					}
 					
 				}	
@@ -1264,6 +1278,9 @@ public class Rivet {
 		// Folder
 		String folder="Working directory : "+System.getProperty("user.dir");
 		writeLine(folder,Color.BLACK,theApp.boldFont);
+		// Current Time
+		String time="Current Time : "+getTimeStamp();
+		writeLine(time,Color.BLACK,theApp.boldFont);
 		// Write all of this to clipboard
 		String contents=getAllText();
 		window.setClipboard(contents);
@@ -1283,6 +1300,14 @@ public class Rivet {
 
 	public void setDisplayBadPackets(boolean displayBadPackets) {
 		this.displayBadPackets = displayBadPackets;
+	}
+
+	public boolean isLogInUTC() {
+		return logInUTC;
+	}
+
+	public void setLogInUTC(boolean logInUTC) {
+		this.logInUTC = logInUTC;
 	}
 	
 	

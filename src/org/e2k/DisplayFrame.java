@@ -37,7 +37,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
 	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,AddEditTrigger_item,credits_item,system_info_item;
-	private JMenuItem ClearDisplay_item,DisplayBad_item;
+	private JMenuItem ClearDisplay_item,DisplayBad_item,DisplayUTC_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
 	private JMenu audioDevicesMenu;
 	private static ArrayList<AudioMixer> devices;
@@ -133,9 +133,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		JMenu viewMenu=new JMenu("View");
 		viewMenu.add(ClearDisplay_item=new JMenuItem("Clear Display"));	
 		ClearDisplay_item.addActionListener(this);
-		viewMenu.add(DisplayBad_item=new JRadioButtonMenuItem("Display Possible Bad Data", theApp.isDisplayBadPackets()));
+		viewMenu.add(DisplayBad_item=new JRadioButtonMenuItem("Display Possible Bad Data",theApp.isDisplayBadPackets()));
 		DisplayBad_item.addActionListener(this);
-		viewMenu.add(freeChannelMarkerGW_item=new JRadioButtonMenuItem("View GW Free Channel Markers", theApp.isViewGWChannelMarkers()));
+		viewMenu.add(DisplayUTC_item=new JRadioButtonMenuItem("Display UTC Time",theApp.isLogInUTC()));
+		DisplayUTC_item.addActionListener(this);
+		viewMenu.add(freeChannelMarkerGW_item=new JRadioButtonMenuItem("View GW Free Channel Markers",theApp.isViewGWChannelMarkers()));
 		freeChannelMarkerGW_item.addActionListener(this);
 		menuBar.add(viewMenu);
 		// Help
@@ -320,6 +322,11 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			if (theApp.isViewGWChannelMarkers()==true) theApp.setViewGWChannelMarkers(false);
 			else theApp.setViewGWChannelMarkers(true);
 		}
+		// Show UTC Time
+		if (event_name=="Display UTC Time")	{
+			if (theApp.isLogInUTC()==true) theApp.setLogInUTC(false);
+			else theApp.setLogInUTC(true);
+		}
 		// Exit 
 		if (event_name=="Exit") {
 			// If logging then close the log file
@@ -379,6 +386,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		bitstream_item.setSelected(theApp.isBitStreamOut());
 		freeChannelMarkerGW_item.setSelected(theApp.isViewGWChannelMarkers());
 		DisplayBad_item.setSelected(theApp.isDisplayBadPackets());
+		DisplayUTC_item.setSelected(theApp.isLogInUTC());
 		RTTY_item.setSelected(theApp.isRTTY());
 		RDFT_item.setSelected(theApp.isRDFT());
 		// Triggers

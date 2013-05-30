@@ -128,6 +128,7 @@ Build 70 Return a "Clear Display" item to the menu
          Handle shore side 2/101 packets differently to ship side ones
 Build 71 Make a change to the GW byte identifiers
          Add the "Display Bad Packets" menu item. If this isn't enabled then only known GW packet types will be displayed
+Build 72 Add an option to show timestamps in UTC
                 
 Reported Bugs
 -------------
@@ -142,4 +143,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (29th May 2013) 
+Ian Wraith (30th May 2013) 
