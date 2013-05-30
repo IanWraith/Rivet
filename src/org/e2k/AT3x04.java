@@ -138,17 +138,29 @@ public class AT3x04 extends OFDM {
 			symbolCounter++;
 			//if (symbolCounter<samplesPerSymbol) return;
 			//if (symbolCounter<=RDFT_FFT_SIZE) return;
+			if (symbolCounter<800) return;
 			symbolCounter=0;
 			
 			// Get the complex spectrum
-			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
+			//double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
 			
+			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,800,false);
+			
+			double spec0[]=recoverCarrier(0,ri);
+			double spec1[]=recoverCarrier(1,ri);
+			double spec2[]=recoverCarrier(2,ri);
+			StringBuilder sb=new StringBuilder();
+			int i;
+			for (i=0;i<spec1.length;i++)	{
+				sb.append(Double.toString(spec0[i])+","+Double.toString(spec1[i])+","+Double.toString(spec2[i])+"\n");
+			}
+			theApp.debugDump(sb.toString());
 			
 			// Extract each carrier symbol as a complex number
 			//List<Complex> symbolComplex=extractCarrierSymbols(ri);
 			
-			StringBuilder sb=new StringBuilder();
-			sb.append(Long.toString(sampleCount));
+			//StringBuilder sb=new StringBuilder();
+			//sb.append(Long.toString(sampleCount));
 		    
 		    pastEnergyBuffer[pastEnergyBufferCounter]=totalCarriersEnergy;
 		    pastEnergyBufferCounter++;
@@ -232,8 +244,21 @@ public class AT3x04 extends OFDM {
 			}
 			lastCarrierBin=lastCarrierBin-20;
 		}
-		
 	}
+	
+	// Do an inverse FFT to recover one particular carrier
+	private double[] recoverCarrier (int carrierNo,double spectrumIn[])	{
+		double spectrum[]=new double[spectrumIn.length];
+		int b;
+		for (b=0;b<20;b++)	{
+				int rBin=carrierBinNos[carrierNo][b][0];
+				int iBin=carrierBinNos[carrierNo][b][1];	
+				spectrum[rBin]=spectrumIn[rBin];
+				spectrum[iBin]=spectrumIn[iBin];
+			}
+		RDFTfft.realInverse(spectrum,false);		
+		return spectrum;
+	}	
 	
 
 }

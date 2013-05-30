@@ -26,7 +26,7 @@ public class OFDM extends FFT {
 		double datar[]=new double[RDFT_FFT_SIZE];
 		int a;
 	    for (a=0;a<datar.length;a++)	{
-	    	if (ss==65)	{
+	    	if ((ss==65)||(ss==66))	{
 	    		if ((a>=167)&&(a<232)) datar[a]=datao[a-167];
 	    		else datar[a]=0.0;
 	    	}
