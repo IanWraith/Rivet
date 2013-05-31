@@ -20,6 +20,9 @@ public class AT3x04 extends OFDM {
 	private double samplesPerSymbol;
 	private int carrierBinNos[][][]=new int[12][20][2];
 	private double totalCarriersEnergy;
+	private long earlySamplePoint;
+	
+	private double earlyPhase0;
 	
 	private double pastEnergyBuffer[]=new double[3];
 	private int pastEnergyBufferCounter=0;
@@ -73,6 +76,8 @@ public class AT3x04 extends OFDM {
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			samplesPerSymbol=samplesPerSymbol(120.0,waveData.getSampleRate());
+			earlySamplePoint=(long)samplesPerSymbol/2;
+			
 			startCarrierCounter=0;
 			// Add a user warning that AT3x04 doesn't yet decode
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,51 +136,33 @@ public class AT3x04 extends OFDM {
 		}
 		else if (state==2)	{
 			sampleCount++;
-			
-			
-			
-			
 			symbolCounter++;
-			//if (symbolCounter<samplesPerSymbol) return;
-			//if (symbolCounter<=RDFT_FFT_SIZE) return;
-			if (symbolCounter<800) return;
+			
+			if (symbolCounter==earlySamplePoint)	{
+				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
+				List<Complex> symbolComplex=extractCarrierSymbols(ri);
+				earlyPhase0=symbolComplex.get(0).getPhase();
+			}
+			
+			
+			if (symbolCounter<samplesPerSymbol) return;
 			symbolCounter=0;
 			
 			// Get the complex spectrum
-			//double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
-			
-			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,800,false);
-			
-			double spec0[]=recoverCarrier(0,ri);
-			double spec1[]=recoverCarrier(1,ri);
-			double spec2[]=recoverCarrier(2,ri);
-			StringBuilder sb=new StringBuilder();
-			int i;
-			for (i=0;i<spec1.length;i++)	{
-				sb.append(Double.toString(spec0[i])+","+Double.toString(spec1[i])+","+Double.toString(spec2[i])+"\n");
-			}
-			theApp.debugDump(sb.toString());
-			
+			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
 			// Extract each carrier symbol as a complex number
-			//List<Complex> symbolComplex=extractCarrierSymbols(ri);
+			List<Complex> symbolComplex=extractCarrierSymbols(ri);
+			double latePhase0=symbolComplex.get(0).getPhase();
 			
-			//StringBuilder sb=new StringBuilder();
-			//sb.append(Long.toString(sampleCount));
+			double phaseDif=earlyPhase0-latePhase0;
+			
+			StringBuilder sb=new StringBuilder();
+			
+			sb.append(Double.toString(phaseDif)+",");
+			
+			sb.append(Long.toString(sampleCount));
 		    
-		    pastEnergyBuffer[pastEnergyBufferCounter]=totalCarriersEnergy;
-		    pastEnergyBufferCounter++;
-		    if (pastEnergyBufferCounter==pastEnergyBuffer.length) pastEnergyBufferCounter=0;
-			
-		    int a;
-		    double av=0.0;
-		    for (a=0;a<pastEnergyBuffer.length;a++)	{
-		    	av=av+pastEnergyBuffer[a];
-		    }
-		    av=av/pastEnergyBuffer.length;
-		    
-			sb.append(","+Double.toString(av));
-			
-			//theApp.debugDump(sb.toString());
+			theApp.debugDump(sb.toString());
 				
 		}
 		
@@ -260,5 +247,26 @@ public class AT3x04 extends OFDM {
 		return spectrum;
 	}	
 	
+	private List<Complex> extractCarrierSymbols (double fdata[])	{
+		List<Complex> complexList=new ArrayList<Complex>();
+		int carrierNo;
+		totalCarriersEnergy=0.0;
+		// Run through each carrier
+		for (carrierNo=0;carrierNo<12;carrierNo++)	{
+			int b;
+			Complex total=new Complex();
+			for (b=0;b<20;b++)	{
+				int rBin=carrierBinNos[carrierNo][b][0];
+				int iBin=carrierBinNos[carrierNo][b][1];
+				Complex tbin=new Complex(fdata[rBin],fdata[iBin]);
+				total=total.add(tbin);
+			}
+			// Add this to the list
+			complexList.add(total);
+			// Calculate the total energy
+			totalCarriersEnergy=totalCarriersEnergy+total.getMagnitude();
+		}
+		return complexList;
+	}	
 
 }
