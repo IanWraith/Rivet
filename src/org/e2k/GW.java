@@ -415,11 +415,13 @@ public class GW extends FSK {
 			else if ((type==5)&&(subType==41))	{
 				// Display the packet details
 				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+				return;
 			}
 			// Type 5 Subtype 63
 			else if ((type==5)&&(subType==63))	{
 				// Display the packet details
 				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+				return;
 			}
 			// If selected display possible bad packets
 			if (theApp.isDisplayBadPackets()==true) theApp.writeLine(lo.toString(),Color.RED,theApp.boldFont);
