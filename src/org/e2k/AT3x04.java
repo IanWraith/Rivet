@@ -20,12 +20,9 @@ public class AT3x04 extends OFDM {
 	private double samplesPerSymbol;
 	private int carrierBinNos[][][]=new int[12][20][2];
 	private double totalCarriersEnergy;
-	private long earlySamplePoint;
 	
-	private double earlyPhase0;
-	
-	private double pastEnergyBuffer[]=new double[3];
-	private int pastEnergyBufferCounter=0;
+	private double energyBuffer0[]=new double[67];
+	private double energyBuffer11[]=new double[67];
 	
 	List<CarrierInfo> startCarrierList1=new ArrayList<CarrierInfo>();
 	List<CarrierInfo> startCarrierList2=new ArrayList<CarrierInfo>();
@@ -76,8 +73,6 @@ public class AT3x04 extends OFDM {
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			samplesPerSymbol=samplesPerSymbol(120.0,waveData.getSampleRate());
-			earlySamplePoint=(long)samplesPerSymbol/2;
-			
 			startCarrierCounter=0;
 			// Add a user warning that AT3x04 doesn't yet decode
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,6 +109,7 @@ public class AT3x04 extends OFDM {
 			    		// Check this list of carriers looks like a AT3x04 waveform
 			    		if (AT3x04CarrierConfirm(clist)==true)	{
 			    			setState(2);
+			    			sampleCount=0;
 			    			// Calculate the carrier tone bins
 			    			populateCarrierTonesBins();
 			    			// Tell the user
@@ -135,34 +131,29 @@ public class AT3x04 extends OFDM {
 			}
 		}
 		else if (state==2)	{
-			sampleCount++;
-			symbolCounter++;
 			
-			if (symbolCounter==earlySamplePoint)	{
-				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
-				List<Complex> symbolComplex=extractCarrierSymbols(ri);
-				earlyPhase0=symbolComplex.get(0).getPhase();
+			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
+			List<Complex> symbolComplex=extractCarrierSymbols(ri);
+			double cE0=symbolComplex.get(0).getMagnitude();
+			double cE11=symbolComplex.get(11).getMagnitude();
+			energyBuffer0[(int)sampleCount]=energyBuffer0[(int)sampleCount]+cE0;
+			energyBuffer11[(int)sampleCount]=energyBuffer11[(int)sampleCount]+cE11;
+			
+			sampleCount++;
+			
+			if (sampleCount<samplesPerSymbol) return;
+			symbolCounter++;
+			sampleCount=0;
+			
+			if (symbolCounter==100)	{
+				int a;
+				for (a=0;a<energyBuffer0.length;a++)	{
+					theApp.debugDump(Double.toString(energyBuffer0[a])+","+Double.toString(energyBuffer11[a]));
+				}
+			symbolCounter=0;	
 			}
 			
 			
-			if (symbolCounter<samplesPerSymbol) return;
-			symbolCounter=0;
-			
-			// Get the complex spectrum
-			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
-			// Extract each carrier symbol as a complex number
-			List<Complex> symbolComplex=extractCarrierSymbols(ri);
-			double latePhase0=symbolComplex.get(0).getPhase();
-			
-			double phaseDif=earlyPhase0-latePhase0;
-			
-			StringBuilder sb=new StringBuilder();
-			
-			sb.append(Double.toString(phaseDif)+",");
-			
-			sb.append(Long.toString(sampleCount));
-		    
-			theApp.debugDump(sb.toString());
 				
 		}
 		
