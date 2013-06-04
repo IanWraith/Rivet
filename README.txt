@@ -3,6 +3,10 @@ of the Enigma 2000 group.
 
 http://groups.yahoo.com/group/enigma2000/
 
+and the UDXF group ..
+
+http://www.udxf.nl/
+
 A binary version of this program which will run without being compiled is available from ..
 
 http://borg.shef.ac.uk/rivet/
@@ -118,7 +122,7 @@ Build 64 Add a clear display button
          Add a pause display button
          Add support for the ships.xml file
 Build 65 Ensure the display is set wide enough for the entire status bar
-         Add the autoscrolling feature
+         Add the auto scrolling feature
 Build 66 Display the Clear and Pause display buttons on the status bar in their own pane on top of each other to make more room.
          Remove the code which made sure the Rivet window was of a certain size
 Build 67 Display error messages from parsing the ships.xml file
@@ -128,7 +132,8 @@ Build 70 Return a "Clear Display" item to the menu
          Handle shore side 2/101 packets differently to ship side ones
 Build 71 Make a change to the GW byte identifiers
          Add the "Display Bad Packets" menu item. If this isn't enabled then only known GW packet types will be displayed
-Build 72 Add an option to show timestamps in UTC
+Build 72 Add an option to show time stamps in UTC
+Build 73 Credit UDXF group
                 
 Reported Bugs
 -------------
@@ -143,4 +148,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (30th May 2013) 
+Ian Wraith (4th June 2013) 

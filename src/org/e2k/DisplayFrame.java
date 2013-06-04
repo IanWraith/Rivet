@@ -37,7 +37,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
 	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,RDFT_item,AddEditTrigger_item,credits_item,system_info_item;
-	private JMenuItem ClearDisplay_item,DisplayBad_item,DisplayUTC_item;
+	private JMenuItem ClearDisplay_item,DisplayBad_item,DisplayUTC_item,UDXF_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
 	private JMenu audioDevicesMenu;
 	private static ArrayList<AudioMixer> devices;
@@ -156,6 +156,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		help_item.addActionListener(this);
 		helpMenu.add(system_info_item=new JMenuItem("System Information"));	
 		system_info_item.addActionListener(this);
+		helpMenu.add(UDXF_item=new JMenuItem("UDXF"));		
+		UDXF_item.addActionListener(this);
 		menuBar.add(helpMenu);
 		// Add the vertical scroll bar
 		add(vscrollbar,BorderLayout.EAST);
@@ -215,12 +217,16 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		}
 		// About
 		if (event_name=="About")	{
-			String line=theApp.program_version+"\r\n"+"ianwraith@gmail.com\r\nfor the Enigma2000 group.";
+			String line=theApp.program_version+"\r\n"+"ianwraith@gmail.com\r\nfor the Enigma2000 & UDXF groups.";
 			JOptionPane.showMessageDialog(null,line,"Rivet", JOptionPane.INFORMATION_MESSAGE);
 		}
 		// Enigma2000
 		if (event_name=="Enigma2000")	{
 			BareBonesBrowserLaunch.openURL("http://www.enigma2000.org.uk/");
+		}
+		// UDXF
+		if (event_name=="UDXF")	{
+			BareBonesBrowserLaunch.openURL("http://www.udxf.nl/");
 		}
 		// Help
 		if (event_name=="Help") {
