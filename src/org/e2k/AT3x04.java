@@ -21,8 +21,12 @@ public class AT3x04 extends OFDM {
 	private int carrierBinNos[][][]=new int[12][20][2];
 	private double totalCarriersEnergy;
 	
-	private double energyBuffer0[]=new double[67];
-	private double energyBuffer11[]=new double[67];
+	private double mag[]=new double[30];
+	private double rn,in;
+	
+	private final int TIMINGBUFFERSIZE=5;
+	private int timingBufferCounter=0;
+	private double timingBuffer[]=new double[TIMINGBUFFERSIZE];
 	
 	List<CarrierInfo> startCarrierList1=new ArrayList<CarrierInfo>();
 	List<CarrierInfo> startCarrierList2=new ArrayList<CarrierInfo>();
@@ -131,30 +135,54 @@ public class AT3x04 extends OFDM {
 			}
 		}
 		else if (state==2)	{
-			
-			double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
-			List<Complex> symbolComplex=extractCarrierSymbols(ri);
-			double cE0=symbolComplex.get(0).getMagnitude();
-			double cE11=symbolComplex.get(11).getMagnitude();
-			energyBuffer0[(int)sampleCount]=energyBuffer0[(int)sampleCount]+cE0;
-			energyBuffer11[(int)sampleCount]=energyBuffer11[(int)sampleCount]+cE11;
-			
 			sampleCount++;
 			
-			if (sampleCount<samplesPerSymbol) return;
-			symbolCounter++;
-			sampleCount=0;
-			
-			if (symbolCounter==100)	{
-				int a;
-				for (a=0;a<energyBuffer0.length;a++)	{
-					theApp.debugDump(Double.toString(energyBuffer0[a])+","+Double.toString(energyBuffer11[a]));
-				}
-			symbolCounter=0;	
-			}
-			
-			
+			// Early
+			if (sampleCount==16)	{
+				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
+				List<Complex> symbolComplex=extractCarrierSymbols(ri);
+				mag[0]=symbolComplex.get(0).getMagnitude();
 				
+			}
+			// Mid
+			else if (sampleCount==33)	{
+				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
+				List<Complex> symbolComplex=extractCarrierSymbols(ri);
+				mag[1]=symbolComplex.get(0).getMagnitude();
+				rn=symbolComplex.get(0).getReal();
+				in=symbolComplex.get(0).getImag();
+				
+			}
+			// Late
+			else if (sampleCount==49)	{
+				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
+				List<Complex> symbolComplex=extractCarrierSymbols(ri);
+				mag[2]=symbolComplex.get(0).getMagnitude();
+				
+				// TODO : Calculate this difference as a percentage
+				
+				double pdif=mag[0]-mag[2];
+				addToTimingBuffer(pdif);	
+			}
+			// End of symbol
+			else if (sampleCount==66)	{
+				
+				double ad=getBufferAverage();
+				
+				
+				
+				String l=Double.toString(ad)+","+Double.toString(rn)+","+Double.toString(in);
+				theApp.debugDump(l);
+				
+				if (ad<-100) sampleCount=-1;
+				else if (ad>100) sampleCount=1;
+				else sampleCount=0;
+				
+				sampleCount=0;
+				
+			}
+					
+			
 		}
 		
 	}	
@@ -260,4 +288,23 @@ public class AT3x04 extends OFDM {
 		return complexList;
 	}	
 
+	
+	private void addToTimingBuffer(double in)	{
+		timingBuffer[timingBufferCounter]=in;
+		timingBufferCounter++;
+		if (timingBufferCounter==TIMINGBUFFERSIZE) timingBufferCounter=0;
+	}
+	
+	private double getBufferAverage()	{
+		double total=0.0,size=0.0;
+		int a;
+		for (a=0;a<timingBuffer.length;a++)	{
+			total=total+timingBuffer[a];
+			size++;
+		}
+		return (total/size);
+	}
+	
+	
+	
 }
