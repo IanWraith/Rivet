@@ -21,12 +21,14 @@ public class AT3x04 extends OFDM {
 	private int carrierBinNos[][][]=new int[12][20][2];
 	private double totalCarriersEnergy;
 	
-	private double mag[]=new double[30];
-	private double rn,in;
+	private double mag[]=new double[3];
 	
-	private final int TIMINGBUFFERSIZE=5;
+	private final int TIMINGBUFFERSIZE=3;
 	private int timingBufferCounter=0;
 	private double timingBuffer[]=new double[TIMINGBUFFERSIZE];
+	
+	double realV[]=new double[12];
+	double imagV[]=new double[12];
 	
 	List<CarrierInfo> startCarrierList1=new ArrayList<CarrierInfo>();
 	List<CarrierInfo> startCarrierList2=new ArrayList<CarrierInfo>();
@@ -137,51 +139,62 @@ public class AT3x04 extends OFDM {
 		else if (state==2)	{
 			sampleCount++;
 			
-			// Early
-			if (sampleCount==16)	{
+			// Early symbol
+			if (sampleCount==17)	{
 				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
-				List<Complex> symbolComplex=extractCarrierSymbols(ri);
-				mag[0]=symbolComplex.get(0).getMagnitude();
-				
+				extractCarrierSymbols(ri);
+				mag[0]=totalCarriersEnergy;
 			}
-			// Mid
+			// Mid Symbol
 			else if (sampleCount==33)	{
 				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
 				List<Complex> symbolComplex=extractCarrierSymbols(ri);
-				mag[1]=symbolComplex.get(0).getMagnitude();
-				rn=symbolComplex.get(0).getReal();
-				in=symbolComplex.get(0).getImag();
-				
+				mag[1]=totalCarriersEnergy;
+				int a;
+				for (a=0;a<symbolComplex.size();a++)	{
+					realV[a]=symbolComplex.get(a).getReal();
+					imagV[a]=symbolComplex.get(a).getImag();
+				}
 			}
-			// Late
+			// Late symbol
 			else if (sampleCount==49)	{
 				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
-				List<Complex> symbolComplex=extractCarrierSymbols(ri);
-				mag[2]=symbolComplex.get(0).getMagnitude();
-				
-				// TODO : Calculate this difference as a percentage
-				
-				double pdif=mag[0]-mag[2];
-				addToTimingBuffer(pdif);	
+				extractCarrierSymbols(ri);
+				mag[2]=totalCarriersEnergy;
 			}
+			
 			// End of symbol
-			else if (sampleCount==66)	{
+			if (sampleCount==66)	{
+				symbolCounter++;
+				// Symbol timing code
+				double pdif;
+				double total=mag[0]+mag[2];
+				if (mag[0]>mag[2])	{
+					double d=mag[0]-mag[2];
+					pdif=(d/total)*100;
+					pdif=0-pdif;
+					
+				}
+				else	{
+					double d=mag[2]-mag[0];
+					pdif=(d/total)*100;
+				}
+				addToTimingBuffer(pdif);
+				pdif=getBufferAverage();
+				sampleCount=(long)pdif/5;
 				
-				double ad=getBufferAverage();
-				
-				
-				
-				String l=Double.toString(ad)+","+Double.toString(rn)+","+Double.toString(in);
-				theApp.debugDump(l);
-				
-				if (ad<-100) sampleCount=-1;
-				else if (ad>100) sampleCount=1;
-				else sampleCount=0;
-				
-				sampleCount=0;
+				int a;
+				StringBuffer sb=new StringBuffer();
+				sb.append(Long.toString(symbolCounter)+",");
+				for (a=0;a<12;a++)	{
+					sb.append(Double.toString(realV[a])+","+Double.toString(imagV[a])+",");
+				}
+				sb.append(Double.toString(pdif));
+				theApp.debugDump(sb.toString());
 				
 			}
-					
+				
+			
 			
 		}
 		
