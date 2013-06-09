@@ -139,6 +139,14 @@ public class AT3x04 extends OFDM {
 		else if (state==2)	{
 			sampleCount++;
 			
+			double r[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
+			List<Complex> sc=extractCarrierSymbols(r);
+			double rv=sc.get(11).getReal();
+			double iv=sc.get(11).getImag();
+			double mg=sc.get(11).getMagnitude();
+			double ph=sc.get(11).getPhase();
+			String line=Double.toString(rv)+","+Double.toString(iv)+","+Double.toString(mg)+","+Double.toString(ph);
+	
 			// Early symbol
 			if (sampleCount==17)	{
 				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
@@ -155,6 +163,8 @@ public class AT3x04 extends OFDM {
 					realV[a]=symbolComplex.get(a).getReal();
 					imagV[a]=symbolComplex.get(a).getImag();
 				}
+				line=line+",X";
+				
 			}
 			// Late symbol
 			else if (sampleCount==49)	{
@@ -190,11 +200,11 @@ public class AT3x04 extends OFDM {
 					sb.append(Double.toString(realV[a])+","+Double.toString(imagV[a])+",");
 				}
 				sb.append(Double.toString(pdif));
-				theApp.debugDump(sb.toString());
+				//theApp.debugDump(sb.toString());
 				
 			}
 				
-			
+			theApp.debugDump(line);	
 			
 		}
 		
