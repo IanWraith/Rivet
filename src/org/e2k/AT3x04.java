@@ -144,14 +144,14 @@ public class AT3x04 extends OFDM {
 			double rv=sc.get(11).getReal();
 			double iv=sc.get(11).getImag();
 			double mg=sc.get(11).getMagnitude();
-			double ph=sc.get(11).getPhase();
-			String line=Double.toString(rv)+","+Double.toString(iv)+","+Double.toString(mg)+","+Double.toString(ph);
+			String line=Double.toString(rv)+","+Double.toString(iv)+","+Double.toString(mg);
 	
 			// Early symbol
 			if (sampleCount==17)	{
 				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
 				extractCarrierSymbols(ri);
 				mag[0]=totalCarriersEnergy;
+				line=line+",0";
 			}
 			// Mid Symbol
 			else if (sampleCount==33)	{
@@ -163,7 +163,7 @@ public class AT3x04 extends OFDM {
 					realV[a]=symbolComplex.get(a).getReal();
 					imagV[a]=symbolComplex.get(a).getImag();
 				}
-				line=line+",X";
+				line=line+",10000";
 				
 			}
 			// Late symbol
@@ -171,7 +171,9 @@ public class AT3x04 extends OFDM {
 				double ri[]=doRDFTFFTSpectrum(circBuf,waveData,0,false,(int)samplesPerSymbol,false);
 				extractCarrierSymbols(ri);
 				mag[2]=totalCarriersEnergy;
+				line=line+",0";
 			}
+			else line=line+",0";
 			
 			// End of symbol
 			if (sampleCount==66)	{
