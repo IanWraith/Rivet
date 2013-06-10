@@ -38,6 +38,7 @@ public class GW extends FSK {
 	private String lastPositionFragment;
 	private int positionFragmentCounter=0;
 	private long fragmentStartTime=0;
+	private boolean shoreSide;
 	
 	public GW (Rivet tapp)	{
 		theApp=tapp;
@@ -71,6 +72,7 @@ public class GW extends FSK {
 			symbolCounter=0;
 			samplesPerSymbol100=samplesPerSymbol(100.0,waveData.getSampleRate());
 			setState(1);
+			shoreSide=false;
 			return;
 		}
 		else if (state==1)	{
@@ -280,6 +282,8 @@ public class GW extends FSK {
 						lo.append(" "+Integer.toHexString(frame.get(a))+" ");
 					}
 					if (theApp.isViewGWChannelMarkers()==true) theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+					// We now know we are monitoring the shore side
+					shoreSide=true;
 					return;
 			}
 		}
@@ -340,6 +344,8 @@ public class GW extends FSK {
 			}
 			// An ongoing position report
 			else if ((type==5)&&(subType==86))	{
+				// 5/86's are only seen ship side
+				shoreSide=false;
 				// Check if this fragment of the position report is a repeat and can be ignored
 				String curFrag=displayGWAsAscii(0);
 				// If this starts with a "$" then clear everything
@@ -401,6 +407,8 @@ public class GW extends FSK {
 				// Is this a shore side 2/101 ? (0xe2,0x72,0xff,0xff,0xe7,0xe6)
 				if ((mInts.get(0)==0xe2)&&(mInts.get(1)==0x72)&&(mInts.get(2)==0xff)&&(mInts.get(3)==0xff)&&(mInts.get(4)==0xe7)&&(mInts.get(5)==0xe6))	{
 					mLine="GW Network ID 1094";
+					// We must be monitoring the shore side
+					shoreSide=true;
 				}
 				else	{
 					// Does this line contain an error report ?
