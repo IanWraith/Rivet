@@ -422,8 +422,19 @@ public class GW extends FSK {
 			}
 			// Type 5 Subtype 41
 			else if ((type==5)&&(subType==41))	{
+				Color colour;
+				// Convert the payload to ints
+				List<Integer> mInts=dataBitSet.returnIntsFromStart(14);
 				// Display the packet details
 				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
+				// If shore side then decode
+				if (shoreSide==true)	{
+					String mLine=getGW_ShoreMMSI(mInts);
+					// Display in red if there is an error with ships.xml and blue otherwise
+					if (mLine.contains("ERROR")) colour=Color.RED;
+					else colour=Color.BLUE;
+					theApp.writeLine(mLine,colour,theApp.boldFont);
+				}	
 				return;
 			}
 			// Type 5 Subtype 63
@@ -522,6 +533,27 @@ public class GW extends FSK {
 		}
 	}
 	
+	// Decode a shore side 5/41 packet
+	private String getGW_ShoreMMSI (List<Integer> mm)	{
+		UserIdentifier uid=new UserIdentifier();
+		// Decode the MMSI
+		String sMMSI=displayGW_ShoreMMSI(mm,9);
+		// See if we have a match for this MMSI
+		Ship ship=uid.getShipDetails(sMMSI);
+		// If nothing returned just return the MMSI
+		if (ship==null)	{
+			String ret="MMSI : "+sMMSI;
+			// Do we have an error from the identifier
+			if (uid.getErrorMessage()!=null) ret=ret+" (ERROR "+uid.getErrorMessage()+" )";
+			return ret;
+		}
+		else	{
+			StringBuilder sb=new StringBuilder();
+			sb.append("MMSI : "+sMMSI+" ("+ship.getName()+","+ship.getFlag()+")");
+			return sb.toString();
+		}
+	}
+	
 	// Convert a List of Ints from a 2/101 packet into an MMSI
 	public String displayGW_MMSI (List<Integer> mm,int totalDigits)	{
 		StringBuilder sb=new StringBuilder();
@@ -560,8 +592,7 @@ public class GW extends FSK {
 	}
 	
 	// Convert a 4 bit nibble into a number
-	// GW use this method for encoding ships MMSIs in 2/101 FSK packets
-	// I really don't understand the theory behind this encoding method.
+	// GW use this method for encoding ships MMSIs in ship side 2/101 FSK packets
 	// Big thanks to Alan W for all his help working out the encoding method used here
 	private String convertMMSI (int n,boolean alternate)	{
 		if (n==0x0) return "3";
@@ -611,6 +642,56 @@ public class GW extends FSK {
 		else positionReport.append(curFrag);
 		// Display this position report
 		theApp.writeLine(positionReport.toString(),Color.BLUE,theApp.boldFont);
+	}
+	
+	// Decode a shore side MMSI
+	public String displayGW_ShoreMMSI  (List<Integer> mm,int totalDigits)	{
+		StringBuilder sb=new StringBuilder();
+		int a,digitCounter=0;
+		
+		// TODO : Find the pivot point for shore side MMSI encoding
+		
+		for (a=0;a<6;a++)	{
+			// High nibble
+			int hn=(mm.get(a)&240)>>4;
+			// Low nibble
+			int ln=mm.get(a)&15;
+			// The following nibble
+			int followingNibble;
+			// Look at the next byte for this unless this is the last byte
+			if (a<5) followingNibble=(mm.get(a+1)&240)>>4;
+			else followingNibble=0;
+			boolean alternate;
+			// Low nibble
+			// If the nibble following the low nibble (which is in the next byte) is 0x8 or greater
+			// then we use the alternate numbering method
+			if (followingNibble>=0x8) alternate=true;
+			else alternate=false;
+			sb.append(convertShoreNum(ln,alternate));
+			digitCounter++;
+			// Once digit counter is totalDigits then we are done
+			if (digitCounter==totalDigits) return sb.toString();
+			// High nibble
+			// If the nibble following the high nibble (which is the low nibble) is 0x8 or greater
+			// then we use the alternate numbering scheme
+			if (ln>=0x8) alternate=true;
+			else alternate=false;
+			sb.append(convertShoreNum(hn,alternate));
+			digitCounter++;
+			// Once the digit counter is totalDigits then we are done
+			if (digitCounter==totalDigits) return sb.toString();
+		}
+		return sb.toString();		
+	}
+
+	// Convert a 4 bit nibble into a number
+	// GW use this method for encoding ships MMSIs in shore side 5/41 FSK packets
+	// Big thanks to Alan W for all his help working out the encoding method used here
+	private String convertShoreNum (int n,boolean alternate)	{
+		
+		// TODO : Add the shore side nibble to number map
+		
+		return ("[0x"+Integer.toHexString(n)+"]");
 	}
 	
 	

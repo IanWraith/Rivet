@@ -118,5 +118,40 @@ public class testGW extends TestCase {
 		}
 		return gwList;	
 	}
+	
+	// Test the decoding of shore side encoded MMSIs
+	public void testShoreMMSI() {
+		int a,errorCount=0;
+		GW gw=new GW(null);
+		List<Ship> ships=new ArrayList<Ship>();
+		List<String> errorStrings=new ArrayList<String>();
+		
+		// 304653000 MARCHICORA
+		//final int loadData01[]={0xE0,0x57,0x03,0x66,0x66,0x66};
+		//ships.add(createShip("304653000",loadData01));
+		
+	
+		// Test each member of the ships list
+		for (a=0;a<ships.size();a++)	{
+			String ret=gw.displayGW_ShoreMMSI(getGWIdentasArrayList(ships.get(a)),9);
+			if (ret.indexOf(ships.get(a).getMmsi())==-1)	{
+				errorCount++;
+				String s="Bad decode of shore MMSI "+ships.get(a).getMmsi()+" have "+ret;
+				errorStrings.add(s);
+			}
+		}
+		
+		// Have there been any errors ?
+		if (errorCount>0)	{
+			StringBuilder sb=new StringBuilder();
+			sb.append(Integer.toString(errorCount)+" shore MMSIs have decoded incorrectly.");
+			for (a=0;a<errorStrings.size();a++)	{
+				sb.append("\r\n"+errorStrings.get(a));
+			}
+			fail(sb.toString());
+		}
+		
+		
+	}	
 
 }
