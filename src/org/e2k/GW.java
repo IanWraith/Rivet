@@ -402,39 +402,45 @@ public class GW extends FSK {
 				// Convert the payload to ints
 				List<Integer> mInts=dataBitSet.returnIntsFromStart(14);
 				// Display the MMSI and contents
-				Color colour;
-				String mLine;
+				Color colour=Color.BLUE;
 				// Is this a shore side 2/101 ? (0xe2,0x72,0xff,0xff,0xe7,0xe6)
 				if ((mInts.get(0)==0xe2)&&(mInts.get(1)==0x72)&&(mInts.get(2)==0xff)&&(mInts.get(3)==0xff)&&(mInts.get(4)==0xe7)&&(mInts.get(5)==0xe6))	{
-					mLine="GW Network ID 1094";
 					// We must be monitoring the shore side
 					shoreSide=true;
+					String mLines[]=getGW_Shore2101(mInts);
+					theApp.writeLine(mLines[0],colour,theApp.boldFont);
+					theApp.writeLine(mLines[1],colour,theApp.boldFont);
 				}
 				else	{
 					// Does this line contain an error report ?
-					mLine=getGW_MMSI(mInts);
+					String mLine=getGW_MMSI(mInts);
+					// Display in red if there is an error with ships.xml and blue otherwise
+					if (mLine.contains("ERROR")) colour=Color.RED;
+					theApp.writeLine(mLine,colour,theApp.boldFont);
 				}
-				// Display in red if there is an error with ships.xml and blue otherwise
-				if (mLine.contains("ERROR")) colour=Color.RED;
-				else colour=Color.BLUE;
-				theApp.writeLine(mLine,colour,theApp.boldFont);
 				return;
 			}
 			// Type 5 Subtype 41
 			else if ((type==5)&&(subType==41))	{
-				Color colour;
+				Color colour=Color.BLUE;
+				String mLine[]=new String[2];
 				// Convert the payload to ints
 				List<Integer> mInts=dataBitSet.returnIntsFromStart(14);
 				// Display the packet details
 				theApp.writeLine(lo.toString(),Color.BLACK,theApp.boldFont);
-				// If shore side then decode
+				// Decode
+				// Shore
 				if (shoreSide==true)	{
-					String mLine=getGW_ShoreMMSI(mInts);
+					mLine=getGW_Shore541(mInts);
 					// Display in red if there is an error with ships.xml and blue otherwise
-					if (mLine.contains("ERROR")) colour=Color.RED;
-					else colour=Color.BLUE;
-					theApp.writeLine(mLine,colour,theApp.boldFont);
+					if (mLine[0].contains("ERROR")) colour=Color.RED;
 				}	
+				else 	{
+					// Ship
+					mLine=getGW_Ship541(mInts);
+				}
+				theApp.writeLine(mLine[0],colour,theApp.boldFont);
+				theApp.writeLine(mLine[1],colour,theApp.boldFont);
 				return;
 			}
 			// Type 5 Subtype 63
@@ -516,7 +522,7 @@ public class GW extends FSK {
 	private String getGW_MMSI (List<Integer> mm)	{
 		UserIdentifier uid=new UserIdentifier();
 		// Decode the MMSI
-		String sMMSI=displayGW_MMSI(mm,9);
+		String sMMSI=displayGW_ShipMMSI(mm,9);
 		// See if we have a match for this MMSI
 		Ship ship=uid.getShipDetails(sMMSI);
 		// If nothing returned just return the MMSI
@@ -534,28 +540,60 @@ public class GW extends FSK {
 	}
 	
 	// Decode a shore side 5/41 packet
-	private String getGW_ShoreMMSI (List<Integer> mm)	{
+	public String[] getGW_Shore541 (List<Integer> mm)	{
+		String ret[]=new String[2];
 		UserIdentifier uid=new UserIdentifier();
-		// Decode the MMSI
-		String sMMSI=displayGW_ShoreMMSI(mm,9);
+		// Decode the MMSI & the command
+		String fullp=displayGW_ShoreMMSI(mm,12);
+		// The first 9 digits of this are the MMSI
+		String sMMSI=fullp.substring(0,9);
+		// The last three digits of this are the command
+		String sCom="Command="+fullp.substring(9,12);
 		// See if we have a match for this MMSI
 		Ship ship=uid.getShipDetails(sMMSI);
 		// If nothing returned just return the MMSI
 		if (ship==null)	{
-			String ret="MMSI : "+sMMSI;
+			ret[0]="Traffic for : MMSI "+sMMSI;
 			// Do we have an error from the identifier
-			if (uid.getErrorMessage()!=null) ret=ret+" (ERROR "+uid.getErrorMessage()+" )";
-			return ret;
+			if (uid.getErrorMessage()!=null) ret[0]=ret[0]+" (ERROR "+uid.getErrorMessage()+" )";
 		}
 		else	{
-			StringBuilder sb=new StringBuilder();
-			sb.append("MMSI : "+sMMSI+" ("+ship.getName()+","+ship.getFlag()+")");
-			return sb.toString();
+			ret[0]="Traffic For : MMSI "+sMMSI+" ("+ship.getName()+","+ship.getFlag()+")";
 		}
+		ret[1]=sCom;
+		return ret;
 	}
 	
-	// Convert a List of Ints from a 2/101 packet into an MMSI
-	public String displayGW_MMSI (List<Integer> mm,int totalDigits)	{
+	// Decode a ship side 5/41 packet
+	public String[] getGW_Ship541 (List<Integer> mm)	{
+		String ret[]=new String[2];
+		// Decode the pseudo MMSI & the command
+		String fullp=displayGW_ShipMMSI(mm,12);
+		// The first 9 digits of this are the pseudo MMSI
+		String sMMSI=fullp.substring(0,9);
+		// The last three digits of this are the command
+		String sCom="Command="+fullp.substring(9,12);
+		ret[0]="Traffic for : "+sMMSI;
+		ret[1]=sCom;
+		return ret;
+	}
+	
+	// Decode a shore side 2/101 packet
+	public String[] getGW_Shore2101 (List<Integer> mm)	{
+		String ret[]=new String[2];
+		// Decode the pseudo MMSI & the command
+		String fullp=displayGW_ShoreMMSI(mm,12);
+		// The first 9 digits of this are the pseudo MMSI
+		String sMMSI=fullp.substring(0,9);
+		// The last three digits of this are the command
+		String sCom="Command="+fullp.substring(9,12);
+		ret[0]=sMMSI;
+		ret[1]=sCom;
+		return ret;
+	}	
+	
+	// Convert a List of Ints from a ship side 2/101 packet into an MMSI
+	public String displayGW_ShipMMSI (List<Integer> mm,int totalDigits)	{
 		StringBuilder sb=new StringBuilder();
 		int a,digitCounter=0;
 		for (a=0;a<6;a++)	{
@@ -648,9 +686,6 @@ public class GW extends FSK {
 	public String displayGW_ShoreMMSI  (List<Integer> mm,int totalDigits)	{
 		StringBuilder sb=new StringBuilder();
 		int a,digitCounter=0;
-		
-		// TODO : Find the pivot point for shore side MMSI encoding
-		
 		for (a=0;a<6;a++)	{
 			// High nibble
 			int hn=(mm.get(a)&240)>>4;
@@ -663,18 +698,16 @@ public class GW extends FSK {
 			else followingNibble=0;
 			boolean alternate;
 			// Low nibble
-			// If the nibble following the low nibble (which is in the next byte) is 0x8 or greater
-			// then we use the alternate numbering method
-			if (followingNibble>=0x8) alternate=true;
+			// If the following nibble (which is in the high nibble of the next byte) is less than 0x8 then we use the alternate numbering method
+			if (followingNibble<0x8) alternate=true;
 			else alternate=false;
 			sb.append(convertShoreNum(ln,alternate));
 			digitCounter++;
 			// Once digit counter is totalDigits then we are done
 			if (digitCounter==totalDigits) return sb.toString();
 			// High nibble
-			// If the nibble following the high nibble (which is the low nibble) is 0x8 or greater
-			// then we use the alternate numbering scheme
-			if (ln>=0x8) alternate=true;
+			// If the following nibble (which is in the low nibble) is less than 0x8 then we use the alternate numbering method
+			if (ln<0x8) alternate=true;
 			else alternate=false;
 			sb.append(convertShoreNum(hn,alternate));
 			digitCounter++;
@@ -688,9 +721,42 @@ public class GW extends FSK {
 	// GW use this method for encoding ships MMSIs in shore side 5/41 FSK packets
 	// Big thanks to Alan W for all his help working out the encoding method used here
 	private String convertShoreNum (int n,boolean alternate)	{
-		
-		// TODO : Add the shore side nibble to number map
-		
+		if (alternate==false)	{
+			if (n==0x0) return "7";
+			else if (n==0x1) return "3";
+			else if (n==0x2) return "5";
+			else if (n==0x3) return "1";
+			else if (n==0x4) return "6";
+			else if (n==0x5) return "2";
+			else if (n==0x6) return "4";
+			else if (n==0x7) return "0";
+			else if (n==0x8) return "7";
+			else if (n==0x9) return "3";
+			else if (n==0xa) return "5";
+			else if (n==0xb) return "1";
+			else if (n==0xc) return "6";
+			else if (n==0xd) return "2";
+			else if (n==0xe) return "4";
+			else if (n==0xf) return "0";
+		}
+		else	{
+			if (n==0x0) return "7";
+			else if (n==0x1) return "3";
+			else if (n==0x2) return "5";
+			else if (n==0x3) return "9";
+			else if (n==0x4) return "6";
+			else if (n==0x5) return "2";
+			else if (n==0x6) return "4";
+			else if (n==0x7) return "8";
+			else if (n==0x8) return "7";
+			else if (n==0x9) return "3";
+			else if (n==0xa) return "5";
+			else if (n==0xb) return "9";
+			else if (n==0xc) return "6";
+			else if (n==0xd) return "2";
+			else if (n==0xe) return "4";
+			else if (n==0xf) return "8";			
+		}
 		return ("[0x"+Integer.toHexString(n)+"]");
 	}
 	
