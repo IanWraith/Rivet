@@ -206,7 +206,7 @@ public class AT3x04 extends OFDM {
 				
 			}
 				
-			theApp.debugDump(line);	
+			//theApp.debugDump(line);	
 			
 		}
 		
