@@ -79,7 +79,7 @@ public class testGW extends TestCase {
 		
 		// Test each member of the ships list
 		for (a=0;a<ships.size();a++)	{
-			String ret=gw.displayGW_MMSI(getGWIdentasArrayList(ships.get(a)),9);
+			String ret=gw.displayGW_ShipMMSI(getGWIdentasArrayList(ships.get(a)),9);
 			if (ret.indexOf(ships.get(a).getMmsi())==-1)	{
 				errorCount++;
 				String s="Bad decode of MMSI "+ships.get(a).getMmsi()+" have "+ret;
@@ -126,10 +126,8 @@ public class testGW extends TestCase {
 		List<Ship> ships=new ArrayList<Ship>();
 		List<String> errorStrings=new ArrayList<String>();
 		
-		// 304653000 MARCHICORA
-		//final int loadData01[]={0xE0,0x57,0x03,0x66,0x66,0x66};
-		//ships.add(createShip("304653000",loadData01));
-		
+		final int loadData01[]={0x9A,0xFF,0x5F,0xF2,0x99,0xF9};
+		ships.add(createShip("538002583",loadData01));
 	
 		// Test each member of the ships list
 		for (a=0;a<ships.size();a++)	{
@@ -151,7 +149,27 @@ public class testGW extends TestCase {
 			fail(sb.toString());
 		}
 		
-		
 	}	
+	
+	// Assorted shore side testing for debugging only
+	public void testShoreShipName()	{
+		GW gw=new GW(null);
+		List<Ship> ships=new ArrayList<Ship>();
+		
+		// Shore 5/41
+		final int loadData01[]={0xe2,0x72,0xff,0xff,0xe7,0xe6};
+		ships.add(createShip("",loadData01));
+		String ret1[]=gw.getGW_Shore541(getGWIdentasArrayList(ships.get(0)));
+		
+		// Shore 2/101
+		final int loadData02[]={0xe2,0x72,0xff,0xff,0xe7,0xe6};
+		ships.add(createShip("",loadData02));
+		String ret2[]=gw.getGW_Shore2101(getGWIdentasArrayList(ships.get(1)));
+		
+		int a=0;
+		a++;
+		
+	}
+	
 
 }
