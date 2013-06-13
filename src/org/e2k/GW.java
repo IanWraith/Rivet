@@ -72,7 +72,10 @@ public class GW extends FSK {
 			symbolCounter=0;
 			samplesPerSymbol100=samplesPerSymbol(100.0,waveData.getSampleRate());
 			setState(1);
+			// Assume ship side monitoring to start with
 			shoreSide=false;
+			// Clear the ship list
+			theApp.clearLoggedShipsList();
 			return;
 		}
 		else if (state==1)	{
@@ -523,6 +526,8 @@ public class GW extends FSK {
 		UserIdentifier uid=new UserIdentifier();
 		// Decode the MMSI
 		String sMMSI=displayGW_ShipMMSI(mm,9);
+		// Log this MMSI
+		theApp.logShip(sMMSI);
 		// See if we have a match for this MMSI
 		Ship ship=uid.getShipDetails(sMMSI);
 		// If nothing returned just return the MMSI
@@ -549,6 +554,8 @@ public class GW extends FSK {
 		String sMMSI=fullp.substring(0,9);
 		// The last three digits of this are the command
 		String sCom="Command="+fullp.substring(9,12);
+		// Log this MMSI
+		theApp.logShip(sMMSI);
 		// See if we have a match for this MMSI
 		Ship ship=uid.getShipDetails(sMMSI);
 		// If nothing returned just return the MMSI

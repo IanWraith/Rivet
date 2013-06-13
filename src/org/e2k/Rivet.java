@@ -49,7 +49,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public final String program_version="Rivet (Build 73) by Ian Wraith";
+	public final String program_version="Rivet (Build 74) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -94,6 +94,7 @@ public class Rivet {
 	private boolean smallScreen=false;
 	private boolean displayBadPackets=false;
 	private boolean logInUTC=false;
+	private List<Ship> listLoggedShips=new ArrayList<Ship>();
 	
 	// Mode names
 	public final String MODENAMES[]={
@@ -1308,6 +1309,62 @@ public class Rivet {
 
 	public void setLogInUTC(boolean logInUTC) {
 		this.logInUTC = logInUTC;
+	}
+	
+	// Clear the list of logged ships
+	public void clearLoggedShipsList()	{
+		listLoggedShips.clear();
+	}
+	
+	// Given a ships MMSI check if it is in ships.xml or not and log it
+	public void logShip (String mmsi)	{
+		UserIdentifier uid=new UserIdentifier();
+		// First check if a ship has already been logged and is in the list
+		int a;
+		for (a=0;a<listLoggedShips.size();a++)	{
+			if (listLoggedShips.get(a).getMmsi().equals(mmsi))	{
+				// Increment the log count and return
+				listLoggedShips.get(a).incrementLogCount();
+				return;
+			}
+		}
+		// Now check if the ship is in ships.xml
+		Ship loggedShip=uid.getShipDetails(mmsi);
+		// If null then we need to create a ship object
+		if (loggedShip==null)	{
+			Ship newShip=new Ship();
+			newShip.setMmsi(mmsi);
+			newShip.incrementLogCount();
+			listLoggedShips.add(newShip);
+		}
+		else	{
+			// Increment the ship objects log counter and add it to the list
+			loggedShip.incrementLogCount();
+			listLoggedShips.add(loggedShip);
+		}	
+	}
+	
+	// Return a list of all logged ships
+	public String getShipList ()	{
+		StringBuilder sb=new StringBuilder();
+		// No ships logged
+		if (listLoggedShips.isEmpty()) return "\r\n\r\nNo ships were logged.";
+		// Show the number of ships logged
+		if (listLoggedShips.size()==1) sb.append("\r\n\r\nYou logged one ship.");
+		else sb.append("\r\n\r\nYou logged "+Integer.toString(listLoggedShips.size())+" ships.");
+		// Display the ships
+		int a;
+		for (a=0;a<listLoggedShips.size();a++)	{
+			// MMSI
+			sb.append("\r\nMMSI "+listLoggedShips.get(a).getMmsi());
+			// Name and flag (if we have them)
+			if (listLoggedShips.get(a).getName()!=null)	{
+				sb.append(" "+listLoggedShips.get(a).getName()+" "+listLoggedShips.get(a).getFlag());
+			}
+			// Number of times logged
+			sb.append(" ("+Integer.toString(listLoggedShips.get(a).getLogCount())+")");
+		}
+		return sb.toString();
 	}
 	
 	

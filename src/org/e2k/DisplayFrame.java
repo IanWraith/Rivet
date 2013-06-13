@@ -457,6 +457,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		 theApp.setLogging(false);
 		 statusBar.setLoggingStatus("Not Logging");
 		 try 	{
+			 // If GW monitoring display a list of MMSIs logged
+			 if (theApp.isGW()==true) theApp.fileWriteLine(theApp.getShipList());
 			 // Close the file
 			 theApp.file.flush();
 			 theApp.file.close();

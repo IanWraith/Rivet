@@ -8,6 +8,7 @@ public class Ship {
 	private String flag;
 	private String imo;
 	private String callsign;
+	private int logCount=0;
 	
 	public String getName() {
 		return name;
@@ -55,6 +56,14 @@ public class Ship {
 
 	public void setCallsign(String callsign) {
 		this.callsign = callsign;
+	}
+
+	public int getLogCount() {
+		return logCount;
+	}
+
+	public void incrementLogCount() {
+		this.logCount++;
 	}
 	
 
