@@ -4,7 +4,6 @@ public class Ship {
 	
 	private String name;
 	private String mmsi;
-	private int[] gwIdent=new int[6];
 	private String flag;
 	private String imo;
 	private String callsign;
@@ -24,14 +23,6 @@ public class Ship {
 	
 	public void setMmsi(String mmsi) {
 		this.mmsi = mmsi;
-	}
-
-	public int[] getGwIdent() {
-		return gwIdent;
-	}
-
-	public void setGwIdent(int[] gwIdent) {
-		this.gwIdent = gwIdent;
 	}
 
 	public String getFlag() {
