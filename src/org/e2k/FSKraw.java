@@ -103,9 +103,11 @@ public class FSKraw extends FSK {
 			if (sampleCount>0)	{
 				sRet=syncSequenceHunt(circBuf,waveData);
 				if (sRet!=null)	{
-					theApp.writeLine(sRet,Color.BLACK,theApp.italicFont);
-					// Add a newline
-					theApp.newLineWrite();
+					if (display==true)	{
+						theApp.writeLine(sRet,Color.BLACK,theApp.italicFont);
+						// Add a newline
+						theApp.newLineWrite();
+					}
 					// Change the state
 					setState(2);
 					characterCounter=0;
@@ -204,6 +206,12 @@ public class FSKraw extends FSK {
 		// If the percentage difference is more than 45% then we have lost the signal
 		if (in>45.0)	{
 			setState(1);
+			// Is there a trigger in progress
+			if (activeTrigger==true)	{
+				charactersRemaining=0;
+				display=false;
+				activeTrigger=false;
+			}
 		}
 		else	{
 			adjBuffer[adjCounter]=in;
@@ -309,8 +317,13 @@ public class FSKraw extends FSK {
 				}
 				// Write the trigger description to the screen/log
 				if (showTrigger==true)	{
+					// Write a newline first
+					theApp.newLineWrite();
+			        // then the trigger description
 					String des=theApp.getTimeStamp()+" "+trigger.getTriggerDescription();
 					theApp.writeLine(des,Color.BLUE,theApp.italicFont);
+					// Write another newline
+					theApp.newLineWrite();
 				}
 			}
 		}

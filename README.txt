@@ -135,6 +135,7 @@ Build 71 Make a change to the GW byte identifiers
 Build 72 Add an option to show time stamps in UTC
 Build 73 Credit UDXF group,Add further decoding of GW especially the shore side (once again big thanks to Alan W)
 Build 74 Record all MMSIs received and display them at the end of GW logs
+Build 75 Assorted small changes to the Raw FSK module and trigger handling                
                 
 Reported Bugs
 -------------
