@@ -251,7 +251,8 @@ public class GW extends FSK {
 		// KPH was 0xd7
 		else if (id==0xfa) return "KPH, San Francisco, USA";
 		else if (id==0xd8) return "WNU, Slidell Radio, USA";
-		else if (id==0xdb) return "KHF, Agana, Guam";
+		// KHF was 0xdb
+		else if (id==0xf6) return "KHF, Agana, Guam";
 		// KFS was 0xdc
 		else if (id==0xce) return "KFS, Palo Alto, USA";
 		// LSD836 was 0xdd
