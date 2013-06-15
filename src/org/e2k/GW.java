@@ -249,7 +249,7 @@ public class GW extends FSK {
 		else if (id==0xc9) return "ZLA, Awanui, New Zealand";
 		else if (id==0xd2) return "ZSC, Capetown, RSA";
 		// KPH was 0xd7
-		else if (id==0xfa) return "KPH, San Franisco, USA";
+		else if (id==0xfa) return "KPH, San Francisco, USA";
 		else if (id==0xd8) return "WNU, Slidell Radio, USA";
 		else if (id==0xdb) return "KHF, Agana, Guam";
 		// KFS was 0xdc
