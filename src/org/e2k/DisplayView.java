@@ -128,7 +128,7 @@ public class DisplayView extends JComponent implements Observer {
 		// Check it hasn't reached its maximum size
 		if (displayCounter==DISPLAYCOUNT) displayCounter=0;
 		displayString[displayCounter]="";
-		// Test if autoscroll needs to be on
+		// Test if auto scroll needs to be on
 		theApp.setAutoScroll(autoScrollSet());
 		// Redraw
 		repaint();
@@ -141,6 +141,9 @@ public class DisplayView extends JComponent implements Observer {
 		for (a=0;a<DISPLAYCOUNT;a++)	{
 			displayString[a]=null;
 		}
+		// Scroll right back up the top
+		theApp.scrollDown(0);
+		// Repaint
 		repaint();
 	}
 	
