@@ -13,6 +13,9 @@
 
 package org.e2k;
 
+import java.io.FileWriter;
+import java.text.DateFormat;
+import java.util.Date;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
@@ -35,6 +38,7 @@ class AudioMixer{
 	private String errorMsg;
 	
 	public AudioMixer () {
+		audioDebugDump("Start up");
 		setDefaultLine();
 	}
 	
@@ -86,7 +90,8 @@ class AudioMixer{
 		try	{
 			this.line = (TargetDataLine) AudioSystem.getLine(info);
 		}catch(LineUnavailableException ex){
-			System.out.println("Line Unavailable");
+			String err="setDefaultLine() : "+ex.getMessage();
+			audioDebugDump(err);
 		}
 	}
 	
@@ -98,10 +103,9 @@ class AudioMixer{
 	private DataLine.Info getDataLineInfo(){
 		DataLine.Info info = new DataLine.Info(TargetDataLine.class, this.format); // format is an AudioFormat object
 		if (!AudioSystem.isLineSupported(info)) {
-		    // Handle the error.
-			System.out.println("Error in AudioSystem");
+			// Record the error
+			audioDebugDump("getDataLineInfo() : Error");
 		}
-		
 		return info;
 	}
 	
@@ -113,9 +117,11 @@ class AudioMixer{
 	public Line getDataLineForMixer(){
 		TargetDataLine line = null;
 		try {
-			line = (TargetDataLine) this.mixer.getLine(getDataLineInfo());
+			line=(TargetDataLine)this.mixer.getLine(getDataLineInfo());
 		} catch (LineUnavailableException e) {
-			System.out.println("Error getting mix line:" + e.getMessage());
+			// Record the error
+			String err="getDataLineForMixer() : "+e.getMessage();
+			audioDebugDump(err);
 		}
 		
 		return line;
@@ -124,11 +130,15 @@ class AudioMixer{
 	/**
 	 * Open the current line
 	 */
-	public void openLine(){
+	public boolean openLine(){
 		try {
 			this.line.open(getFormat());
+			return true;
 		} catch (LineUnavailableException e) {
-			System.out.println("Unable to open line:" + e.getMessage());
+			// Record the error
+			errorMsg="openLine() : "+e.getMessage();
+			audioDebugDump(errorMsg);
+			return false;
 		}
 	}
 	
@@ -148,17 +158,18 @@ class AudioMixer{
 			this.setMixer(mx);
 			this.line=(TargetDataLine) getDataLineForMixer();
 			//restart
-			openLine();
+			if (openLine()==false) return false;
 			this.line.start();
 		}
 		catch (Exception e)	{
 			// Record the exception
-			errorMsg=e.getMessage();
+			errorMsg="changeMixer() : "+e.getMessage();
 			// then if a mixer has been obtained then display some information about it
 			if (mx!=null)	{
 				Mixer.Info mInfo=mx.getMixerInfo();
 				errorMsg=errorMsg+"\nMixer Name : "+mInfo.getName()+"\nMixer Description : "+mInfo.getDescription();
 			}
+			audioDebugDump(errorMsg);
 			return false;
 		}
 		return true;
@@ -171,16 +182,21 @@ class AudioMixer{
 	 */
 	public Mixer.Info getMixerInfo(String mixerName){
 		Mixer.Info mixers[]=AudioSystem.getMixerInfo();
-		//iterate the mixers and display TargetLines
-		for (int i=0; i< mixers.length; i++){
+		audioDebugDump("getMixerInfo() : Hunting for "+mixerName);
+		// Iterate through the mixers and display TargetLines
+		int i;
+		for (i=0;i<mixers.length;i++){
 			Mixer m=AudioSystem.getMixer(mixers[i]);
+			audioDebugDump("getMixerInfo() : Found "+m.getMixerInfo().getName()+" + "+m.getMixerInfo().getDescription());
 			// Ensure that only sound capture devices can be selected
 			boolean isCaptureDevice=m.getMixerInfo().getDescription().endsWith("Capture");
 			if ((m.getMixerInfo().getName().equals(mixerName))&&(isCaptureDevice==true)){
+				audioDebugDump("getMixerInfo() : Match !");
 				return m.getMixerInfo();
 			}
 		}
 		//if no mixer found, returns null which is the default mixer on the machine
+		audioDebugDump("getMixerInfo() : Nothing found !");
 		return null;
 	}
 
@@ -195,6 +211,22 @@ class AudioMixer{
 			this.line.close();
 		}
 	}
+	
+	// Record audio mixer errors
+	private void audioDebugDump (String line)	{
+	    try	{
+	    	Date now=new Date();
+			DateFormat df=DateFormat.getTimeInstance();
+	    	FileWriter dfile=new FileWriter("audioDebug.txt",true);
+	    	dfile.write(df.format(now)+" "+line);
+	    	dfile.write("\r\n");
+	    	dfile.flush();  
+	    	dfile.close();
+	    	}
+	    catch (Exception e)	{
+	    		System.err.println("Error: " + e.getMessage());
+	    	}
+		}
 	
 
 }

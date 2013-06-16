@@ -233,7 +233,12 @@ public class InputThread extends Thread {
 			  AudioFormat format=new AudioFormat((int)waveData.getSampleRate(),waveData.getSampleSizeInBits(),waveData.getChannels(),true,waveData.isEndian());
 			  audioMixer.setAudioFormat(format);
 			  audioMixer.setDefaultLine();
-			  audioMixer.openLine();
+			  // Handle any errors changing the mixer
+			  if (audioMixer.openLine()==false)	{
+				  String err=audioMixer.getErrorMsg();
+				  JOptionPane.showMessageDialog(null,err,"Rivet",JOptionPane.ERROR_MESSAGE);
+				  return;
+			  }
 			  audioMixer.line.start();
 			  audioReady=true;
 			  loadingFile=false;
