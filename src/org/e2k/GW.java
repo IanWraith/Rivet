@@ -238,7 +238,8 @@ public class GW extends FSK {
 		else if (id==0xb8) return "HLF, Seoul, South Korea";
 		// VCS was 0x4e
 		else if (id==0x9c) return "VCS, Halifax, Canada";
-		else if (id==0x5d) return "KEJ, Honolulu, Hawaii ";
+		// KEJ was 0x5d
+		else if (id==0xae) return "KEJ, Honolulu, Hawaii";
 		else if (id==0x5e) return "CPK, Santa Cruz, Bolivia";
 		// A9M was 0x5f
 		else if (id==0xbe) return "A9M, Hamala, Bahrain";
