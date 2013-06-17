@@ -233,7 +233,7 @@ public class GW extends FSK {
 	// Return the GW station name
 	private String stationName (int id)	{
 		// Rogaland was 0x33 and Bern was 0xcc
-		if (id==0xcc) return "LFI, Rogaland, Norway";
+		if (id==0xcc) return "LFI, Rogaland, Norway & 9MG, Georgetown, Malaysia";
 		// HLF was 0x47
 		else if (id==0xb8) return "HLF, Seoul, South Korea";
 		// VCS was 0x4e
@@ -246,12 +246,13 @@ public class GW extends FSK {
 		else if (id==0x63) return "9HD, Malta";
 		// XSV was 0xc3
 		else if (id==0xf0) return "XSV, Tianjin, China";
-		else if (id==0xc6) return "9MG, Georgetown, Malaysia";
+		//else if (id==0xc6) return "9MG, Georgetown, Malaysia";
 		else if (id==0xc9) return "ZLA, Awanui, New Zealand";
 		else if (id==0xd2) return "ZSC, Capetown, RSA";
 		// KPH was 0xd7
 		else if (id==0xfa) return "KPH, San Francisco, USA";
-		else if (id==0xd8) return "WNU, Slidell Radio, USA";
+		// Slidell was 0xd8
+		else if (id==0xc6) return "WNU, Slidell Radio, USA";
 		// KHF was 0xdb
 		else if (id==0xf6) return "KHF, Agana, Guam";
 		// KFS was 0xdc
