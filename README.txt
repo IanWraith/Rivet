@@ -139,6 +139,7 @@ Build 75 Assorted small changes to the Raw FSK module and trigger handling
          Fix the bug where if the user cleared the screen it wouldn't scroll back to the top. 
          Fix assorted spelling mistakes and bad idents in the GW base ident identifiers
          Write all audio mixer stage errors to a file to enable latter analysis      
+Build 76 Add further audio source debugging information
                 
 Reported Bugs
 -------------
@@ -151,4 +152,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (16th June 2013) 
+Ian Wraith (18th June 2013) 

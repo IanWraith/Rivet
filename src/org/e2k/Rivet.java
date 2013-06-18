@@ -49,7 +49,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public final String program_version="Rivet (Build 75) by Ian Wraith";
+	public final String program_version="Rivet (Build 76) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -975,7 +975,7 @@ public class Rivet {
 					// The audio input source
 					else if (qName.equals("audioDevice"))	{
 						if (inputThread.changeMixer(aval)==false) {
-							JOptionPane.showMessageDialog(null,"Error changing mixer\n"+inputThread.getMixerErrorMessage(),"Rivet",JOptionPane.ERROR_MESSAGE);
+							JOptionPane.showMessageDialog(null,"Read XML Error changing mixer\n"+inputThread.getMixerErrorMessage()+"\n"+aval,"Rivet",JOptionPane.ERROR_MESSAGE);
 						}
 					}
 					// Display bad packets

@@ -153,6 +153,8 @@ class AudioMixer{
 			this.line.stop();
 			this.line.close();
 			this.line.flush();
+			// Record this mixer change
+			audioDebugDump("changeMixer() : mixerName="+mixerName);
 			//set the new mixer and line
 			mx=AudioSystem.getMixer(getMixerInfo(mixerName));
 			this.setMixer(mx);

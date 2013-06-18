@@ -57,7 +57,18 @@ public class DisplayFrame extends JFrame implements ActionListener {
 			// Can't find the default settings file //
 			System.out.println("\nInformative : Unable to read the file trigger.xml "+err);
 		}		
-		
+		// Read in the default settings file
+		try	{
+			theApp.readDefaultSettings();
+			// Update the soundcard input setting
+			boolean cin=theApp.issoundCardInputTemp();
+			theApp.setSoundCardInput(cin);
+		}
+		catch (Exception e)	{
+			String err=e.toString();
+			// Can't find the default settings file //
+			System.out.println("\nInformative : Unable to read the file rivet_settings.xml "+err);
+		}
 		// Menu setup
 		setJMenuBar(menuBar);
 		// Main
@@ -168,22 +179,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		statusBar.setLoggingStatus("Not Logging");
 		statusBar.setStatusLabel("Idle");
 		statusBar.setApp(theApp);
-
-		// Read in the default settings file
-		try	{
-			theApp.readDefaultSettings();
-			// Update the soundcard input setting
-			boolean cin=theApp.issoundCardInputTemp();
-			theApp.setSoundCardInput(cin);
-			// Update the menus
-			menuItemUpdate();
-		}
-		catch (Exception e)	{
-			String err=e.toString();
-			// Can't find the default settings file //
-			System.out.println("\nInformative : Unable to read the file rivet_settings.xml "+err);
-		}
 		
+		// Update the menus
+		menuItemUpdate();
+		// Update the status bar
 		statusBarUpdate();
 		}
 
