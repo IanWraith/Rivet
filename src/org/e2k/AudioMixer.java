@@ -30,12 +30,14 @@ import javax.sound.sampled.TargetDataLine;
  *
  */
 class AudioMixer{
+	
 	public String description;
 	public Mixer mixer;
 	public TargetDataLine line;
 	public Line.Info lineInfo;
-	public AudioFormat format = null;
+	public AudioFormat format=null;
 	private String errorMsg;
+	private boolean debugAudio=true;
 	
 	public AudioMixer () {
 		audioDebugDump("Start up");
@@ -154,9 +156,11 @@ class AudioMixer{
 			this.line.close();
 			this.line.flush();
 			// Record this mixer change
-			audioDebugDump("changeMixer() : mixerName="+mixerName);
+			if (debugAudio==true) audioDebugDump("changeMixer() : mixerName="+mixerName);
 			//set the new mixer and line
-			mx=AudioSystem.getMixer(getMixerInfo(mixerName));
+			mx=getMixer(mixerName);
+			// If null we have a problem so return false
+			if (mx==null) return false;
 			this.setMixer(mx);
 			this.line=(TargetDataLine) getDataLineForMixer();
 			//restart
@@ -177,6 +181,27 @@ class AudioMixer{
 		return true;
 	}
 	
+	// Returns a particular mixer but first checking that it is a capture device
+	public Mixer getMixer (String mixerName){
+		Mixer.Info mixers[]=AudioSystem.getMixerInfo();
+		if (debugAudio==true) audioDebugDump("getMixer() : Hunting for "+mixerName);
+		// Iterate through the mixers and display TargetLines
+		int i;
+		for (i=0;i<mixers.length;i++){
+			Mixer m=AudioSystem.getMixer(mixers[i]);
+			if (debugAudio==true) audioDebugDump("getMixer() : Found "+m.getMixerInfo().getName()+" + "+m.getMixerInfo().getDescription());
+			// Ensure that only sound capture devices can be selected
+			boolean isCaptureDevice=m.getMixerInfo().getDescription().endsWith("Capture");
+			if ((m.getMixerInfo().getName().equals(mixerName))&&(isCaptureDevice==true)){
+				if (debugAudio==true) audioDebugDump("getMixer() : Match !");
+				return m;
+			}
+		}
+		//if no mixer found, returns null which is the default mixer on the machine
+		if (debugAudio==true) audioDebugDump("getMixer() : Nothing found !");
+		return null;
+	}
+	
 	/**
 	 * Get the MixerInfo based on the mixer name
 	 * @param mixerName
@@ -189,16 +214,16 @@ class AudioMixer{
 		int i;
 		for (i=0;i<mixers.length;i++){
 			Mixer m=AudioSystem.getMixer(mixers[i]);
-			audioDebugDump("getMixerInfo() : Found "+m.getMixerInfo().getName()+" + "+m.getMixerInfo().getDescription());
+			if (debugAudio==true) audioDebugDump("getMixerInfo() : Found "+m.getMixerInfo().getName()+" + "+m.getMixerInfo().getDescription());
 			// Ensure that only sound capture devices can be selected
 			boolean isCaptureDevice=m.getMixerInfo().getDescription().endsWith("Capture");
 			if ((m.getMixerInfo().getName().equals(mixerName))&&(isCaptureDevice==true)){
-				audioDebugDump("getMixerInfo() : Match !");
+				if (debugAudio==true) audioDebugDump("getMixerInfo() : Match !");
 				return m.getMixerInfo();
 			}
 		}
 		//if no mixer found, returns null which is the default mixer on the machine
-		audioDebugDump("getMixerInfo() : Nothing found !");
+		if (debugAudio==true) audioDebugDump("getMixerInfo() : Nothing found !");
 		return null;
 	}
 
