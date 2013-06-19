@@ -160,11 +160,17 @@ class AudioMixer{
 			//set the new mixer and line
 			mx=getMixer(mixerName);
 			// If null we have a problem so return false
-			if (mx==null) return false;
+			if (mx==null)	{
+				if (debugAudio==true) audioDebugDump("changeMixer() : mx==null");
+				return false;
+			}
 			this.setMixer(mx);
 			this.line=(TargetDataLine) getDataLineForMixer();
 			//restart
-			if (openLine()==false) return false;
+			if (openLine()==false)	{
+				if (debugAudio==true) audioDebugDump("changeMixer() : openLine()==false");
+				return false;
+			}
 			this.line.start();
 		}
 		catch (Exception e)	{
@@ -240,7 +246,7 @@ class AudioMixer{
 	}
 	
 	// Record audio mixer errors
-	private void audioDebugDump (String line)	{
+	public void audioDebugDump (String line)	{
 	    try	{
 	    	Date now=new Date();
 			DateFormat df=DateFormat.getTimeInstance();

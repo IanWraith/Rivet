@@ -400,6 +400,13 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		for (a=0;a<trigList.size();a++)	{
 			trigger_items.get(a).setSelected(trigList.get(a).isActive());
 		}
+		
+		
+		////////////////////////////////////////////////////////////////////////////////////////
+		String mixerName="menuItemUpdate() : "+theApp.inputThread.getMixerName();
+		theApp.inputThread.writeAudioDebugMessage(mixerName);
+		////////////////////////////////////////////////////////////////////////////////////////
+		
 		// Audio sources
 		MenuElement[] devs=audioDevicesMenu.getSubElements();
 		if (devs.length>0){

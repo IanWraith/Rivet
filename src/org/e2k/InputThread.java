@@ -338,7 +338,10 @@ public class InputThread extends Thread {
 		return audioMixer.getErrorMsg();
 	}    
 	
-
+	// Write a message to the aduio debug file
+	public void writeAudioDebugMessage (String msg)	{
+		audioMixer.audioDebugDump(msg);
+	}
 	
     
 }

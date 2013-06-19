@@ -141,6 +141,7 @@ Build 75 Assorted small changes to the Raw FSK module and trigger handling
          Write all audio mixer stage errors to a file to enable latter analysis      
 Build 76 Add further audio source debugging information
 Build 77 Add yet more audio source debugging information and the getMixer() method in the AudioMixer class.
+Build 78 Add further audio source debugging information
                 
 Reported Bugs
 -------------
