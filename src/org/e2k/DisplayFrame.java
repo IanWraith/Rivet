@@ -638,6 +638,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		return ret;
 	}
 	
+	// TODO : Modify this function so it only returns "Capture" devices
 	private ArrayList<AudioMixer> getCompatibleDevices(){
 		devices=new ArrayList<AudioMixer>();
 		//list the available mixers
