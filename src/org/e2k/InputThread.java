@@ -232,7 +232,7 @@ public class InputThread extends Thread {
 			  // Sample according to the the WaveData objects parameters
 			  AudioFormat format=new AudioFormat((int)waveData.getSampleRate(),waveData.getSampleSizeInBits(),waveData.getChannels(),true,waveData.isEndian());
 			  audioMixer.setAudioFormat(format);
-			  audioMixer.setDefaultLine();
+			  //audioMixer.setDefaultLine();
 			  // Handle any errors changing the mixer
 			  if (audioMixer.openLine()==false)	{
 				  String err=audioMixer.getErrorMsg();
