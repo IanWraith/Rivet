@@ -638,7 +638,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		return ret;
 	}
 	
-	// TODO : Modify this function so it only returns "Capture" devices
+	// Provide a list of all compatable sound sources
 	private ArrayList<AudioMixer> getCompatibleDevices(){
 		devices=new ArrayList<AudioMixer>();
 		//list the available mixers
@@ -646,14 +646,21 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		int i;
 		//iterate the mixers and display TargetLines
 		for (i=0;i<mixers.length;i++){
-			Mixer m = AudioSystem.getMixer(mixers[i]);
+			Mixer m=AudioSystem.getMixer(mixers[i]);
 			Line.Info l[]=m.getTargetLineInfo();
-			if(l.length>0){
+			// Check these exist and are "Capture" devices
+			if((l.length>0)&&((m.getMixerInfo().getDescription().endsWith("Capture")==true))){
 				int x;
 				for (x=0;x<l.length;x++){
-					if (l[0].getLineClass().getName().equals("javax.sound.sampled.TargetDataLine")){
+					if (l[0].getLineClass().getName().equals("javax.sound.sampled.TargetDataLine"))	{
 						AudioMixer mc=new AudioMixer(mixers[i].getName(),m,l[x]);
 						devices.add(mc);			
+						
+						///////////////////////////////////////////////////////////////////////////////////
+						String des="getCompatibleDevices() : "+mc.description;
+						mc.audioDebugDump(des);
+						///////////////////////////////////////////////////////////////////////////////////
+						
 					}
 				}
 			}
