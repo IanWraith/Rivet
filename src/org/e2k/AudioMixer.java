@@ -37,10 +37,9 @@ class AudioMixer{
 	public Line.Info lineInfo;
 	public AudioFormat format=null;
 	private String errorMsg;
-	private boolean debugAudio=true;
+	private boolean debugAudio=false;
 	
 	public AudioMixer () {
-		audioDebugDump("Start up");
 		setDefaultLine();
 	}
 	

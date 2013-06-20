@@ -400,14 +400,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		for (a=0;a<trigList.size();a++)	{
 			trigger_items.get(a).setSelected(trigList.get(a).isActive());
 		}
-		
-		
-		////////////////////////////////////////////////////////////////////////////////////////
-		String mixerName="menuItemUpdate() : "+theApp.inputThread.getMixerName();
-		theApp.inputThread.writeAudioDebugMessage(mixerName);
-		////////////////////////////////////////////////////////////////////////////////////////
-		
-		// Audio sources
+				// Audio sources
 		MenuElement[] devs=audioDevicesMenu.getSubElements();
 		if (devs.length>0){
 				for (MenuElement m : devs[0].getSubElements()){
@@ -655,12 +648,6 @@ public class DisplayFrame extends JFrame implements ActionListener {
 					if (l[0].getLineClass().getName().equals("javax.sound.sampled.TargetDataLine"))	{
 						AudioMixer mc=new AudioMixer(mixers[i].getName(),m,l[x]);
 						devices.add(mc);			
-						
-						///////////////////////////////////////////////////////////////////////////////////
-						String des="getCompatibleDevices() : "+mc.description;
-						mc.audioDebugDump(des);
-						///////////////////////////////////////////////////////////////////////////////////
-						
 					}
 				}
 			}

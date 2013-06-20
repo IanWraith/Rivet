@@ -143,7 +143,8 @@ Build 76 Add further audio source debugging information
 Build 77 Add yet more audio source debugging information and the getMixer() method in the AudioMixer class.
 Build 78 Add further audio source debugging information
 Build 79 Ensure that the only audio sources added to the menu are capture ones
-Build 80 Modify the setupAudio() method in the InputThread class.
+Build 80 Modify the setupAudio() method in the InputThread class
+Build 81 Remove the debugging information put in for builds 76 to 80
                 
 Reported Bugs
 -------------
