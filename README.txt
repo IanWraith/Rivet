@@ -145,6 +145,7 @@ Build 78 Add further audio source debugging information
 Build 79 Ensure that the only audio sources added to the menu are capture ones
 Build 80 Modify the setupAudio() method in the InputThread class
 Build 81 Remove the debugging information put in for builds 76 to 80
+Build 82 Allow the mouse wheel to be used for scrolling
                 
 Reported Bugs
 -------------
@@ -157,4 +158,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (20th June 2013) 
+Ian Wraith (21st June 2013) 
