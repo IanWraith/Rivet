@@ -68,7 +68,8 @@ public class Rivet {
     public GW gwHandler=new GW(this);
     public FSKraw fskHandler=new FSKraw(this);
     public RDFT rdftHandler=new RDFT(this);
-    public AT3x04 at3x04Handler=new AT3x04(this);
+    //public AT3x04 at3x04Handler=new AT3x04(this);
+    public PSK2400 psk2400Handler=new PSK2400(this);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -369,7 +370,7 @@ public class Rivet {
 			// XPA2
 			else if (system==2)	xpa2Handler.decode(circBuffer,waveData);
 			// Experimental
-			else if (system==4)	at3x04Handler.decode(circBuffer,waveData);
+			else if (system==4)	psk2400Handler.decode(circBuffer,waveData);
 			// CIS36-50
 			else if (system==5)	cis3650Handler.decode(circBuffer,waveData);
 			// FSK200/500
@@ -554,7 +555,7 @@ public class Rivet {
 		// XPA2
 		else if (system==2)	xpa2Handler.setState(0);
 		// Experimental
-		else if (system==4)	at3x04Handler.setState(0);
+		else if (system==4)	psk2400Handler.setState(0);
 		// CIS36-50
 		else if (system==5)	cis3650Handler.setState(0);
 		// FSK200/500
