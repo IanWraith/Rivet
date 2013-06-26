@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
-public class PSK2400 {
+public class PSK2400 extends PSK {
 	
 	private int state=0;
 	private Rivet theApp;
@@ -19,7 +19,7 @@ public class PSK2400 {
 	private double yvLow[]=new double[NZEROS_LOW+1];
 	
 	private final int NZEROS=20;
-	private final double GAIN=1.480737622e+09;
+	private final double GAIN=1.102413938e+14;
 	private double xv[]=new double[NZEROS+1];
 	private double yv[]=new double[NZEROS+1];
 	
@@ -29,7 +29,11 @@ public class PSK2400 {
 	private int carrierFrequency=0;
 	private boolean recoverCarrier=false;
 	
+	private double sineWaveLookup[]=new double[500];
+	
 	public PSK2400 (Rivet tapp)	{
+		// Generate a 1800 Hz sine wave
+		sineWaveLookup=sineGenerate (1800,24000,0.25,100);
 		theApp=tapp;
 	}
 	
@@ -109,7 +113,7 @@ public class PSK2400 {
 	private void processSample (double in)	{
 		
 		// Recover the carrier every 10000 samples
-		if (sampleCount%2500==0) recoverCarrier=true;
+		if ((sampleCount%10000==0)||(sampleCount==rectifiedCarrierBuffer.length)) recoverCarrier=true;
 			
 			
 		if (recoverCarrier==true) carrierRecovery(in);
@@ -117,8 +121,12 @@ public class PSK2400 {
 	
 	// Carrier Recovery
 	private void carrierRecovery (double cin)	{
-		// Put a rectified carrier through a 3000 Hz to 4000 Hz band pass filter
+		
+		// Put a rectified carrier through a 3500 Hz to 3700 Hz band pass filter
 		rectifiedCarrierBuffer[rectifiedCarrierBufferCounter]=bandPassFilter(Math.abs(cin));
+		
+		//theApp.debugDump(Double.toString(rectifiedCarrierBuffer[rectifiedCarrierBufferCounter]));
+		
 		rectifiedCarrierBufferCounter++;
 		if (rectifiedCarrierBufferCounter==rectifiedCarrierBuffer.length)	{
 			double pav=returnPeaks();
@@ -127,6 +135,12 @@ public class PSK2400 {
 			carrierFrequency=(int)freq;
 			rectifiedCarrierBufferCounter=0;
 			recoverCarrier=false;
+			
+			int a;
+			for (a=0;a<=NZEROS;a++)	{
+				xv[a]=0.0;
+				yv[a]=0.0;
+			}
 			
 			theApp.writeLine("Carrier Frequency "+Integer.toString(carrierFrequency)+" Hz",Color.BLUE,theApp.italicFont);
 			
@@ -140,18 +154,19 @@ public class PSK2400 {
 			yv[a]=yv[a+1];
 		}
 		xv[NZEROS]=in/GAIN;
-		yv[NZEROS] =   (xv[0] + xv[20]) - 10 * (xv[2] + xv[18]) + 45 * (xv[4] + xv[16])
+		yv[20] =   (xv[0] + xv[20]) - 10 * (xv[2] + xv[18]) + 45 * (xv[4] + xv[16])
                 - 120 * (xv[6] + xv[14]) + 210 * (xv[8] + xv[12]) - 252 * xv[10]
-                + ( -0.1864045039 * yv[0]) + (  2.4806098204 * yv[1])
-                + (-17.0421738190 * yv[2]) + ( 78.9342892350 * yv[3])
-                + (-274.0182415700 * yv[4]) + (753.5339034600 * yv[5])
-                + (-1696.6967116000 * yv[6]) + (3194.6260422000 * yv[7])
-                + (-5099.0075860000 * yv[8]) + (6958.8377573000 * yv[9])
-                + (-8159.1589250000 * yv[10]) + (8231.4495110000 * yv[11])
-                + (-7134.5953420000 * yv[12]) + (5287.5722701000 * yv[13])
-                + (-3322.0389564000 * yv[14]) + (1745.3424202000 * yv[15])
-                + (-750.8386139000 * yv[16]) + (255.8754772800 * yv[17])
-                + (-65.3546828700 * yv[18]) + ( 11.2529052440 * yv[19]);
+                + ( -0.7155110779 * yv[0]) + (  8.5550348230 * yv[1])
+                + (-53.4258874590 * yv[2]) + (226.3529683200 * yv[3])
+                + (-722.1572229300 * yv[4]) + (1831.7728680000 * yv[5])
+                + (-3816.1157775000 * yv[6]) + (6665.6194565000 * yv[7])
+                + (-9893.5741471000 * yv[8]) + (12584.0278360000 * yv[9])
+                + (-13780.7192090000 * yv[10]) + (13012.4141250000 * yv[11])
+                + (-10578.6357520000 * yv[12]) + (7369.7929107000 * yv[13])
+                + (-4362.8946836000 * yv[14]) + (2165.5257120000 * yv[15])
+                + (-882.7995994700 * yv[16]) + (286.1246537800 * yv[17])
+                + (-69.8328092170 * yv[18]) + ( 11.5629324230 * yv[19]);
+
 		return yv[NZEROS];
 	}
 	
