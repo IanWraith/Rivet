@@ -18,22 +18,11 @@ public class PSK2400 extends PSK {
 	private double xvLow[]=new double[NZEROS_LOW+1];
 	private double yvLow[]=new double[NZEROS_LOW+1];
 	
-	private final int NZEROS=20;
-	private final double GAIN=1.102413938e+14;
-	private double xv[]=new double[NZEROS+1];
-	private double yv[]=new double[NZEROS+1];
-	
-	double rectifiedCarrierBuffer[]=new double[2500];
-	private int rectifiedCarrierBufferCounter=0;
-	
-	private int carrierFrequency=0;
 	private boolean recoverCarrier=false;
 	
-	private double sineWaveLookup[]=new double[500];
+	
 	
 	public PSK2400 (Rivet tapp)	{
-		// Generate a 1800 Hz sine wave
-		sineWaveLookup=sineGenerate (1800,24000,0.25,100);
 		theApp=tapp;
 	}
 	
@@ -112,89 +101,19 @@ public class PSK2400 extends PSK {
 	// Process a 24000 Hz sample
 	private void processSample (double in)	{
 		
-		// Recover the carrier every 10000 samples
-		if ((sampleCount%10000==0)||(sampleCount==rectifiedCarrierBuffer.length)) recoverCarrier=true;
-			
-			
-		if (recoverCarrier==true) carrierRecovery(in);
-	}
+	 NCO nco=new NCO(1800.0,0.25,24000);
 	
-	// Carrier Recovery
-	private void carrierRecovery (double cin)	{
-		
-		// Put a rectified carrier through a 3500 Hz to 3700 Hz band pass filter
-		rectifiedCarrierBuffer[rectifiedCarrierBufferCounter]=bandPassFilter(Math.abs(cin));
-		
-		//theApp.debugDump(Double.toString(rectifiedCarrierBuffer[rectifiedCarrierBufferCounter]));
-		
-		rectifiedCarrierBufferCounter++;
-		if (rectifiedCarrierBufferCounter==rectifiedCarrierBuffer.length)	{
-			double pav=returnPeaks();
-			pav=pav*2;
-			double freq=24000.0/pav;
-			carrierFrequency=(int)freq;
-			rectifiedCarrierBufferCounter=0;
-			recoverCarrier=false;
-			
-			int a;
-			for (a=0;a<=NZEROS;a++)	{
-				xv[a]=0.0;
-				yv[a]=0.0;
-			}
-			
-			theApp.writeLine("Carrier Frequency "+Integer.toString(carrierFrequency)+" Hz",Color.BLUE,theApp.italicFont);
-			
-		}
-	}
-	
-	private double bandPassFilter (double in)	{
-		int a;
-		for (a=0;a<NZEROS;a++)	{
-			xv[a]=xv[a+1];
-			yv[a]=yv[a+1];
-		}
-		xv[NZEROS]=in/GAIN;
-		yv[20] =   (xv[0] + xv[20]) - 10 * (xv[2] + xv[18]) + 45 * (xv[4] + xv[16])
-                - 120 * (xv[6] + xv[14]) + 210 * (xv[8] + xv[12]) - 252 * xv[10]
-                + ( -0.7155110779 * yv[0]) + (  8.5550348230 * yv[1])
-                + (-53.4258874590 * yv[2]) + (226.3529683200 * yv[3])
-                + (-722.1572229300 * yv[4]) + (1831.7728680000 * yv[5])
-                + (-3816.1157775000 * yv[6]) + (6665.6194565000 * yv[7])
-                + (-9893.5741471000 * yv[8]) + (12584.0278360000 * yv[9])
-                + (-13780.7192090000 * yv[10]) + (13012.4141250000 * yv[11])
-                + (-10578.6357520000 * yv[12]) + (7369.7929107000 * yv[13])
-                + (-4362.8946836000 * yv[14]) + (2165.5257120000 * yv[15])
-                + (-882.7995994700 * yv[16]) + (286.1246537800 * yv[17])
-                + (-69.8328092170 * yv[18]) + ( 11.5629324230 * yv[19]);
-
-		return yv[NZEROS];
-	}
-	
-	// Return an average peak position difference
-	private double returnPeaks ()	{
-		int nextPeak=0,lastPeak=0;
-		double total=0.0,dCount=0.0;
-		while (nextPeak!=-1)	{
-			lastPeak=nextPeak;
-			nextPeak=returnPeak(nextPeak);
-			if (nextPeak!=-1)	{
-				total=total+(nextPeak-lastPeak);
-				dCount++;
-			}
-		}
-		return (total/dCount);
+	 int a;
+	 for (a=0;a<60000;a++)	{
+		 double v=nco.getSample();
+		 theApp.debugDump(Double.toString(v));
+	 }
+	 
+	 a++;
+	 
 	}
 	
 	
-	// Return the next peak found
-	private int returnPeak (int start)	{
-		int a;
-		for (a=start+1;a<(rectifiedCarrierBuffer.length-1);a++)	{
-			if ((rectifiedCarrierBuffer[a]>rectifiedCarrierBuffer[a-1])&&(rectifiedCarrierBuffer[a]>rectifiedCarrierBuffer[a+1]))	{
-				return a;
-			}
-		}
-		return -1;
-	}
+	
 	
 }
