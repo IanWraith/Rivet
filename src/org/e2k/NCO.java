@@ -7,6 +7,7 @@ public class NCO {
 	private double frequency;
 	private double amplitude;
 	private double prevSample=1;
+	private double NinetyDegOut=0;
 	private int peak=0;
 	
 	public NCO (double freq,double amp,double sr)	{
@@ -25,6 +26,8 @@ public class NCO {
 	public double getSample()	{
 		// Calculate this sample
 		double out=(amplitude*Math.sin((2*Math.PI*n*frequency)/(double)sampleRate));
+		// & one 90 degrees out of phase
+		NinetyDegOut=(amplitude*Math.cos((2*Math.PI*n*frequency)/(double)sampleRate));
 		// then the one after
 		double nout=(amplitude*Math.sin((2*Math.PI*(n+1)*frequency)/(double)sampleRate));
 		// Is this the peak
@@ -37,6 +40,10 @@ public class NCO {
 		n++;
 		prevSample=out;
 		return out;
+	}
+	
+	public double getNinetyDegOut()	{
+		return NinetyDegOut;
 	}
 	
 	
