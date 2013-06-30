@@ -46,7 +46,9 @@ public class NCO {
 	public double getNinetyDegOut()	{
 		return NinetyDegOut;
 	}
-	
-	
+		
+	public double getFrequency()	{
+		return frequency;
+	}
 	
 }
