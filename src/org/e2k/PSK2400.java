@@ -11,6 +11,8 @@ public class PSK2400 extends PSK {
 	private long symbolCounter=0;
 	
 	private lowPass2500Filter interpolateFilter=new lowPass2500Filter();
+	private lowPass2500Filter iFilter=new lowPass2500Filter();
+	private lowPass2500Filter qFilter=new lowPass2500Filter();
 	NCO costasNCO=new NCO(1800.0,0.25,24000);
 	
 	public PSK2400 (Rivet tapp)	{
@@ -74,9 +76,11 @@ public class PSK2400 extends PSK {
 
 	// Process a 24000 Hz sample
 	private void processSample (double in)	{
+		// Create the I & Q samples then put them through a low pass filter
+		double i=iFilter.filter(in*costasNCO.getSample());
+		double q=qFilter.filter(in*costasNCO.getNinetyDegOut());
 		
-		theApp.debugDump(Double.toString(in));
-	 
+		
 	}
 	
 	// A class which is a 2500 Hz low pass filter (sample rate 24000 Hz)
