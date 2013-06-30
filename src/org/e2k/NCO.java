@@ -8,6 +8,7 @@ public class NCO {
 	private double amplitude;
 	private double prevSample=1;
 	private double NinetyDegOut=0;
+	private double nextOut=0;
 	private int peak=0;
 	
 	public NCO (double freq,double amp,double sr)	{
@@ -24,14 +25,14 @@ public class NCO {
 	
 	// Get the next sample of the waveform
 	public double getSample()	{
-		// Calculate this sample
-		double out=(amplitude*Math.sin((2*Math.PI*n*frequency)/(double)sampleRate));
+		// Calculate this sample (use the previous next sample to save CPU time)
+		double out=nextOut;
 		// & one 90 degrees out of phase
 		NinetyDegOut=(amplitude*Math.cos((2*Math.PI*n*frequency)/(double)sampleRate));
 		// then the one after
-		double nout=(amplitude*Math.sin((2*Math.PI*(n+1)*frequency)/(double)sampleRate));
+		nextOut=(amplitude*Math.sin((2*Math.PI*(n+1)*frequency)/(double)sampleRate));
 		// Is this the peak
-		if ((out>prevSample)&&(out>nout))	{
+		if ((out>prevSample)&&(out>nextOut))	{
 			// Record the first peak and if this is a peak set the counter n to the value of the first peak detected
 			// this stops the counter n from getting to large and rolling over
 			if (peak==0) peak=n;
