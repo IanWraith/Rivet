@@ -77,6 +77,7 @@ public class FSK extends FFT {
 	    else if (baud==100)	return (do100baudFFT(circBuf,waveData,start));
 	    // 200 baud
 	    else if (baud==200) return (doFSK200500_8000FFT (circBuf,waveData,start,ss));
+	    // TODO : Add support for a full symbol 300 baud sample
 	    // 600 baud
 	    else if (baud==600) return (do600baudFFT(circBuf,waveData,start));
 	    else return 0;
@@ -241,6 +242,7 @@ public class FSK extends FFT {
 		else if (baud==100) return (do100baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
 		// 200 baud 
 		else if (baud==200) return (do200baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
+		// TODO : Add support for a half symbol 300 baud sample
 		// 600 baud 
 		else if (baud==600) return (do600baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
 		else	{
