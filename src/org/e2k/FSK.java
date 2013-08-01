@@ -77,7 +77,8 @@ public class FSK extends FFT {
 	    else if (baud==100)	return (do100baudFFT(circBuf,waveData,start));
 	    // 200 baud
 	    else if (baud==200) return (doFSK200500_8000FFT (circBuf,waveData,start,ss));
-	    // TODO : Add support for a full symbol 300 baud sample
+	    // 300 baud
+	    else if (baud==300) return (do300baudFFT(circBuf,waveData,start));
 	    // 600 baud
 	    else if (baud==600) return (do600baudFFT(circBuf,waveData,start));
 	    else return 0;
@@ -163,6 +164,27 @@ public class FSK extends FFT {
 		return vals;
 		}	
 	
+	// Does a 64 point FFT on 13 samples (a half symbol) then returns the values of two specific bins
+	public double[] do300baudFSKHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
+		double vals[]=new double[2];
+		// Get the data from the circular buffer
+		double samData[]=circBuf.extractDataDouble(start,13);
+		double datar[]=new double[FFT_64_SIZE];
+		// Run the data through a Blackman window
+		int a;
+		for (a=0;a<datar.length;a++)	{
+			if ((a>=25)&&(a<38)) datar[a]=samData[a-25];
+			else datar[a]=0.0;
+			datar[a]=windowBlackman(datar[a],a,datar.length);
+			}
+		fft64.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		vals[0]=spec[bin0];
+		vals[1]=spec[bin1];
+		return vals;
+		}		
+	
+	
 	// Does a 64 point FFT on 6 samples (a half symbol) then returns the values of two specific bins
 	public double[] do600baudFSKHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
 		double vals[]=new double[2];
@@ -242,7 +264,8 @@ public class FSK extends FFT {
 		else if (baud==100) return (do100baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
 		// 200 baud 
 		else if (baud==200) return (do200baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
-		// TODO : Add support for a half symbol 300 baud sample
+		// 300 baud 
+		else if (baud==300) return (do300baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
 		// 600 baud 
 		else if (baud==600) return (do600baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
 		else	{
@@ -315,6 +338,25 @@ public class FSK extends FFT {
 		int freq=getFFTFreq (spec,waveData.getSampleRate());  
 		return freq;
 		}	
+	
+	
+	// Return the frequency on a 300 baud 64 point FFT sample
+	public int do300baudFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+		double samData[]=circBuf.extractDataDouble(start,26);
+		double datar[]=new double[FFT_64_SIZE];
+		// Run the data through a Blackman window
+		int a;
+		for (a=0;a<datar.length;a++)	{
+			if ((a>=19)&&(a<45)) datar[a]=samData[a-19];
+			else datar[a]=0.0;
+			}		
+		fft64.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
+		}	
+	
 	
 	public int doCCIR493_160FFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
