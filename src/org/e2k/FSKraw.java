@@ -38,6 +38,7 @@ public class FSKraw extends FSK {
 	private boolean display=false;
 	private int charactersRemaining=0;
 	private boolean activeTrigger;
+	private long bitsReceived;
 	
 	public FSKraw (Rivet tapp)	{
 		theApp=tapp;
@@ -94,6 +95,8 @@ public class FSKraw extends FSK {
 			activeTrigger=false;
 			// Clear the energy buffer
 			energyBuffer.setBufferCounter(0);
+			// Add a newline
+			theApp.newLineWrite();
 			return;
 		}
 		
@@ -111,6 +114,7 @@ public class FSKraw extends FSK {
 					// Change the state
 					setState(2);
 					characterCounter=0;
+					bitsReceived=0;
 					energyBuffer.setBufferCounter(0);
 				}
 			}
@@ -130,6 +134,7 @@ public class FSKraw extends FSK {
 					if (ibit==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
 					else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
 					characterCounter++;
+					bitsReceived++;
 				}
 				// Is there a grab trigger in progress
 				if (charactersRemaining>0)	{
@@ -178,9 +183,11 @@ public class FSKraw extends FSK {
 		int freq1=rttyFreq(circBuf,waveData,0);
 		int bin1=getFreqBin();
 		// Check this first tone isn't just noise
-		if (getPercentageOfTotal()<10.0) return null;
+		if (getPercentageOfTotal()<15.0) return null;
 		int freq2=rttyFreq(circBuf,waveData,(int)samplesPerSymbol*1);
 		int bin2=getFreqBin();
+		// Check this second tone isn't just noise
+		if (getPercentageOfTotal()<15.0) return null;
 		// Calculate the difference between these tones
 		if (freq2>freq1) difference=freq2-freq1;
 		else difference=freq1-freq2;
@@ -203,9 +210,18 @@ public class FSKraw extends FSK {
 	
 	// Add a comparator output to a circular buffer of values
 	private void addToAdjBuffer (double in)	{
-		// If the percentage difference is more than 45% then we have lost the signal
-		if (in>45.0)	{
+		// If the buffer average percentage difference is more than 60% then we have lost the signal
+		if (absAverage()>60.0)	{
 			setState(1);
+			
+			if (display==true)	{
+				
+				// TODO : Fix a bug which causes the number of bits received display line to be corrupted
+				
+				String line="("+Long.toString(bitsReceived)+" bits received)";
+				theApp.writeLine(line,Color.BLACK,theApp.italicFont);
+			}
+			
 			// Is there a trigger in progress
 			if (activeTrigger==true)	{
 				charactersRemaining=0;
@@ -217,7 +233,16 @@ public class FSKraw extends FSK {
 			adjBuffer[adjCounter]=in;
 			adjCounter++;
 			if (adjCounter==adjBuffer.length) adjCounter=0;
+			
+			//theApp.debugDump(Double.toString(absAverage()));
+			
 		}
+	}
+	
+	
+	private double absAverage()	{
+		double av=adjAverage();
+		return Math.abs(av);
 	}
 	
 	// Return the average of the circular buffer
