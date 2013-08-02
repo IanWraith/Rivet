@@ -54,26 +54,26 @@ public class CIS3650 extends FSK {
 	}
 	
 	// The main decode routine
-	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+	public boolean decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Initial startup
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nCIS 36-50 recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
@@ -84,14 +84,14 @@ public class CIS3650 extends FSK {
 			buffer7=0;
 			buffer21=0;
 			characterCount=0;
-			return;
+			return true;
 		}
 		
 		
 		// Look for a 36 baud or a 50 baud alternating sequence
 		else if (state==1)	{
 			sampleCount++;
-			if (sampleCount<0) return;
+			if (sampleCount<0) return true;
 			// Look for a 50 baud alternating sync sequence
 			if (detect50Sync(circBuf,waveData)==true)	{
 				totalErrorCount=0;
@@ -100,7 +100,7 @@ public class CIS3650 extends FSK {
 				setState(2);
 				buffer7=0;
 				b7Count=0;
-				return;
+				return true;
 			}
 		}
 		
@@ -253,7 +253,7 @@ public class CIS3650 extends FSK {
 		}
 		sampleCount++;
 		symbolCounter++;
-		return;
+		return true;
 	}
 	
 	// Set the decoder state and update the status label

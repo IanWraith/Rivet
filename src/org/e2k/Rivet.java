@@ -330,9 +330,11 @@ public class Rivet {
 				}
 				
 				// Once the buffer data has been read we are done
-				String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
-				writeLine(disp,Color.BLACK,italicFont);		
-				wavFileLoadOngoing=false;
+				if (wavFileLoadOngoing==true)	{
+					String disp=getTimeStamp()+" WAV file loaded and analysis complete ("+Long.toString(inputThread.getSampleCounter())+" samples read)";
+					writeLine(disp,Color.BLACK,italicFont);		
+					wavFileLoadOngoing=false;
+					}
 				}
 			}
 		catch (Exception e)	{
@@ -362,30 +364,41 @@ public class Rivet {
 	// A central data processing class
 	private void processData ()	{		
 		try	{
+			boolean res=false;
 			// CROWD36
-			if (system==0) crowd36Handler.decode(circBuffer,waveData);
+			if (system==0) res=crowd36Handler.decode(circBuffer,waveData);
 			// XPA
-			else if ((system==1)||(system==3)) xpaHandler.decode(circBuffer,waveData);
+			else if ((system==1)||(system==3)) res=xpaHandler.decode(circBuffer,waveData);
 			// XPA2
-			else if (system==2)	xpa2Handler.decode(circBuffer,waveData);
+			else if (system==2)	res=xpa2Handler.decode(circBuffer,waveData);
 			// Experimental
-			else if (system==4)	at3x04Handler.decode(circBuffer,waveData);
+			else if (system==4)	res=at3x04Handler.decode(circBuffer,waveData);
 			// CIS36-50
-			else if (system==5)	cis3650Handler.decode(circBuffer,waveData);
+			else if (system==5)	res=cis3650Handler.decode(circBuffer,waveData);
 			// FSK200/500
-			else if (system==6)	fsk200500Handler.decode(circBuffer,waveData);
+			else if (system==6)	res=fsk200500Handler.decode(circBuffer,waveData);
 			// CCIR493-4
-			else if (system==7)	ccir493Handler.decode(circBuffer,waveData);
+			else if (system==7)	res=ccir493Handler.decode(circBuffer,waveData);
 			// FSK200/1000
-			else if (system==8)	fsk2001000Handler.decode(circBuffer,waveData);
+			else if (system==8)	res=fsk2001000Handler.decode(circBuffer,waveData);
 			// GW
-			else if (system==9) gwHandler.decode(circBuffer,waveData);
+			else if (system==9) res=gwHandler.decode(circBuffer,waveData);
 			// RTTY
-			else if (system==10) rttyHandler.decode(circBuffer,waveData);
+			else if (system==10) res=rttyHandler.decode(circBuffer,waveData);
 			// FSK (raw)
-			else if (system==11) fskHandler.decode(circBuffer,waveData);
+			else if (system==11) res=fskHandler.decode(circBuffer,waveData);
 			// RDFT
-			else if (system==12) rdftHandler.decode(circBuffer,waveData);
+			else if (system==12) res=rdftHandler.decode(circBuffer,waveData);
+			// Tell the user there has been an error and stop the WAV file from loading
+			if (res==false)	{
+				if (soundCardInput==false)	{
+					inputThread.stopReadingFile();
+					wavFileLoadOngoing=false;
+					writeLine("Error Loading WAV File",Color.RED,theApp.boldFont);
+				}
+				
+			}
+			
 		}
 		catch (Exception e){
 			StringWriter sw=new StringWriter();

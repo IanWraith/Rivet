@@ -50,26 +50,26 @@ public class RDFT extends OFDM {
 	}
 	
 	// The main decode routine
-	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+	public boolean decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Initial startup
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nRDFT recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
@@ -80,12 +80,12 @@ public class RDFT extends OFDM {
 			theApp.writeLine("Please note that this mode is experimental and doesn't work yet !",Color.RED,theApp.italicFont);
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			setState(1);
-			return;
+			return true;
 		}
 		// Look for the constant 8 carriers that signal a RDFT start
 		else if (state==1)	{
 			sampleCount++;
-			if (sampleCount<0) return;
+			if (sampleCount<0) return true;
 			// Only run this check every 50 samples as this is rather maths intensive
 			if (sampleCount%50==0)	{
 				double spr[]=doRDFTFFTSpectrum(circBuf,waveData,0,true,650,true);
@@ -139,7 +139,7 @@ public class RDFT extends OFDM {
 			//theApp.debugDump(sb.toString());
 				
 		}
-		
+		return true;
 	}
 	
 	private List<Complex> extractCarrierSymbols (double fdata[])	{

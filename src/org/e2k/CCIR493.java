@@ -56,26 +56,26 @@ public class CCIR493 extends FSK {
 	}
 		
 	// The main decode routine
-	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+	public boolean decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Initial startup
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nCCIR493-4 recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
@@ -85,12 +85,12 @@ public class CCIR493 extends FSK {
 			lineBuffer.delete(0,lineBuffer.length());
 			messageState=0;
 			theApp.setStatusLabel("Sync Hunt");
-			return;
+			return true;
 		}
 		// Look for a 100 baud alternating sequence
 		if (state==1)	{
 			sampleCount++;
-			if (sampleCount<0) return;
+			if (sampleCount<0) return true;
 			// Look for a 100 baud alternating sync sequence
 			if (detectSync(circBuf,waveData)==true)	{
 				state=2;
@@ -106,7 +106,7 @@ public class CCIR493 extends FSK {
 					theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
 				}
 				clearMessageBuffer();
-				return;
+				return true;
 			}
 		}		
 		// Receive and decode the message
@@ -120,7 +120,7 @@ public class CCIR493 extends FSK {
 		}
 		sampleCount++;
 		symbolCounter++;
-		return;
+		return true;
 		}
 	
 

@@ -59,26 +59,26 @@ public class CROWD36 extends MFSK {
 		return state;
 	}
 		
-	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+	public boolean decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()>11025)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nCROWD36 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			samplesPerSymbol=samplesPerSymbol(baudRate,waveData.getSampleRate());
 			state=1;
@@ -95,7 +95,7 @@ public class CROWD36 extends MFSK {
 			// Clear the display side of things
 			lineCount=0;
 			theApp.setStatusLabel("Known Tone Hunt");
-			return;
+			return true;
 		}
 		// Hunting for known tones
 		else if (state==1)	{
@@ -125,7 +125,7 @@ public class CROWD36 extends MFSK {
 				theApp.setStatusLabel("Symbol Timing Achieved");
 				sampleCount++;
 				symbolCounter++;
-				return;
+				return true;
 			}
 		}
 		// Decode traffic
@@ -139,7 +139,7 @@ public class CROWD36 extends MFSK {
 		}
 		sampleCount++;
 		symbolCounter++;
-		return;				
+		return true;				
 	}
 	
 	private int crowd36Freq (CircularDataBuffer circBuf,WaveData waveData,int pos)	{

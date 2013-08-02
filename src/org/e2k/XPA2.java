@@ -54,26 +54,26 @@ public class XPA2 extends MFSK {
 	}
 	
 	// The main decode function
-	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+	public boolean decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Just starting
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()>11025.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nXPA2 recordings must have\nbeen recorded at a sample rate\nof 11.025 KHz or less.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			samplesPerSymbol=samplesPerSymbol(BAUDRATE,waveData.getSampleRate());
 			// sampleCount must start negative to account for the buffer gradually filling
@@ -86,7 +86,7 @@ public class XPA2 extends MFSK {
 			energyBuffer.setBufferCounter(0);
 			setState(1);
 			characterCount=0;
-			return;
+			return true;
 		}
 		// Hunting for a start tone
 		if (state==1)	{
@@ -98,7 +98,7 @@ public class XPA2 extends MFSK {
 				// Have start tone
 				setState(2);
 				theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
-				return;
+				return true;
 			}
 		}
 		// Look for a sync (1037 Hz)
@@ -109,20 +109,20 @@ public class XPA2 extends MFSK {
 			if (sampleCount%200>0)	{
 				sampleCount++;
 				symbolCounter++;
-				return;
+				return true;
 			}
 			// Look for two symbols worth of sync tones to prevent false starts
 			int freq=xpa2Freq(circBuf,waveData,0);
 			if (toneTest(freq,SYNCLOW,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
-				return;
+				return true;
 			}
 			int freq2=xpa2Freq(circBuf,waveData,(int)samplesPerSymbol);
 			if (toneTest(freq2,SYNCLOW,ERRORALLOWANCE)==false)	{
 				sampleCount++;
 				symbolCounter++;
-				return;
+				return true;
 			}
 			setState(3);
 			// Remember this value as it is the start of the energy values
@@ -139,7 +139,7 @@ public class XPA2 extends MFSK {
 			sampleCount++;
 			symbolCounter++;
 			// Gather a symbols worth of energy values
-			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*lookAHEAD)) return;
+			if (energyBuffer.getBufferCounter()<(int)(samplesPerSymbol*lookAHEAD)) return true;
 			// Now find the lowest energy value
 			long perfectPoint=energyBuffer.returnLowestBin()+syncFoundPoint+(int)samplesPerSymbol;
 			// Calculate what the value of the symbol counter should be
@@ -148,7 +148,7 @@ public class XPA2 extends MFSK {
 			theApp.setStatusLabel("Symbol Timing Achieved");
 			theApp.writeLine((theApp.getTimeStamp()+" Symbol timing found"),Color.BLACK,theApp.italicFont);
 			theApp.newLineWrite();
-			return;
+			return true;
 		}
 		// Get valid data
 		if (state==4)	{			
@@ -161,7 +161,7 @@ public class XPA2 extends MFSK {
 		}
 		sampleCount++;
 		symbolCounter++;
-		return;
+		return true;
 	}
 	
 	// Return a String for a tone

@@ -46,26 +46,26 @@ public class GW extends FSK {
 	}
 	
 	// The main decode routine
-	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+	public boolean decode (CircularDataBuffer circBuf,WaveData waveData)	{
 		// Initial startup
 		if (state==0)	{
 			// Check the sample rate
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nGW FSK recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// sampleCount must start negative to account for the buffer gradually filling
 			sampleCount=0-circBuf.retMax();
@@ -76,7 +76,7 @@ public class GW extends FSK {
 			shoreSide=false;
 			// Clear the ship list
 			theApp.clearLoggedShipsList();
-			return;
+			return true;
 		}
 		else if (state==1)	{
 			if (sampleCount>0)	{
@@ -110,7 +110,7 @@ public class GW extends FSK {
 		}
 		sampleCount++;
 		symbolCounter++;
-		return;
+		return true;
 	}	
 
 	public int getState() {

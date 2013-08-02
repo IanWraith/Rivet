@@ -68,7 +68,7 @@ public class RTTY extends FSK {
 		return state;
 	}
 	
-	public void decode (CircularDataBuffer circBuf,WaveData waveData)	{
+	public boolean decode (CircularDataBuffer circBuf,WaveData waveData)	{
 
 		// Just starting
 		if (state==0)	{
@@ -76,19 +76,19 @@ public class RTTY extends FSK {
 			if (waveData.getSampleRate()!=8000.0)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"WAV files containing\nRTTY recordings must have\nbeen recorded at a sample rate\nof 8 KHz.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a mono recording
 			if (waveData.getChannels()!=1)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\nmono WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			// Check this is a 16 bit WAV file
 			if (waveData.getSampleSizeInBits()!=16)	{
 				state=-1;
 				JOptionPane.showMessageDialog(null,"Rivet can only process\n16 bit WAV files.","Rivet", JOptionPane.INFORMATION_MESSAGE);
-				return;
+				return false;
 			}
 			setState(1);
 			// sampleCount must start negative to account for the buffer gradually filling
@@ -99,7 +99,7 @@ public class RTTY extends FSK {
 			// Clear the display side of things
 			characterCount=0;
 			lettersMode=true;
-			return;
+			return true;
 		}
 		
 		// Hunt for the sync sequence
@@ -206,7 +206,7 @@ public class RTTY extends FSK {
 		}
 		sampleCount++;
 		symbolCounter++;
-		return;				
+		return true;				
 	}
 
 	public int getShift() {
