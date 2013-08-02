@@ -213,15 +213,13 @@ public class FSKraw extends FSK {
 		// If the buffer average percentage difference is more than 60% then we have lost the signal
 		if (absAverage()>60.0)	{
 			setState(1);
-			
 			if (display==true)	{
-				
-				// TODO : Fix a bug which causes the number of bits received display line to be corrupted
-				
+				// Tell the user how many bits were received
 				String line="("+Long.toString(bitsReceived)+" bits received)";
 				theApp.writeLine(line,Color.BLACK,theApp.italicFont);
-			}
-			
+				// Add a new line after this
+				theApp.newLineWrite();
+			}	
 			// Is there a trigger in progress
 			if (activeTrigger==true)	{
 				charactersRemaining=0;
@@ -233,9 +231,6 @@ public class FSKraw extends FSK {
 			adjBuffer[adjCounter]=in;
 			adjCounter++;
 			if (adjCounter==adjBuffer.length) adjCounter=0;
-			
-			//theApp.debugDump(Double.toString(absAverage()));
-			
 		}
 	}
 	
@@ -257,9 +252,10 @@ public class FSKraw extends FSK {
 	
 	// Get the average value and return an adjustment value
 	private int adjAdjust()	{
+		// A value of 5 is good for 300 baud
+		double divisor=5;
 		double av=adjAverage();
-		// was 5
-		double r=Math.abs(av)/15;
+		double r=Math.abs(av)/divisor;
 		if (av<0) r=0-r;
 		return (int)r;
 	}	
