@@ -150,6 +150,7 @@ Build 82 Allow the mouse wheel to be used for scrolling
          Add support for 300 baud FSK
          Fix a bug where the program would keep trying to process a WAV file that was in the incorrect format
 Build 83 Make the baud rate,shift and stop boxes selections in the Baudot/FSK options box into combo boxes
+         Remove references to the RDFT and AT3x01 code in the main Rivet class
                 
 Reported Bugs
 -------------
@@ -162,4 +163,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (5th August 2013) 
+Ian Wraith (11th August 2013) 

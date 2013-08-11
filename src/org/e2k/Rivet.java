@@ -66,8 +66,8 @@ public class Rivet {
     public RTTY rttyHandler=new RTTY(this);
     public GW gwHandler=new GW(this);
     public FSKraw fskHandler=new FSKraw(this);
-    public RDFT rdftHandler=new RDFT(this);
-    public AT3x04 at3x04Handler=new AT3x04(this);
+    //public RDFT rdftHandler=new RDFT(this);
+    //public AT3x04 at3x04Handler=new AT3x04(this);
     public InputThread inputThread=new InputThread(this);
     private DataInputStream inPipeData;
 	private PipedInputStream inPipe;
@@ -108,8 +108,7 @@ public class Rivet {
 			"FSK200/1000",
 			"GW FSK (100 Baud)",
 			"Baudot",
-			"FSK (Raw)",
-			"RDFT"
+			"FSK (Raw)"
 			};
     
 	public static void main(String[] args) {
@@ -251,11 +250,6 @@ public class Rivet {
 		if (system==11) return true;
 		else return false;
 	}
-	
-	public boolean isRDFT()	{
-		if (system==12) return true;
-		else return false;
-	}
 		
 	// Tell the input thread to start to load a .WAV file
 	public void loadWAVfile(String fileName)	{
@@ -274,6 +268,8 @@ public class Rivet {
 		else if ((system==1)||(system==3)) xpaHandler.setState(0);
 		// XPA2
 		else if (system==2) xpa2Handler.setState(0);
+		// Experimental
+		//else if (system==4)
 		// CIS36-50
 		else if (system==5) cis3650Handler.setState(0);
 		// FSK200/500
@@ -288,8 +284,6 @@ public class Rivet {
 		else if (system==10) rttyHandler.setState(0);
 		// FSK (raw)
 		else if (system==11) fskHandler.setState(0);
-		// RDFT
-		else if (system==12) rdftHandler.setState(0);
 		// Ensure the program knows we have a WAV file load ongoing
 		wavFileLoadOngoing=true;
 	}
@@ -371,7 +365,7 @@ public class Rivet {
 			// XPA2
 			else if (system==2)	res=xpa2Handler.decode(circBuffer,waveData);
 			// Experimental
-			else if (system==4)	res=at3x04Handler.decode(circBuffer,waveData);
+			//else if (system==4)	res=
 			// CIS36-50
 			else if (system==5)	res=cis3650Handler.decode(circBuffer,waveData);
 			// FSK200/500
@@ -386,8 +380,6 @@ public class Rivet {
 			else if (system==10) res=rttyHandler.decode(circBuffer,waveData);
 			// FSK (raw)
 			else if (system==11) res=fskHandler.decode(circBuffer,waveData);
-			// RDFT
-			else if (system==12) res=rdftHandler.decode(circBuffer,waveData);
 			// Tell the user there has been an error and stop the WAV file from loading
 			if (res==false)	{
 				if (soundCardInput==false)	{
@@ -566,7 +558,7 @@ public class Rivet {
 		// XPA2
 		else if (system==2)	xpa2Handler.setState(0);
 		// Experimental
-		else if (system==4)	at3x04Handler.setState(0);
+		//else if (system==4)	
 		// CIS36-50
 		else if (system==5)	cis3650Handler.setState(0);
 		// FSK200/500
@@ -582,7 +574,7 @@ public class Rivet {
 		// FSK (raw)
 		else if (system==11) fskHandler.setState(0);
 		// RDFT
-		else if (system==12) rdftHandler.setState(0);
+		//else if (system==12) rdftHandler.setState(0);
 	}
 	
 	// Gets all the text on the screen and returns it as a string
