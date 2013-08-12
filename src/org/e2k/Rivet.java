@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public final String program_version="Rivet (Build 84) by Ian Wraith";
+	public final String program_version="Rivet (Build 85) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -66,6 +66,7 @@ public class Rivet {
     public RTTY rttyHandler=new RTTY(this);
     public GW gwHandler=new GW(this);
     public FSKraw fskHandler=new FSKraw(this);
+    public GLN glnHandler=new GLN(this);
     //public RDFT rdftHandler=new RDFT(this);
     //public AT3x04 at3x04Handler=new AT3x04(this);
     public InputThread inputThread=new InputThread(this);
@@ -269,7 +270,7 @@ public class Rivet {
 		// XPA2
 		else if (system==2) xpa2Handler.setState(0);
 		// Experimental
-		//else if (system==4)
+		else if (system==4) glnHandler.setState(0);
 		// CIS36-50
 		else if (system==5) cis3650Handler.setState(0);
 		// FSK200/500
@@ -365,7 +366,7 @@ public class Rivet {
 			// XPA2
 			else if (system==2)	res=xpa2Handler.decode(circBuffer,waveData);
 			// Experimental
-			//else if (system==4)	res=
+			else if (system==4)	res=glnHandler.decode(circBuffer,waveData);
 			// CIS36-50
 			else if (system==5)	res=cis3650Handler.decode(circBuffer,waveData);
 			// FSK200/500
@@ -558,7 +559,7 @@ public class Rivet {
 		// XPA2
 		else if (system==2)	xpa2Handler.setState(0);
 		// Experimental
-		//else if (system==4)	
+		else if (system==4)	glnHandler.setState(0);
 		// CIS36-50
 		else if (system==5)	cis3650Handler.setState(0);
 		// FSK200/500
