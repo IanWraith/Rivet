@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public final String program_version="Rivet (Build 83) by Ian Wraith";
+	public final String program_version="Rivet (Build 84) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -626,7 +626,7 @@ public class Rivet {
 		 panel.add(baudRateList);
 		 // Shift 
 		 JLabel labelShift=new JLabel("Shift : ");		
-		 final String SHIFTS[]={"75 Hz","150 Hz","170 Hz","200 Hz","250 Hz","400 Hz","450 Hz","500 Hz","600 Hz","625 Hz","850 Hz","1000 Hz"};
+		 final String SHIFTS[]={"75 Hz","150 Hz","170 Hz","200 Hz","250 Hz","400 Hz","425 Hz","450 Hz","500 Hz","600 Hz","625 Hz","850 Hz","1000 Hz"};
 		 JComboBox <String> shiftList=new JComboBox <String>(SHIFTS);
 		 if (rttyHandler.getShift()==75) shiftList.setSelectedIndex(0);
 		 else if (rttyHandler.getShift()==150) shiftList.setSelectedIndex(1);
