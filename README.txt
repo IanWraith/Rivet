@@ -152,6 +152,7 @@ Build 82 Allow the mouse wheel to be used for scrolling
 Build 83 Make the baud rate,shift and stop boxes selections in the Baudot/FSK options box into combo boxes
          Remove references to the RDFT and AT3x01 code in the main Rivet class
 Build 84 Fix a bug in the RTTY/FSK shift selection dialog box
+         Add CRs to the end of each line in rivet_settings.xml to improve readability
                 
 Reported Bugs
 -------------

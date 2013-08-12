@@ -763,57 +763,57 @@ public class Rivet {
 		try {
 			xmlfile=new FileWriter("rivet_settings.xml");
 			// Start the XML file //
-			line="<?xml version='1.0' encoding='utf-8' standalone='yes'?><settings>";
+			line="<?xml version='1.0' encoding='utf-8' standalone='yes'?>\n<settings>\n";
 			xmlfile.write(line);
 			// Invert
 			line="<invert val='";
 			if (invertSignal==true) line=line+"TRUE";
 			else line=line+"FALSE";
-			line=line+"'/>";
+			line=line+"'/>\n";
 			xmlfile.write(line);
 			// Debug mode
 			line="<debug val='";
 			if (debug==true) line=line+"TRUE";
 			else line=line+"FALSE";
-			line=line+"'/>";
+			line=line+"'/>\n";
 			xmlfile.write(line);
 			// Mode
-			line="<mode val='"+Integer.toString(system)+"'/>";
+			line="<mode val='"+Integer.toString(system)+"'/>\n";
 			xmlfile.write(line);
 			// CROWD36 sync tone
-			line="<c36tone val='"+Integer.toString(crowd36Handler.getSyncHighTone())+"'/>";
+			line="<c36tone val='"+Integer.toString(crowd36Handler.getSyncHighTone())+"'/>\n";
 			xmlfile.write(line);
 			// Soundcard Input Level
-			line="<soundcard_level val='"+Integer.toString(soundCardInputLevel)+"'/>";
+			line="<soundcard_level val='"+Integer.toString(soundCardInputLevel)+"'/>\n";
 			xmlfile.write(line);
 			// Soundcard Input
-			if (soundCardInput==true) line="<soundcard_input val='1'/>";
-			else line="<soundcard_input val='0'/>";
+			if (soundCardInput==true) line="<soundcard_input val='1'/>\n";
+			else line="<soundcard_input val='0'/>\n";
 			xmlfile.write(line);
 			// View GW Free Channel Markers
-			if (viewGWChannelMarkers==true) line="<view_gw_markers val='1'/>";
-			else line="<view_gw_markers val='0'/>";
+			if (viewGWChannelMarkers==true) line="<view_gw_markers val='1'/>\n";
+			else line="<view_gw_markers val='0'/>\n";
 			xmlfile.write(line);
 			// RTTY & FSK
 			// Baud
-			line="<rttybaud val='"+Double.toString(rttyHandler.getBaudRate())+"'/>";
+			line="<rttybaud val='"+Double.toString(rttyHandler.getBaudRate())+"'/>\n";
 			xmlfile.write(line);
 			// Shift
-			line="<rttyshift val='"+Integer.toString(rttyHandler.getShift())+"'/>";
+			line="<rttyshift val='"+Integer.toString(rttyHandler.getShift())+"'/>\n";
 			xmlfile.write(line);
 			// Stop bits
-			line="<rttystop val='"+Double.toString(rttyHandler.getStopBits())+"'/>";
+			line="<rttystop val='"+Double.toString(rttyHandler.getStopBits())+"'/>\n";
 			xmlfile.write(line);			
 			// Save the current audio source
-			line="<audioDevice val='"+inputThread.getMixerName()+"'/>";
+			line="<audioDevice val='"+inputThread.getMixerName()+"'/>\n";
 			xmlfile.write(line);
 			// Display bad packets
-			if (displayBadPackets==true) line="<display_bad_packets val='1'/>";
-			else line="<display_bad_packets val='0'/>";
+			if (displayBadPackets==true) line="<display_bad_packets val='1'/>\n";
+			else line="<display_bad_packets val='0'/>\n";
 			xmlfile.write(line);
 			// Show UTC time
-			if (logInUTC==true) line="<UTC val='1'/>";
-			else line="<UTC val='0'/>";
+			if (logInUTC==true) line="<UTC val='1'/>\n";
+			else line="<UTC val='0'/>\n";
 			xmlfile.write(line);
 			// All done so close the root item //
 			line="</settings>";
