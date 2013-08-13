@@ -19,6 +19,8 @@ public class GLN extends FSK {
 	private int adjCounter=0;
 	private CircularBitSet dataBitSet=new CircularBitSet();
 	private int bitCount;
+	private boolean sBit0;
+	private boolean sBit1;
 	
 	public GLN (Rivet tapp)	{
 		theApp=tapp;
@@ -60,6 +62,9 @@ public class GLN extends FSK {
 					setState(2);
 					bitCount=0;
 					dataBitSet.totalClear();
+					// Add the bits found in the sync process
+					addBit(sBit0);
+					addBit(sBit1);
 				}
 			}
 		}
@@ -67,10 +72,8 @@ public class GLN extends FSK {
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol100)	{
 				symbolCounter=0;
-				boolean ibit=glnFreqHalf(circBuf,waveData,0);
-				dataBitSet.add(ibit);
-				// Increment the bit counter
-				bitCount++;	
+				// Get a bit and add it to the bit buffer
+				addBit(glnFreqHalf(circBuf,waveData,0));
 			}	
 		}
 		sampleCount++;
@@ -181,12 +184,18 @@ public class GLN extends FSK {
 			highBin=b0;
 			lowTone=f1;
 			lowBin=b1;
+			// Detected sequence was 10
+			sBit0=true;
+			sBit1=false;
 			}
 		else	{
 			highTone=f1;
 			highBin=b1;
 			lowTone=f0;
 			lowBin=b0;
+			// Detected sequence was 01
+			sBit0=false;
+			sBit1=true;
 			}
 		// If either the low bin or the high bin are zero there is a problem so return false
 		if ((lowBin==0)||(highBin==0)) return false; 
@@ -198,13 +207,20 @@ public class GLN extends FSK {
 	// The main method to process GLN traffic
 	private void processGLNData ()	{
 		
-		if (bitCount<88) return;
+		if (bitCount<90) return;
 		
 		// Turn the data into a string
 		String sData=dataBitSet.extractSectionFromStart(0,bitCount);	
 		// Display this
 		String disp=theApp.getTimeStamp()+" "+sData+" ("+Integer.toString(bitCount)+")";
 		theApp.writeLine(disp,Color.BLACK,theApp.boldFont);
+	}
+	
+	// Add a bit to the bit buffer
+	private void addBit (boolean b)	{
+		dataBitSet.add(b);
+		// Increment the bit counter
+		bitCount++;	
 	}
 		
 	
