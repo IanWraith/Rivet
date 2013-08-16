@@ -26,7 +26,6 @@ public class FSKraw extends FSK {
 	private Rivet theApp;
 	public long sampleCount=0;
 	private long symbolCounter=0;
-	private CircularDataBuffer energyBuffer=new CircularDataBuffer();
 	private int highBin;
 	private int lowBin;
 	private final int MAXCHARLENGTH=100;
@@ -39,6 +38,8 @@ public class FSKraw extends FSK {
 	private int charactersRemaining=0;
 	private boolean activeTrigger;
 	private long bitsReceived;
+	private boolean sBit0;
+	private boolean sBit1;
 	
 	public FSKraw (Rivet tapp)	{
 		theApp=tapp;
@@ -93,8 +94,6 @@ public class FSKraw extends FSK {
 			sampleCount=0-circBuf.retMax();
 			symbolCounter=0;
 			activeTrigger=false;
-			// Clear the energy buffer
-			energyBuffer.setBufferCounter(0);
 			// Add a newline
 			theApp.newLineWrite();
 			return true;
@@ -106,22 +105,33 @@ public class FSKraw extends FSK {
 			if (sampleCount>0)	{
 				sRet=syncSequenceHunt(circBuf,waveData);
 				if (sRet!=null)	{
-					if (display==true)	{
-						theApp.writeLine(sRet,Color.BLACK,theApp.italicFont);
-						// Add a newline
-						theApp.newLineWrite();
-					}
 					// Change the state
 					setState(2);
 					characterCounter=0;
 					bitsReceived=0;
-					energyBuffer.setBufferCounter(0);
+					circularBitSet.clear();
+					circularBitSet.add(sBit0);
+					circularBitSet.add(sBit1);
+					bitsReceived=2;
+					// Clear the adjustment buffer as well 
+					clearAdjBuffer();	
+					// If displaying then show this info
+					if (display==true)	{
+						theApp.writeLine(sRet,Color.BLACK,theApp.italicFont);
+						// Add a newline
+						theApp.newLineWrite();
+						// Display the bits received during sync
+						if (sBit0==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
+						else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
+						if (sBit1==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
+						else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
+						characterCounter=2;
+					}	
 				}
 			}
-		}
-				
+		}			
 		// Decode traffic
-		if (state==2)	{
+		else if (state==2)	{
 			// Only do this at the start of each symbol
 			if (symbolCounter>=samplesPerSymbol)	{
 				boolean ibit=fskFreqHalf(circBuf,waveData,0);
@@ -129,8 +139,8 @@ public class FSKraw extends FSK {
 				// Check triggers , if not active then enable the display
 				if (theApp.getActiveTriggerCount()>0) triggerCheck();
 				else display=true;
-				// Display this
-				if (display==true)	{
+				// Display this but only if we are still in state 2 (to prevent any duff binary appearing)
+				if ((display==true)&&(state==2))	{
 					if (ibit==true) theApp.writeChar("1",Color.BLACK,theApp.boldFont);
 					else theApp.writeChar("0",Color.BLACK,theApp.boldFont);
 					characterCounter++;
@@ -183,11 +193,11 @@ public class FSKraw extends FSK {
 		int freq1=rttyFreq(circBuf,waveData,0);
 		int bin1=getFreqBin();
 		// Check this first tone isn't just noise
-		if (getPercentageOfTotal()<15.0) return null;
+		if (getPercentageOfTotal()<10.0) return null;
 		int freq2=rttyFreq(circBuf,waveData,(int)samplesPerSymbol*1);
 		int bin2=getFreqBin();
 		// Check this second tone isn't just noise
-		if (getPercentageOfTotal()<15.0) return null;
+		if (getPercentageOfTotal()<10.0) return null;
 		// Calculate the difference between these tones
 		if (freq2>freq1) difference=freq2-freq1;
 		else difference=freq1-freq2;
@@ -196,10 +206,28 @@ public class FSKraw extends FSK {
 		if (freq1>freq2)	{
 			highBin=bin1;
 			lowBin=bin2;
+			// Detected sequence was 10
+			if (theApp.isInvertSignal()==false)	{
+				sBit0=true;
+				sBit1=false;
+			}
+			else	{
+				sBit0=false;
+				sBit1=true;
+			}
 		}
 		else	{
 			highBin=bin2;
 			lowBin=bin1;
+			// Detected sequence was 01
+			if (theApp.isInvertSignal()==true)	{
+				sBit0=true;
+				sBit1=false;
+			}
+			else	{
+				sBit0=false;
+				sBit1=true;
+			}			
 		}
 		// If either the low bin or the high bin are zero there is a problem so return false
 		if ((lowBin==0)||(highBin==0)) return null;
@@ -210,9 +238,8 @@ public class FSKraw extends FSK {
 	
 	// Add a comparator output to a circular buffer of values
 	private void addToAdjBuffer (double in)	{
-		// If the buffer average percentage difference is more than 60% then we have lost the signal
-		if (absAverage()>60.0)	{
-			setState(1);
+		// If the buffer average percentage difference is more than 25% then we have lost the signal
+		if (absAverage()>25.0)	{
 			if (display==true)	{
 				// Tell the user how many bits were received
 				String line="("+Long.toString(bitsReceived)+" bits received)";
@@ -226,6 +253,8 @@ public class FSKraw extends FSK {
 				display=false;
 				activeTrigger=false;
 			}
+			// Set to state 1 to try and regain a signal
+			setState(1);
 		}
 		else	{
 			adjBuffer[adjCounter]=in;
@@ -296,7 +325,15 @@ public class FSKraw extends FSK {
 			}		
 		return out;		
 	}
-
+	
+	// Clear the adjustment buffer
+	private void clearAdjBuffer()	{
+		int a;
+		for (a=0;a<adjBuffer.length;a++)	{
+			adjBuffer[a]=0.0;
+		}
+	}
+	
 	// Check if there have been any trigger activations
 	public void triggerCheck()	{
 		boolean showTrigger=false;
@@ -349,6 +386,6 @@ public class FSKraw extends FSK {
 			}
 		}
 	}
-	
+		
 	
 }
