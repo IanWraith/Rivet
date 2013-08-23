@@ -37,7 +37,7 @@ public class DisplayFrame extends JFrame implements ActionListener {
 	private JMenuItem XPA_10_item,XPA_20_item,XPA2_item,CROWD36_item,experimental_item,CIS3650_item,FSK200500_item,CCIR493_item,GW_item,RTTY_item;
 	private JMenuItem FSK2001000_item,CROWD36_sync_item,invert_item,save_settings_item,sample_item,e2k_item,twitter_item;
 	private JMenuItem freeChannelMarkerGW_item,RTTYOptions_item,FSK_item,AddEditTrigger_item,credits_item,system_info_item;
-	private JMenuItem ClearDisplay_item,DisplayBad_item,DisplayUTC_item,UDXF_item;
+	private JMenuItem ClearDisplay_item,DisplayBad_item,DisplayUTC_item,UDXF_item,CIS360Options_item;
 	private List<JMenuItem> trigger_items=new ArrayList<JMenuItem>();
 	private JMenu audioDevicesMenu;
 	private static ArrayList<AudioMixer> devices;
@@ -128,6 +128,8 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		JMenu optionsMenu=new JMenu("Options");
 		optionsMenu.add(RTTYOptions_item=new JMenuItem("Baudot & FSK Options"));		
 		RTTYOptions_item.addActionListener(this);
+		optionsMenu.add(CIS360Options_item=new JMenuItem("CIS36-50 Options"));		
+		CIS360Options_item.addActionListener(this);
 		optionsMenu.add(debug_item=new JRadioButtonMenuItem("Debug Mode",theApp.isDebug()));		
 		debug_item.addActionListener(this);
 		optionsMenu.add(invert_item=new JRadioButtonMenuItem("Invert",theApp.isInvertSignal()));
@@ -328,6 +330,10 @@ public class DisplayFrame extends JFrame implements ActionListener {
 		// Baudot Options
 		if (event_name=="Baudot & FSK Options")	{
 			theApp.setRTTYOptions();
+		}
+		// CIS36-50 Options
+		if (event_name=="CIS36-50 Options")	{
+			theApp.setBEEOptions();
 		}
 		// Invert the input signal
 		if (event_name=="Invert")	{

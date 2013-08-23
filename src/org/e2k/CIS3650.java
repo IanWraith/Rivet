@@ -27,6 +27,7 @@ import javax.swing.JOptionPane;
 public class CIS3650 extends FSK {
 
 	private int state=0;
+	private int shift=200;
 	private double samplesPerSymbol50;
 	private Rivet theApp;
 	public long sampleCount=0;
@@ -339,9 +340,13 @@ public class CIS3650 extends FSK {
 			}
 		// If either the low bin or the high bin are zero there is a problem so return false
 		if ((lowBin==0)||(highBin==0)) return false; 
-		// The shift for CIS36-50 should be should be 200 Hz
-		int shift=highTone-lowTone;
-		if ((shift>210)||(shift<190)) return false;
+		// Calculate the shift and check if it is OK
+		int dif=highTone-lowTone;
+		int ashift;
+		if (dif>shift) ashift=dif-shift;
+		else ashift=shift-dif;
+		// If we have more than a 10 Hz difference then we have a problem
+		if (ashift>10) return false;
 		else return true;
 	}
 	
@@ -436,6 +441,14 @@ public class CIS3650 extends FSK {
 		if (startBuffer[pos+5]==true) v=v+2;
 		if (startBuffer[pos+6]==true) v++;
 		return v;
+	}
+
+	public int getShift() {
+		return shift;
+	}
+
+	public void setShift(int shift) {
+		this.shift = shift;
 	}
 	
 	

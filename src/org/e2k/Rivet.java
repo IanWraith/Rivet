@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public final String program_version="Rivet (Build 85) by Ian Wraith";
+	public final String program_version="Rivet (Build 86) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -605,6 +605,29 @@ public class Rivet {
 		 }	
 	}
 	
+	// A dialog box to allow the user to set CIS36-50 options
+	public void setBEEOptions()	{
+		 // Create a panel that contains the FSK and RTTY options
+		 JPanel panel=new JPanel();
+		 // Set JPanel layout using GridLayout
+		 panel.setLayout(new GridLayout(2,1));
+		 // Shift
+		 JLabel labelShift=new JLabel("Shift : ");		
+		 final String SHIFTS[]={"200 Hz","250 Hz"};
+		 JComboBox<String> shiftList=new JComboBox <String>(SHIFTS);
+		 if (cis3650Handler.getShift()==200) shiftList.setSelectedIndex(0);
+		 else if (cis3650Handler.getShift()==250) shiftList.setSelectedIndex(1);
+		 panel.add(labelShift);
+		 panel.add(shiftList);
+		 // Show JOptionPane that will ask user for this information
+		 int resp=JOptionPane.showConfirmDialog(window,panel,"CIS36-50 Options",JOptionPane.OK_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE);
+		 // If the user has clicked on the OK option then change values in the RTTY object
+	     if (resp==JOptionPane.OK_OPTION)	{
+	    	if (shiftList.getSelectedIndex()==0) cis3650Handler.setShift(200);
+	    	else if (shiftList.getSelectedIndex()==1) cis3650Handler.setShift(250);
+	    }
+	}
+	
 	// A dialog box to allow the user to set the FSK and RTTY options
 	public void setRTTYOptions()	{
 		 // Create a panel that contains the FSK and RTTY options
@@ -613,7 +636,7 @@ public class Rivet {
 		 panel.setLayout(new GridLayout(3,2));
 		 // Baud Rate
 		 JLabel labelBaud=new JLabel("Baud Rate : ");		
-		 final String BAUDRATES[]={"45.5 Baud","50 baud","75 baud","100 baud","200 baud","300 baud","600 baud"};
+		 final String BAUDRATES[]={"45.5 baud","50 baud","75 baud","100 baud","200 baud","300 baud","600 baud"};
 		 JComboBox<String> baudRateList=new JComboBox <String>(BAUDRATES);
 		 if (rttyHandler.getBaudRate()==45.45) baudRateList.setSelectedIndex(0);
 		 else if (rttyHandler.getBaudRate()==50) baudRateList.setSelectedIndex(1);
@@ -815,6 +838,9 @@ public class Rivet {
 			if (logInUTC==true) line="<UTC val='1'/>\n";
 			else line="<UTC val='0'/>\n";
 			xmlfile.write(line);
+			// CIS36-50 shift
+			line="<cis3650shift val='"+Integer.toString(cis3650Handler.getShift())+"'/>\n";
+			xmlfile.write(line);
 			// All done so close the root item //
 			line="</settings>";
 			xmlfile.write(line);
@@ -925,6 +951,10 @@ public class Rivet {
 					else if (qName.equals("UTC"))	{
 						if (Integer.parseInt(aval)==1) logInUTC=true;
 						else logInUTC=false;
+					}
+					// CIS36-50 Shift
+					else if (qName.equals("cis3650shift"))	{
+						cis3650Handler.setShift(Integer.parseInt(aval));
 					}
 					
 				}	
