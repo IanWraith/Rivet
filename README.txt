@@ -155,6 +155,7 @@ Build 84 Fix a bug in the RTTY/FSK shift selection dialog box
          Add CRs to the end of each line in rivet_settings.xml to improve readability
 Build 85 Fix various problems in the FSK (Raw) mode
 Build 86 Support both 200 Hz and 250 Hz CIS36-50 mode shifts
+Build 87 Add support for a 500 Hz CIS36-50 mode shift
                 
 Reported Bugs
 -------------
@@ -167,4 +168,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (23rd August 2013) 
+Ian Wraith (24th August 2013) 

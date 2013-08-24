@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public final String program_version="Rivet (Build 86) by Ian Wraith";
+	public final String program_version="Rivet (Build 87) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -613,10 +613,11 @@ public class Rivet {
 		 panel.setLayout(new GridLayout(2,1));
 		 // Shift
 		 JLabel labelShift=new JLabel("Shift : ");		
-		 final String SHIFTS[]={"200 Hz","250 Hz"};
+		 final String SHIFTS[]={"200 Hz","250 Hz","500 Hz"};
 		 JComboBox<String> shiftList=new JComboBox <String>(SHIFTS);
 		 if (cis3650Handler.getShift()==200) shiftList.setSelectedIndex(0);
 		 else if (cis3650Handler.getShift()==250) shiftList.setSelectedIndex(1);
+		 else if (cis3650Handler.getShift()==500) shiftList.setSelectedIndex(2);
 		 panel.add(labelShift);
 		 panel.add(shiftList);
 		 // Show JOptionPane that will ask user for this information
@@ -625,6 +626,7 @@ public class Rivet {
 	     if (resp==JOptionPane.OK_OPTION)	{
 	    	if (shiftList.getSelectedIndex()==0) cis3650Handler.setShift(200);
 	    	else if (shiftList.getSelectedIndex()==1) cis3650Handler.setShift(250);
+	    	else if (shiftList.getSelectedIndex()==2) cis3650Handler.setShift(500);
 	    }
 	}
 	
