@@ -613,12 +613,12 @@ public class Rivet {
 		 panel.setLayout(new GridLayout(2,1));
 		 // Shift
 		 JLabel labelShift=new JLabel("Shift : ");		
-		 final String SHIFTS[]={"75 Hz","200 Hz","250 Hz","450 Hz","500 Hz"};
+		 final String SHIFTS[]={"75 Hz","200 Hz","250 Hz","400 Hz","500 Hz"};
 		 JComboBox<String> shiftList=new JComboBox <String>(SHIFTS);
 		 if (cis3650Handler.getShift()==75) shiftList.setSelectedIndex(0);
 		 else if (cis3650Handler.getShift()==200) shiftList.setSelectedIndex(1);
 		 else if (cis3650Handler.getShift()==250) shiftList.setSelectedIndex(2);
-		 else if (cis3650Handler.getShift()==450) shiftList.setSelectedIndex(3);
+		 else if (cis3650Handler.getShift()==400) shiftList.setSelectedIndex(3);
 		 else if (cis3650Handler.getShift()==500) shiftList.setSelectedIndex(4);
 		 panel.add(labelShift);
 		 panel.add(shiftList);
@@ -629,7 +629,7 @@ public class Rivet {
 	    	if (shiftList.getSelectedIndex()==0) cis3650Handler.setShift(75);
 	    	else if (shiftList.getSelectedIndex()==1) cis3650Handler.setShift(200);
 	    	else if (shiftList.getSelectedIndex()==2) cis3650Handler.setShift(250);
-	    	else if (shiftList.getSelectedIndex()==3) cis3650Handler.setShift(450);
+	    	else if (shiftList.getSelectedIndex()==3) cis3650Handler.setShift(400);
 	    	else if (shiftList.getSelectedIndex()==4) cis3650Handler.setShift(500);
 	    }
 	}
