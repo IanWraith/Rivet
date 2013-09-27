@@ -48,7 +48,7 @@ public class Rivet {
 	private DisplayView display_view;
 	private static Rivet theApp;
 	private static DisplayFrame window;
-	public final String program_version="Rivet (Build 88) by Ian Wraith";
+	public final String program_version="Rivet (Build 89) by Ian Wraith";
 	public int vertical_scrollbar_value=0;
 	public int horizontal_scrollbar_value=0;
 	public boolean pReady=false;
@@ -310,7 +310,7 @@ public class Rivet {
 				if (system==0)	{
 					//if (crowd36Handler.getLineCount()>0) writeLine(crowd36Handler.getLineBuffer(),Color.BLACK,plainFont);
 					writeLine(crowd36Handler.lowHighFreqs(),Color.BLACK,plainFont);
-					writeLine(crowd36Handler.toneResults(),Color.BLACK,plainFont);
+					crowd36Handler.toneResults();
 				}
 				else if (system==5)	{
 					//writeLine(cis3650Handler.lineBuffer.toString(),Color.BLACK,plainFont);

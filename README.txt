@@ -157,6 +157,7 @@ Build 85 Fix various problems in the FSK (Raw) mode
 Build 86 Support both 200 Hz and 250 Hz CIS36-50 mode shifts
 Build 87 Add support for a 500 Hz CIS36-50 mode shift
 Build 88 Add support for 75 Hz and 400 Hz CIS36-50 mode shifts
+Build 89 Improve the decoded CROWD36 display and add a debug output
                 
 Reported Bugs
 -------------

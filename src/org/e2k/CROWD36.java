@@ -14,7 +14,6 @@
 package org.e2k;
 
 import java.awt.Color;
-
 import javax.swing.JOptionPane;
 
 public class CROWD36 extends MFSK {
@@ -32,11 +31,12 @@ public class CROWD36 extends MFSK {
 	private int correctionValue=0;
 	private int highFreq=-1;
 	private int lowFreq=5000;
-	private final int Tones[]={1410,1450,1490,1530,1570,1610,1650,1690,1730,1770,1810,1850,1890,1930,1970,2010,2050,2090,2130,2170,2210,2250,2290,2330,2370,2410,2450,2490,2530,2570,2610,2650,2690,2730};
+	private final int TONES[]={1410,1450,1490,1530,1570,1610,1650,1690,1730,1770,1810,1850,1890,1930,1970,2010,2050,2090,2130,2170,2210,2250,2290,2330,2370,2410,2450,2490,2530,2570,2610,2650,2690,2730};
 	private int toneCount[]=new int[34];
 	private int toneLowCount;
 	private int toneHighCount;
 	private int syncHighTone=24;
+	private final String DEBUGLETTERS[]={"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","0","1","2","3","4","5","6","7","8","9"};
 		
 	public CROWD36 (Rivet tapp,int baud)	{
 		baudRate=baud;
@@ -106,6 +106,7 @@ public class CROWD36 extends MFSK {
 				energyBuffer.setBufferCounter(0);
 				theApp.setStatusLabel("Calculating Symbol Timing");
 				theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
+				theApp.newLineWrite();
 			}
 		}
 		
@@ -175,7 +176,7 @@ public class CROWD36 extends MFSK {
 				theApp.writeChar(ch,Color.BLACK,theApp.boldFont);
 				if (ch.length()>0) lineCount++;
 			}	
-			if (lineCount==50)	{
+			if (lineCount==80)	{
 				theApp.newLineWrite();
 				lineCount=0;
 				return;
@@ -184,9 +185,13 @@ public class CROWD36 extends MFSK {
 		}
 		else	{
 			// Debug
-			lineCount=0;
-			String dout=freq+" Hz at "+Long.toString(sampleCount+(int)samplesPerSymbol)+" tone "+Long.toString(tone)+" "+ch;	
-			theApp.writeLine(dout,Color.BLACK,theApp.boldFont);
+			if (tone==-1) theApp.writeChar("*",Color.BLACK,theApp.boldFont);
+			else theApp.writeChar(DEBUGLETTERS[tone],Color.BLACK,theApp.boldFont);
+			lineCount++;
+			if (lineCount==80)	{
+				lineCount=0;
+				theApp.newLineWrite();
+			}
 	        return;
 		}
 	}
@@ -238,8 +243,8 @@ public class CROWD36 extends MFSK {
 		if (freq>highFreq) highFreq=freq;
 		else if (freq<lowFreq) lowFreq=freq;
 		// Match the frequency to a tone number
-		for (a=0;a<Tones.length;a++)	{
-			dif=Math.abs(Tones[a]-freq);
+		for (a=0;a<TONES.length;a++)	{
+			dif=Math.abs(TONES[a]-freq);
 			if (dif<lowVal)	{
 				lowVal=dif;
 				index=a;
@@ -275,7 +280,7 @@ public class CROWD36 extends MFSK {
 			if ((freq1==freq2)||(freq3==freq4)) return null;
 			// Calculate the difference between the sync tones
 			difference=freq1-freq2;
-			correctionValue=Tones[syncHighTone]-freq1;
+			correctionValue=TONES[syncHighTone]-freq1;
 			String line=theApp.getTimeStamp()+" CROWD36 Sync Tones Found (Correcting by "+Integer.toString(correctionValue)+" Hz) sync tone difference "+Integer.toString(difference)+" Hz";
 			return line;
 		}
@@ -299,16 +304,15 @@ public class CROWD36 extends MFSK {
 		}
 	}
 	
-	public String toneResults()	{
-		StringBuilder out=new StringBuilder();
+	public void toneResults()	{
 		int a;
-		out.append("Low "+Integer.toString(toneLowCount));
+		theApp.writeLine(("Low Tone Count "+Integer.toString(toneLowCount)),Color.BLACK,theApp.plainFont); ;
 		for (a=0;a<toneCount.length;a++)	{
-			out.append(" T"+Integer.toString(a)+",");
-			out.append(Integer.toString(toneCount[a]));
+			String l="Tone #"+Integer.toString(a)+" "+Integer.toString(toneCount[a]);
+			theApp.writeLine(l,Color.BLACK,theApp.plainFont); 
 		}
-		out.append("High "+Integer.toString(toneHighCount));
-		return out.toString();
+		theApp.writeLine(("High Tone Count "+Integer.toString(toneHighCount)),Color.BLACK,theApp.plainFont); ;
+		return;
 	}
 
 	public int getSyncHighTone() {
