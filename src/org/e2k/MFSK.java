@@ -123,6 +123,7 @@ public class MFSK extends FSK {
 	    for (a=0;a<512;a++)	{
 	    	if (c<200) datar[a]=datao[c];
 	    	else datar[a]=0.0;
+	    	datar[a]=windowBlackman(datar[a],a,datar.length);
 	    	c++;
 	    }
 	    fft512.realForward(datar);
