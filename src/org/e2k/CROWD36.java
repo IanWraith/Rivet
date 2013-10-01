@@ -107,6 +107,9 @@ public class CROWD36 extends MFSK {
 				theApp.setStatusLabel("Calculating Symbol Timing");
 				theApp.writeLine(dout,Color.BLACK,theApp.italicFont);
 				theApp.newLineWrite();
+				String sinform="Sync High Tone is "+Integer.toString(syncHighTone);
+				theApp.writeLine(sinform,Color.BLACK,theApp.italicFont);
+				theApp.newLineWrite();
 			}
 		}
 		
