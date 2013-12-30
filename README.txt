@@ -159,6 +159,8 @@ Build 87 Add support for a 500 Hz CIS36-50 mode shift
 Build 88 Add support for 75 Hz and 400 Hz CIS36-50 mode shifts
 Build 89 Improve the decoded CROWD36 display and add a debug output
          Display the CROWD36 sync tone number at the start of a message
+         Add 800 Hz shift support for RTTY and raw FSK
+         Add 150 baud support for RTTY and raw FSK
                 
 Reported Bugs
 -------------
@@ -171,4 +173,4 @@ FSK200/1000 - Isn't fully decoded but the key externals now are.
 CIS36-50 - Messages are OK from stations that start transmitting idle briefly but Rivet has problems with 
 messages from stations which idle constantly.
 
-Ian Wraith (25th August 2013) 
+Ian Wraith (30th December 2013) 
