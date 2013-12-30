@@ -75,6 +75,8 @@ public class FSK extends FFT {
 	    }
 	    // 100 baud
 	    else if (baud==100)	return (do100baudFFT(circBuf,waveData,start));
+	    // 145 baud
+	    else if (baud==145)	return (do145baudFFT(circBuf,waveData,start));
 	    // 150 baud
 	    else if (baud==150)	return (do150baudFFT(circBuf,waveData,start));
 	    // 200 baud
@@ -135,6 +137,27 @@ public class FSK extends FFT {
 		int a;
 		for (a=0;a<datar.length;a++)	{
 			if ((a>=60)&&(a<100)) datar[a]=samData[a-60];
+			else datar[a]=0.0;
+			datar[a]=windowBlackman(datar[a],a,datar.length);
+			}
+		fft160.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		vals[0]=spec[bin0];
+		vals[1]=spec[bin1];
+		return vals;
+		}
+	
+	
+	// Does a 80 point FFT on 27 samples (a half symbol) then returns the values of two specific bins
+	public double[] do145baudFSKHalfSymbolBinRequest (CircularDataBuffer circBuf,int start,int bin0,int bin1)	{
+		double vals[]=new double[2];
+		// Get the data from the circular buffer
+		double samData[]=circBuf.extractDataDouble(start,27);
+		double datar[]=new double[FFT_160_SIZE];
+		// Run the data through a Blackman window
+		int a;
+		for (a=0;a<datar.length;a++)	{
+			if ((a>=66)&&(a<93)) datar[a]=samData[a-66];
 			else datar[a]=0.0;
 			datar[a]=windowBlackman(datar[a],a,datar.length);
 			}
@@ -284,6 +307,8 @@ public class FSK extends FFT {
 		}
 		// 100 baud
 		else if (baud==100) return (do100baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
+		// 145 baud
+		else if (baud==145) return (do145baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
 		// 150 baud
 		else if (baud==150) return (do150baudFSKHalfSymbolBinRequest (circBuf,start,bin0,bin1));
 		// 200 baud 
@@ -346,15 +371,32 @@ public class FSK extends FFT {
 		return freq;
 		}	
 	
-	// Return the frequency on a 150 baud 160 point FFT sample
-	public int do150baudFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+	// Return the frequency on a 145 baud 160 point FFT sample
+	public int do145baudFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
 		// Get the data from the circular buffer
-		double samData[]=circBuf.extractDataDouble(start,53);
+		double samData[]=circBuf.extractDataDouble(start,80);
 		double datar[]=new double[FFT_160_SIZE];
 		// Run the data through a Blackman window
 		int a;
 		for (a=0;a<datar.length;a++)	{
-			if ((a>=54)&&(a<107)) datar[a]=samData[a-54];
+			if ((a>=40)&&(a<120)) datar[a]=samData[a-40];
+			else datar[a]=0.0;
+			}		
+		fft160.realForward(datar);
+		double spec[]=getSpectrum(datar);
+		int freq=getFFTFreq (spec,waveData.getSampleRate());  
+		return freq;
+		}		
+	
+	// Return the frequency on a 150 baud 160 point FFT sample
+	public int do150baudFFT (CircularDataBuffer circBuf,WaveData waveData,int start)	{
+		// Get the data from the circular buffer
+		double samData[]=circBuf.extractDataDouble(start,55);
+		double datar[]=new double[FFT_160_SIZE];
+		// Run the data through a Blackman window
+		int a;
+		for (a=0;a<datar.length;a++)	{
+			if ((a>=52)&&(a<107)) datar[a]=samData[a-52];
 			else datar[a]=0.0;
 			}		
 		fft160.realForward(datar);

@@ -642,16 +642,17 @@ public class Rivet {
 		 panel.setLayout(new GridLayout(3,2));
 		 // Baud Rate
 		 JLabel labelBaud=new JLabel("Baud Rate : ");		
-		 final String BAUDRATES[]={"45.5 baud","50 baud","75 baud","100 baud","150 baud","200 baud","300 baud","600 baud"};
+		 final String BAUDRATES[]={"45.5 baud","50 baud","75 baud","100 baud","145 baud","150 baud","200 baud","300 baud","600 baud"};
 		 JComboBox<String> baudRateList=new JComboBox <String>(BAUDRATES);
 		 if (rttyHandler.getBaudRate()==45.45) baudRateList.setSelectedIndex(0);
 		 else if (rttyHandler.getBaudRate()==50) baudRateList.setSelectedIndex(1);
 		 else if (rttyHandler.getBaudRate()==75) baudRateList.setSelectedIndex(2); 
 		 else if (rttyHandler.getBaudRate()==100) baudRateList.setSelectedIndex(3);
-		 else if (rttyHandler.getBaudRate()==150) baudRateList.setSelectedIndex(4); 
-		 else if (rttyHandler.getBaudRate()==200) baudRateList.setSelectedIndex(5); 
-		 else if (rttyHandler.getBaudRate()==300) baudRateList.setSelectedIndex(6); 
-		 else if (rttyHandler.getBaudRate()==600) baudRateList.setSelectedIndex(7);
+		 else if (rttyHandler.getBaudRate()==145) baudRateList.setSelectedIndex(4);
+		 else if (rttyHandler.getBaudRate()==150) baudRateList.setSelectedIndex(5); 
+		 else if (rttyHandler.getBaudRate()==200) baudRateList.setSelectedIndex(6); 
+		 else if (rttyHandler.getBaudRate()==300) baudRateList.setSelectedIndex(7); 
+		 else if (rttyHandler.getBaudRate()==600) baudRateList.setSelectedIndex(8);
 		 panel.add(labelBaud);
 		 panel.add(baudRateList);
 		 // Shift 
@@ -706,18 +707,22 @@ public class Rivet {
 				fskHandler.setBaudRate(100);
 			}
 			if (baudRateList.getSelectedIndex()==4)	{
+				rttyHandler.setBaudRate(145);
+				fskHandler.setBaudRate(145);
+			}
+			if (baudRateList.getSelectedIndex()==5)	{
 				rttyHandler.setBaudRate(150);
 				fskHandler.setBaudRate(150);
 			}
-			if (baudRateList.getSelectedIndex()==5)	{
+			if (baudRateList.getSelectedIndex()==6)	{
 				rttyHandler.setBaudRate(200);
 				fskHandler.setBaudRate(200);
 			}
-			if (baudRateList.getSelectedIndex()==6)	{
+			if (baudRateList.getSelectedIndex()==7)	{
 				rttyHandler.setBaudRate(300);
 				fskHandler.setBaudRate(300);
 			}
-			if (baudRateList.getSelectedIndex()==7)	{
+			if (baudRateList.getSelectedIndex()==8)	{
 				rttyHandler.setBaudRate(600);
 				fskHandler.setBaudRate(600);
 			}
