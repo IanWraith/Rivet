@@ -160,6 +160,7 @@ Build 88 Add support for 75 Hz and 400 Hz CIS36-50 mode shifts
 Build 89 Improve the decoded CROWD36 display and add a debug output
          Display the CROWD36 sync tone number at the start of a message
          Add 800 Hz shift support for RTTY and raw FSK
+         Add 145 baud support for RTTY and raw FSK
          Add 150 baud support for RTTY and raw FSK
                 
 Reported Bugs
