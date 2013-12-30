@@ -15,11 +15,11 @@ package org.e2k;
 
 import java.awt.Color;
 import java.util.List;
-
 import javax.swing.JOptionPane;
 
 public class FSKraw extends FSK {
 	
+	private final boolean NOISY=false;
 	private double baudRate=50;
 	private int state=0;
 	private double samplesPerSymbol;
@@ -189,15 +189,17 @@ public class FSKraw extends FSK {
 	// Look for a sequence of 2 alternating tones with a certain shift
 	private String syncSequenceHunt (CircularDataBuffer circBuf,WaveData waveData)	{
 		int difference;
+		double signalPercentage=10.0;
+		if (NOISY) signalPercentage=6.0;
 		// Get 2 symbols
 		int freq1=rttyFreq(circBuf,waveData,0);
 		int bin1=getFreqBin();
 		// Check this first tone isn't just noise
-		if (getPercentageOfTotal()<10.0) return null;
+		if (getPercentageOfTotal()<signalPercentage) return null;
 		int freq2=rttyFreq(circBuf,waveData,(int)samplesPerSymbol*1);
 		int bin2=getFreqBin();
 		// Check this second tone isn't just noise
-		if (getPercentageOfTotal()<10.0) return null;
+		if (getPercentageOfTotal()<signalPercentage) return null;
 		// Calculate the difference between these tones
 		if (freq2>freq1) difference=freq2-freq1;
 		else difference=freq1-freq2;
@@ -238,8 +240,10 @@ public class FSKraw extends FSK {
 	
 	// Add a comparator output to a circular buffer of values
 	private void addToAdjBuffer (double in)	{
-		// If the buffer average percentage difference is more than 25% then we have lost the signal
-		if (absAverage()>25.0)	{
+		double lossAverage=25.0;
+		if (NOISY) lossAverage=60.0;
+		// If the buffer average percentage difference is more than lossAverage then we have lost the signal
+		if (absAverage()>lossAverage)	{
 			if (display==true)	{
 				// Tell the user how many bits were received
 				String line="("+Long.toString(bitsReceived)+" bits received)";
